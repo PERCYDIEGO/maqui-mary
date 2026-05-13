@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
+  xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+  xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
+  xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+  xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2">
+  <ext:UBLExtensions>
+    <ext:UBLExtension>
+      <ext:ExtensionContent><ds:Signature Id="SignatureSP" xmlns="http://www.w3.org/2000/09/xmldsig#"><ds:SignedInfo><ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/><ds:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/><ds:Reference URI="#_0"><ds:Transforms><ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/><ds:Transform Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/></ds:Transforms><ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/><ds:DigestValue>+5s4CpshyBCahJmp4MMKILCAvbhbPFbaUR9rJ5EN+ug=</ds:DigestValue></ds:Reference></ds:SignedInfo><ds:SignatureValue>dTUq9tFJ9zCWGPa2AjCVpbEPaGR96m4IYEBIJ3vhPiBL7zT/r9cCDWbBnoF1j+YR4rArN8a8QUZTsebPcbiwdFlVa9DiqNuZIzxYt/82gP9Kh1Prq6/c/xKQbnfh0e7qjp+/vfK4L/2v1B05PvB0Mxfhny5nzHVHvcXFjL9rsRa4ICPx9oFsAUHmOGUEGfgLpkJdiyT6uHegMaHl9o43ETelWaXDDSUf1DS8EpvvwHGsDwLFD/dvJ/g04ejdpX0CPUj3PFkqqAxMYzHlzRb9y+K+19jDp9QRMY/MX10ZHDQ38yUqcSTMbxyuEE59fdytGQGJ0EnQdWOfnpmToY421w==</ds:SignatureValue><ds:KeyInfo><ds:ds:KeyInfo><ds:ds:X509Data><ds:ds:X509Certificate>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</ds:X509Certificate></ds:X509Data></ds:KeyInfo></ds:KeyInfo><ds:Object><xades:QualifyingProperties xmlns:xades="http://uri.etsi.org/01903/v1.3.2#" Target="#SignatureSP">
+    <xades:SignedProperties Id="SignedProperties">
+      <xades:SignedSignatureProperties>
+        <xades:SigningTime>2026-05-12T14:42:14.582Z</xades:SigningTime>
+        <xades:SignaturePolicyIdentifier>
+          <xades:SignaturePolicyId>
+            <xades:SigPolicyId>
+              <xades:Identifier>https://e-factura.sunat.gob.pe/ol-it-wsconscpegem/billService?wsdl</xades:Identifier>
+            </xades:SigPolicyId>
+            <xades:SigPolicyHash>
+              <ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
+              <ds:DigestValue>3Tl8CoD2Ly3ft9P8w7CqHjsPioXnJZJ8ZY+ED6V6yE=</ds:DigestValue>
+            </xades:SigPolicyHash>
+          </xades:SignaturePolicyId>
+        </xades:SignaturePolicyIdentifier>
+      </xades:SignedSignatureProperties>
+    </xades:SignedProperties>
+  </xades:QualifyingProperties></ds:Object></ds:Signature></ext:ExtensionContent>
+    </ext:UBLExtension>
+  </ext:UBLExtensions>
+  <cbc:ID>F001-00000001</cbc:ID>
+</Invoice>

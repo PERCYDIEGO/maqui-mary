@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Icono Launcher para todas las densidades usando vector -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/ic_launcher_background"/>
+    <item android:drawable="@drawable/ic_maqui_launcher"/>
+</layer-list>
