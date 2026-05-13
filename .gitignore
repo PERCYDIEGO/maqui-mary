@@ -45,3 +45,7 @@ coverage/
 
 # Misc
 .vercel/
+
+# Claude local config (no subir a Git)
+.claude/configuracion.local.json
+CLAUDE.local.md

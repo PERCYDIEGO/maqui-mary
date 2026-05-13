@@ -1,0 +1,38 @@
+{
+  "permisos": {
+    "ejecutar_comandos": ["npm", "npx", "node", "git", "vercel"],
+    "editar_archivos": [".tsx", ".ts", ".css", ".json", ".md", ".mjs", ".sql", ".kt", ".gradle", ".xml"],
+    "instalar_dependencias": true,
+    "deploy_automatico": true,
+    "plataforma_deploy": "vercel"
+  },
+  "restricciones": {
+    "no_modificar": [
+      ".env",
+      ".env.local",
+      ".env.*.local",
+      "node_modules/",
+      ".next/",
+      "web/node_modules/",
+      "FactuMaryApp/local.properties",
+      "FactuMaryApp/.idea/",
+      "FactuMaryApp/.gradle/",
+      "FactuMaryApp/build/"
+    ],
+    "preguntar_antes_de": [
+      "npm install",
+      "npm uninstall",
+      "git push --force",
+      "vercel --prod",
+      "node scripts/clean-database.mjs --confirm",
+      "node scripts/truncate-facturas-pedidos.mjs --confirm"
+    ]
+  },
+  "proyecto": {
+    "nombre": "maqui-mary",
+    "tipo": "fullstack-web-android",
+    "cuenta_github": "PERCYDIEGO",
+    "repo_remoto": "https://github.com/PERCYDIEGO/maqui-mary.git",
+    "rama_principal": "main"
+  }
+}
