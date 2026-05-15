@@ -151,7 +151,8 @@ export async function PUT(req: NextRequest) {
         })
         if (!r.ok) { const d = await r.json(); throw new Error(d.msg || 'Error al actualizar contraseña') }
       }
-      await adminSb.from('profiles').update(allowedFields).eq('id', user_id)
+      const { error: updErr } = await adminSb.from('profiles').update(allowedFields).eq('id', user_id)
+      if (updErr) throw new Error(updErr.message)
       return NextResponse.json({ ok: true })
     } catch (e: any) {
       return NextResponse.json({ ok: false, error: e.message }, { status: 500 })
@@ -175,7 +176,8 @@ export async function PUT(req: NextRequest) {
     if (alias !== undefined) updateData.alias = alias
 
     if (Object.keys(updateData).length > 0) {
-      await adminSb.from('profiles').update(updateData).eq('id', user_id)
+      const { error: updErr } = await adminSb.from('profiles').update(updateData).eq('id', user_id)
+      if (updErr) throw new Error(updErr.message)
     }
 
     return NextResponse.json({ ok: true })

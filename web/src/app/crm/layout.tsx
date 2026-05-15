@@ -135,6 +135,7 @@ const menuItems = [
   { href: '/crm/productos',    label: 'Productos',     icon: ShoppingBag   },
   { href: '/crm/inventario',   label: 'Inventario',    icon: Boxes         },
   { href: '/crm/configuracion', label: 'Configuración', icon: Settings     },
+  { href: '/crm/usuarios',     label: 'Usuarios',     icon: User,  badge: 'ADMIN'  },
 ];
 
 // ============================================

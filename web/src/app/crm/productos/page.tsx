@@ -92,7 +92,6 @@ export default function ProductosPage() {
         precioOriginal: form.precioOriginal,
         precioUnitario: form.precioUnitario,
         price: form.precioUnitario,
-        categoria: form.categoria,
         category: form.categoria,
         unidadMedida: form.unidadMedida,
         imagen: form.imagen,

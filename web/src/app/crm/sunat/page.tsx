@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import { Send, CheckCircle, XCircle, Clock, FileText, AlertTriangle, Eye, X, Code } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Send, CheckCircle, XCircle, Clock, FileText, AlertTriangle, Eye, X, Code, User } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { formatearMoneda } from '@/lib/calculos';
 import { EMPRESA_DATA } from '@/types/documentos';
+import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
 
 type TipoDocumento = 'boleta' | 'factura';
@@ -23,6 +24,8 @@ interface DocumentoPendiente {
   items?: any[];
   igvTotal?: number;
   operacionGravada?: number;
+  enviadoPor?: string;
+  enviadoAt?: Date;
 }
 
 export default function SunatPage() {
@@ -32,6 +35,19 @@ export default function SunatPage() {
   const [documentoRechazando, setDocumentoRechazando] = useState<string | null>(null);
   const [vistaPrevia, setVistaPrevia] = useState<DocumentoPendiente | null>(null);
   const [tipoVista, setTipoVista] = useState<'xml' | 'pdf'>('xml');
+  const [userMap, setUserMap] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    supabase.from('profiles').select('id, full_name, alias').then(({ data }) => {
+      if (data) {
+        const map: Record<string, string> = {}
+        for (const p of data) {
+          map[p.id] = p.full_name || p.alias || p.id.slice(0, 8)
+        }
+        setUserMap(map)
+      }
+    })
+  }, [])
 
   // Generar XML UBL que se enviará a SUNAT
   const generarXMLUBL = (doc: DocumentoPendiente): string => {
@@ -384,6 +400,13 @@ export default function SunatPage() {
                         {getEstadoBadge(doc.estado)}
                       </div>
                       <p className="text-sm text-ink-600 mt-1">{doc.cliente.nombre}</p>
+                      {doc.enviadoPor && userMap[doc.enviadoPor] && (
+                        <p className="text-xs text-ink-400 mt-0.5 flex items-center gap-1">
+                          <User className="w-3 h-3" />
+                          Enviado por: {userMap[doc.enviadoPor]}
+                          {doc.enviadoAt && ` • ${new Date(doc.enviadoAt).toLocaleString('es-PE')}`}
+                        </p>
+                      )}
                     </div>
                   </div>
 

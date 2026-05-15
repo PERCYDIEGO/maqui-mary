@@ -72,6 +72,7 @@ interface AppContextType extends AppState {
   refreshProductos: () => Promise<void>;
   refreshClientes: () => Promise<void>;
   refreshTransportistas: () => Promise<void>;
+  refreshDocuments: () => Promise<void>;
 
   // SUNAT - Envío de documentos
   enviarDocumentoSUNAT: (documentoId: string, tipo: 'boleta' | 'factura') => Promise<{ success: boolean; message: string }>;
@@ -103,6 +104,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [boletas, setBoletasState] = useState<Boleta[]>([]);
   const [facturas, setFacturasState] = useState<Factura[]>([]);
   const [guias, setGuiasState] = useState<GuiaRemision[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
   
   const [clientes, setClientesState] = useState<Cliente[]>([]);
   
@@ -261,12 +263,85 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
+  // ============================================
+  // Helper: mapear estado interno a estado_sunat
+  // ============================================
+  const mapEstadoToSunat = (estado: string): string => {
+    switch (estado) {
+      case 'borrador': return 'PENDIENTE';
+      case 'pendiente_envio': return 'PENDIENTE';
+      case 'enviado': return 'ENVIADO';
+      case 'aprobado': return 'ACEPTADO';
+      case 'rechazado': return 'RECHAZADO';
+      default: return 'PENDIENTE';
+    }
+  }
+
+  // ============================================
+  // Helper: revivir fechas en objetos reconstruidos
+  // ============================================
+  const reviveDates = (obj: any): any => {
+    if (obj === null || obj === undefined) return obj
+    if (typeof obj === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(obj)) return new Date(obj)
+    if (Array.isArray(obj)) return obj.map(reviveDates)
+    if (typeof obj === 'object') {
+      const result: any = {}
+      for (const key of Object.keys(obj)) {
+        result[key] = reviveDates(obj[key])
+      }
+      return result
+    }
+    return obj
+  }
+
+  // ============================================
+  // Cargar boletas/facturas desde Supabase
+  // ============================================
+  const loadDocuments = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('facturas')
+        .select('*')
+        .eq('origen', 'crm')
+        .order('created_at', { ascending: false })
+
+      if (error) { console.error('Error cargando documentos:', error); return }
+
+      if (!data) return
+
+      const boletasBD: Boleta[] = []
+      const facturasBD: Factura[] = []
+
+      for (const row of data) {
+        const doc = reviveDates(row.data_json || {})
+        if (!doc || !doc.id) continue
+
+        if (row.tipo_comprobante === '03') {
+          boletasBD.push(doc as Boleta)
+        } else if (row.tipo_comprobante === '01') {
+          facturasBD.push(doc as Factura)
+        }
+      }
+
+      if (boletasBD.length > 0) setBoletasState(boletasBD)
+      if (facturasBD.length > 0) setFacturasState(facturasBD)
+    } catch (err) {
+      console.error('Error cargando documentos:', err)
+    }
+  }, [])
+
+  // ============================================
   // Cargar datos desde Supabase al iniciar
+  // ============================================
   useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) setUserId(session.user.id)
+    })
     loadProductos();
     loadClientes();
     loadTransportistas();
-  }, [loadProductos, loadClientes, loadTransportistas]);
+    loadDocuments();
+  }, [loadProductos, loadClientes, loadTransportistas, loadDocuments]);
 
   // ============================================
   // ACTIONS - BOLETAS
@@ -278,13 +353,28 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const addBoleta = useCallback((boleta: Boleta) => {
     setBoletasState(prev => [boleta, ...prev]);
-    // Incrementar contador de serie
     setSeries(prev => prev.map(s => 
       s.tipo === 'boleta' && s.serie === boleta.serie
         ? { ...s, numeroActual: s.numeroActual + 1 }
         : s
     ));
-  }, []);
+    supabase.from('facturas').insert({
+      series: boleta.serie,
+      number: boleta.numero,
+      cliente_nombre: boleta.cliente.nombre,
+      cliente_ruc: boleta.cliente.ruc || boleta.cliente.dni || '',
+      cliente_direccion: boleta.cliente.direccion || '',
+      total: boleta.importeTotal,
+      moneda: boleta.moneda,
+      tipo_comprobante: '03',
+      origen: 'crm',
+      estado_sunat: mapEstadoToSunat(boleta.estado),
+      data_json: JSON.parse(JSON.stringify(boleta)),
+      created_by: userId,
+    }).then(({ error }) => {
+      if (error) console.error('Error persistiendo boleta:', error)
+    })
+  }, [userId]);
 
   const updateBoleta = useCallback((boleta: Boleta) => {
     setBoletasState(prev => 
@@ -307,7 +397,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         ? { ...s, numeroActual: s.numeroActual + 1 }
         : s
     ));
-  }, []);
+    supabase.from('facturas').insert({
+      series: factura.serie,
+      number: factura.numero,
+      cliente_nombre: factura.cliente.razonSocial || factura.cliente.nombre,
+      cliente_ruc: factura.cliente.ruc || '',
+      cliente_direccion: factura.cliente.direccion || '',
+      total: factura.importeTotal,
+      moneda: factura.moneda,
+      tipo_comprobante: '01',
+      origen: 'crm',
+      estado_sunat: mapEstadoToSunat(factura.estado),
+      data_json: JSON.parse(JSON.stringify(factura)),
+      created_by: userId,
+    }).then(({ error }) => {
+      if (error) console.error('Error persistiendo factura:', error)
+    })
+  }, [userId]);
 
   const updateFactura = useCallback((factura: Factura) => {
     setFacturasState(prev => 
@@ -452,45 +558,40 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
       if (!response.ok || !result.ok) {
         const errorMsg = result.error || 'Error en el envío a SUNAT';
-        
-        // Actualizar estado a rechazado
+        const docActualizado: any = {
+          estado: 'rechazado',
+          enviadoPor: userId,
+          enviadoAt: new Date(),
+          cdr: {
+            codigo: result.estado_sunat || 'ERROR',
+            mensaje: errorMsg,
+            fechaRecepcion: new Date(),
+          }
+        }
+
         if (tipo === 'boleta') {
           setBoletasState(prev => prev.map(b =>
-            b.id === documentoId
-              ? { 
-                  ...b, 
-                  estado: 'rechazado', 
-                  cdr: {
-                    codigo: result.estado_sunat || 'ERROR',
-                    mensaje: errorMsg,
-                    fechaRecepcion: new Date(),
-                  }
-                }
-              : b
+            b.id === documentoId ? { ...b, ...docActualizado } : b
           ));
         } else {
           setFacturasState(prev => prev.map(f =>
-            f.id === documentoId
-              ? { 
-                  ...f, 
-                  estado: 'rechazado', 
-                  cdr: {
-                    codigo: result.estado_sunat || 'ERROR',
-                    mensaje: errorMsg,
-                    fechaRecepcion: new Date(),
-                  }
-                }
-              : f
+            f.id === documentoId ? { ...f, ...docActualizado } : f
           ));
         }
-        
+
+        supabase.from('facturas').update({
+          estado_sunat: 'RECHAZADO',
+          data_json: JSON.parse(JSON.stringify({ ...documento, ...docActualizado })),
+        }).eq('data_json->>id', documentoId).then(({ error }) => {
+          if (error) console.error('Error persistiendo rechazo:', error)
+        })
+
         return { success: false, message: errorMsg };
       }
 
-      // Determinar el estado final basado en la respuesta de SUNAT
       const estadoSunat = result.estado_sunat || 'PENDIENTE';
       let nuevoEstado: 'enviado' | 'aprobado' | 'rechazado';
-      
+
       if (estadoSunat === 'ACEPTADO') {
         nuevoEstado = 'aprobado';
       } else if (estadoSunat === 'RECHAZADO' || estadoSunat === 'ERROR') {
@@ -499,48 +600,44 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         nuevoEstado = 'enviado';
       }
 
-      // Actualizar estado del documento
+      const ahora = new Date()
+      const docActualizadoOk: any = {
+        estado: nuevoEstado,
+        enviadoPor: userId,
+        enviadoAt: ahora,
+        cdr: nuevoEstado === 'aprobado' ? {
+          codigo: result.factura?.ticket_sunat || '0',
+          mensaje: result.mensaje || 'Documento aceptado por SUNAT',
+          fechaRecepcion: ahora,
+        } : undefined,
+      }
+
       if (tipo === 'boleta') {
         setBoletasState(prev => prev.map(b =>
-          b.id === documentoId
-            ? { 
-                ...b, 
-                estado: nuevoEstado, 
-                enviadoAt: new Date(),
-                cdr: nuevoEstado === 'aprobado' ? {
-                  codigo: result.factura?.ticket_sunat || '0',
-                  mensaje: result.mensaje || 'Documento aceptado por SUNAT',
-                  fechaRecepcion: new Date(),
-                } : b.cdr
-              }
-            : b
+          b.id === documentoId ? { ...b, ...docActualizadoOk } : b
         ));
       } else {
         setFacturasState(prev => prev.map(f =>
-          f.id === documentoId
-            ? { 
-                ...f, 
-                estado: nuevoEstado, 
-                enviadoAt: new Date(),
-                cdr: nuevoEstado === 'aprobado' ? {
-                  codigo: result.factura?.ticket_sunat || '0',
-                  mensaje: result.mensaje || 'Documento aceptado por SUNAT',
-                  fechaRecepcion: new Date(),
-                } : f.cdr
-              }
-            : f
+          f.id === documentoId ? { ...f, ...docActualizadoOk } : f
         ));
       }
 
-      return { 
-        success: true, 
-        message: result.mensaje || 'Documento procesado correctamente' 
+      supabase.from('facturas').update({
+        estado_sunat: estadoSunat,
+        data_json: JSON.parse(JSON.stringify({ ...documento, ...docActualizadoOk })),
+      }).eq('data_json->>id', documentoId).then(({ error }) => {
+        if (error) console.error('Error persistiendo envio SUNAT:', error)
+      })
+
+      return {
+        success: true,
+        message: result.mensaje || 'Documento procesado correctamente'
       };
     } catch (error: any) {
       console.error('Error enviando a SUNAT:', error);
       return { success: false, message: error.message || 'Error al enviar a SUNAT' };
     }
-  }, [boletas, facturas]);
+  }, [boletas, facturas, userId]);
 
   const aprobarDocumento = useCallback(async (documentoId: string, tipo: 'boleta' | 'factura') => {
     const cdrData = {
@@ -549,22 +646,27 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       fechaRecepcion: new Date(),
     };
 
+    const docActualizado: any = { estado: 'aprobado', cdr: cdrData };
+
     if (tipo === 'boleta') {
       setBoletasState(prev => prev.map(b =>
-        b.id === documentoId
-          ? { ...b, estado: 'aprobado', cdr: cdrData }
-          : b
+        b.id === documentoId ? { ...b, ...docActualizado } : b
       ));
     } else {
       setFacturasState(prev => prev.map(f =>
-        f.id === documentoId
-          ? { ...f, estado: 'aprobado', cdr: cdrData }
-          : f
+        f.id === documentoId ? { ...f, ...docActualizado } : f
       ));
     }
 
+    supabase.from('facturas').update({
+      estado_sunat: 'ACEPTADO',
+      data_json: JSON.parse(JSON.stringify(docActualizado)),
+    }).eq('data_json->>id', documentoId).then(({ error }) => {
+      if (error) console.error('Error persistiendo aprobacion:', error)
+    })
+
     showNotificacion('success', 'Documento aprobado por SUNAT');
-  }, [showNotificacion]);
+  }, [showNotificacion, userId]);
 
   const rechazarDocumento = useCallback(async (documentoId: string, tipo: 'boleta' | 'factura', motivo: string) => {
     const cdrData = {
@@ -573,22 +675,27 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       fechaRecepcion: new Date(),
     };
 
+    const docActualizado: any = { estado: 'rechazado', cdr: cdrData };
+
     if (tipo === 'boleta') {
       setBoletasState(prev => prev.map(b =>
-        b.id === documentoId
-          ? { ...b, estado: 'rechazado', cdr: cdrData }
-          : b
+        b.id === documentoId ? { ...b, ...docActualizado } : b
       ));
     } else {
       setFacturasState(prev => prev.map(f =>
-        f.id === documentoId
-          ? { ...f, estado: 'rechazado', cdr: cdrData }
-          : f
+        f.id === documentoId ? { ...f, ...docActualizado } : f
       ));
     }
 
+    supabase.from('facturas').update({
+      estado_sunat: 'RECHAZADO',
+      data_json: JSON.parse(JSON.stringify(docActualizado)),
+    }).eq('data_json->>id', documentoId).then(({ error }) => {
+      if (error) console.error('Error persistiendo rechazo:', error)
+    })
+
     showNotificacion('error', `Documento rechazado: ${motivo}`);
-  }, [showNotificacion]);
+  }, [showNotificacion, userId]);
 
   // ============================================
   // UTILIDADES (continuación)
@@ -606,6 +713,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const serie = series.find(s => s.tipo === tipo && s.activo);
     return serie ? serie.numeroActual + 1 : 1;
   }, [series]);
+
+  const refreshDocuments = useCallback(async () => {
+    await loadDocuments()
+  }, [loadDocuments])
 
   // ============================================
   // VALUE
@@ -642,6 +753,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     refreshProductos: loadProductos,
     refreshClientes: loadClientes,
     refreshTransportistas: loadTransportistas,
+    refreshDocuments,
     enviarDocumentoSUNAT,
     aprobarDocumento,
     rechazarDocumento,
