@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import Image from 'next/image'
 import { Menu, X, ChevronRight, Star, Shield, Truck, Package, ShoppingCart, Plus, Minus, Trash2, CreditCard, Smartphone, Check, TrendingUp, Store, Lock, Users, Sparkles, MessageCircle, ExternalLink, Volume2, VolumeX, MapPin, Clock, Heart } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
@@ -32,6 +33,7 @@ function Rating({ rating, count }: { rating: number; count: number }) {
 
 function ContadorAnimado({ target, suffix = '', label }: { target: number; suffix?: string; label: string }) {
   const [count, setCount] = useState(0)
+  const [visible, setVisible] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const counted = useRef(false)
 
@@ -39,6 +41,7 @@ function ContadorAnimado({ target, suffix = '', label }: { target: number; suffi
     const obs = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting && !counted.current) {
         counted.current = true
+        setVisible(true)
         const step = Math.ceil(target / 40)
         const t = setInterval(() => {
           setCount(prev => {
@@ -53,7 +56,7 @@ function ContadorAnimado({ target, suffix = '', label }: { target: number; suffi
   }, [target])
 
   return (
-    <div ref={ref} className="text-center">
+    <div ref={ref} className={`text-center transition-opacity duration-500 ${visible ? 'opacity-100' : 'opacity-0'}`}>
       <p className="font-display text-4xl md:text-5xl text-accent-terracotta font-bold">
         {Intl.NumberFormat('es-PE').format(count)}{suffix}
       </p>
@@ -264,6 +267,7 @@ export default function LandingPage() {
         total: total * 1.18,
         status: 'pending',
         payment_method: paymentMethod,
+        origen: 'web',
         notes: cart.map(i => `${i.name} x${i.quantity} = S/ ${(i.price * i.quantity).toFixed(2)}`).join('\n'),
       }).select('id').single()
       if (error) throw error
@@ -357,9 +361,9 @@ export default function LandingPage() {
       <section className="min-h-screen flex items-center bg-gradient-to-br from-ink-900 via-ink-800 to-ink-900 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-textile-pattern opacity-30" />
         <div className="absolute inset-0 bg-noise" />
-        <div className="absolute top-20 right-0 w-96 h-96 bg-accent-gold/5 rounded-full blur-3xl animate-breathe" />
-        <div className="absolute bottom-20 left-0 w-80 h-80 bg-accent-terracotta/5 rounded-full blur-3xl animate-breathe" style={{ animationDelay: '2s' }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent-gold/3 rounded-full blur-[120px]" />
+        <div className="absolute top-20 right-0 w-48 md:w-96 h-48 md:h-96 bg-accent-gold/5 rounded-full blur-3xl animate-breathe" />
+        <div className="absolute bottom-20 left-0 w-40 md:w-80 h-40 md:h-80 bg-accent-terracotta/5 rounded-full blur-3xl animate-breathe" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] md:w-[600px] h-[300px] md:h-[600px] bg-accent-gold/3 rounded-full blur-[120px]" />
         <div className="max-w-7xl mx-auto px-4 py-32 md:py-40 relative">
           <div className="max-w-3xl">
             <div className={`flex items-center gap-3 mb-6 transition-all duration-700 ${heroLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
@@ -452,7 +456,7 @@ export default function LandingPage() {
                     <div key={f.id} className="card hover:shadow-2xl transition-all duration-300 group overflow-hidden animate-fade-up" style={{ animationDelay: `${idx * 80}ms`, animationFillMode: 'both' }}>
                       <div className="h-44 -mx-6 -mt-6 mb-4 bg-gradient-to-b from-ink-100 to-white relative overflow-hidden rounded-t-3xl">
                         {imgUrl ? (
-                          <img src={imgUrl} alt={nombre} className={`w-full h-full object-contain p-4 transition-all duration-500 ${out ? 'opacity-30' : 'group-hover:scale-110 group-hover:rotate-1'}`} />
+                          <Image src={imgUrl} alt={nombre} fill className={`object-contain p-4 transition-all duration-500 ${out ? 'opacity-30' : 'group-hover:scale-110 group-hover:rotate-1'}`} sizes="(max-width: 768px) 50vw, 25vw" />
                         ) : (
                           <div className="w-full h-full bg-gradient-to-br from-ink-200 to-ink-400 flex items-center justify-center">
                             <Package size={64} className="text-white/30" />
@@ -512,7 +516,7 @@ export default function LandingPage() {
                       <div key={p.id} className="card !p-4 flex flex-col animate-fade-up" style={{ animationDelay: `${idx * 60}ms`, animationFillMode: 'both' }}>
                         <div className="h-28 -mx-4 -mt-4 mb-3 bg-gradient-to-b from-ink-100 to-white rounded-t-2xl overflow-hidden relative">
                           {imgUrl ? (
-                            <img src={imgUrl} alt={nombre} className={`w-full h-full object-contain p-2 transition-transform duration-500 ${outOfStock ? 'opacity-30' : 'hover:scale-105'}`} />
+                            <Image src={imgUrl} alt={nombre} fill className={`object-contain p-2 transition-transform duration-500 ${outOfStock ? 'opacity-30' : 'hover:scale-105'}`} sizes="(max-width: 640px) 50vw, 25vw" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center bg-ink-200/50">
                               <Package size={32} className="text-ink-400/40" />
@@ -525,7 +529,7 @@ export default function LandingPage() {
                           )}
                           {!outOfStock && p.stock < 20 && (
                             <div className="absolute top-1 right-1 bg-accent-terracotta text-white text-xs font-bold px-1.5 py-0.5 rounded-lg animate-pulse-soft">
-                              uds: {p.stock}
+                              Solo {p.stock} uds
                             </div>
                           )}
                         </div>
@@ -588,7 +592,7 @@ export default function LandingPage() {
             setCartOpen(false)
           }} />
           <div className="relative w-full max-w-md bg-accent-cream shadow-2xl h-full overflow-y-auto animate-fade-up">
-            <div className="sticky top-0 bg-white/95 backdrop-blur-sm z-10 border-b border-ink-200 p-4 flex items-center justify-between">
+            <div className="sticky top-0 bg-white/95 backdrop-blur-sm z-10 border-b border-ink-200 p-3 sm:p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <h2 className="font-display font-bold text-lg text-ink-800">
                   {checkoutStep === 'payment' ? 'Pagar' : checkoutStep === 'done' ? '¡Pedido listo!' : 'Carrito'}
@@ -662,13 +666,13 @@ export default function LandingPage() {
                     <label className="block text-sm font-medium text-ink-700 mb-3">Método de pago</label>
                     <div className="grid grid-cols-2 gap-3">
                       <button onClick={() => setPaymentMethod('yape')} className={`p-3 rounded-2xl border-2 text-center transition-all bg-white ${paymentMethod === 'yape' ? 'border-accent-gold shadow-md ring-1 ring-accent-gold/30' : 'border-ink-200 hover:border-ink-300'}`}>
-                        <img src="/medio-de-pagos/yape.png" alt="Yape" style={{ height: 80, objectFit: 'contain' }} className="mx-auto" />
-                        <span className="block text-xs font-medium text-ink-600 mt-1">Yape</span>
+                         <img src="/medio-de-pagos/yape.png" alt="Yape" style={{ height: 64, objectFit: 'contain' }} className="mx-auto sm:max-h-[80px] sm:h-auto" />
+                         <span className="block text-xs font-medium text-ink-600 mt-1">Yape</span>
+                        </button>
+                        <button onClick={() => setPaymentMethod('plin')} className={`p-3 rounded-2xl border-2 text-center transition-all bg-white ${paymentMethod === 'plin' ? 'border-blue-500 shadow-md ring-1 ring-blue-500/30' : 'border-ink-200 hover:border-ink-300'}`}>
+                         <img src="/medio-de-pagos/plin.png" alt="Plin" style={{ height: 56, objectFit: 'contain' }} className="mx-auto sm:max-h-[72px] sm:h-auto" />
+                         <span className="block text-xs font-medium text-ink-600 mt-1">Plin</span>
                        </button>
-                       <button onClick={() => setPaymentMethod('plin')} className={`p-3 rounded-2xl border-2 text-center transition-all bg-white ${paymentMethod === 'plin' ? 'border-blue-500 shadow-md ring-1 ring-blue-500/30' : 'border-ink-200 hover:border-ink-300'}`}>
-                        <img src="/medio-de-pagos/plin.png" alt="Plin" style={{ height: 72, objectFit: 'contain' }} className="mx-auto" />
-                        <span className="block text-xs font-medium text-ink-600 mt-1">Plin</span>
-                      </button>
                     </div>
                   </div>
                 </div>
@@ -753,7 +757,7 @@ export default function LandingPage() {
                     <div className="bg-ink-50 rounded-xl p-4 border-2 border-dashed border-ink-300">
                       {paymentMethod === 'yape' ? (
                         <>
-                          <img src="/img/yape-qr.jpeg" alt="Código QR Yape" className="w-40 h-40 object-contain mx-auto" />
+                          <Image src="/img/yape-qr.jpeg" alt="Código QR Yape" width={160} height={160} className="object-contain mx-auto" />
                           <p className="text-xs text-ink-400 text-center mt-2">1. Abre Yape · 2. Escanea este QR · 3. Confirma el pago</p>
                         </>
                       ) : (
@@ -803,7 +807,7 @@ export default function LandingPage() {
                         className="text-center animate-scale-in"
                       >
                         <div className="relative inline-block">
-                          <img src={paymentEvidenceUrl} alt="Comprobante" className="w-full max-w-[200px] mx-auto rounded-2xl border-2 border-accent-sage shadow-md" />
+                          <Image src={paymentEvidenceUrl} alt="Comprobante" width={400} height={400} className="w-full max-w-[200px] mx-auto rounded-2xl border-2 border-accent-sage shadow-md h-auto" unoptimized />
                           <div className="absolute -top-2 -right-2 w-8 h-8 bg-accent-sage rounded-full flex items-center justify-center">
                             <Check size={16} className="text-white" />
                           </div>
@@ -970,15 +974,13 @@ export default function LandingPage() {
               <MessageCircle size={20} /> WhatsApp
             </a>
           </div>
-          <div className="flex flex-wrap items-center gap-4 px-4">
-            <svg width="60" height="28" viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="20" cy="20" r="18" fill="#6B21A8"/>
-              <text x="42" y="27" font-family="Arial" font-weight="bold" font-size="22" fill="white">yape</text>
-            </svg>
-            <svg width="60" height="28" viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="20" cy="20" r="18" fill="#00B4D8"/>
-              <text x="42" y="27" font-family="Arial" font-weight="bold" font-size="22" fill="white">plin</text>
-            </svg>
+          <div className="flex flex-wrap items-center gap-3 px-4">
+            <span className="bg-white rounded-lg px-2 py-1 flex items-center shadow-sm">
+              <img src="/medio-de-pagos/yape.png" alt="Yape" className="h-6 w-auto object-contain" />
+            </span>
+            <span className="bg-white rounded-lg px-2 py-1 flex items-center shadow-sm">
+              <img src="/medio-de-pagos/plin.png" alt="Plin" className="h-6 w-auto object-contain" />
+            </span>
             <img src="/img/bcp-logo.svg" alt="BCP" className="h-7 w-auto object-contain brightness-0 invert opacity-80" />
             <img src="/img/bbva-logo.svg" alt="BBVA" className="h-7 w-auto object-contain brightness-0 invert opacity-80" />
             <img src="/img/interbank-logo.svg" alt="Interbank" className="h-7 w-auto object-contain brightness-0 invert opacity-80" />
@@ -993,7 +995,7 @@ export default function LandingPage() {
             if (bgMusic) { audio.stopTrack(); setBgMusic(false) }
             else { audio.startTrack(landingTrack); setBgMusic(true) }
           }}
-          className={`fixed bottom-6 left-20 z-40 p-3.5 rounded-full shadow-xl transition-all duration-200 hover:scale-110 active:scale-95 ${bgMusic ? 'bg-ink-700 text-accent-cream' : 'bg-ink-200 text-ink-500'}`}
+          className={`fixed bottom-6 right-24 z-40 p-3.5 rounded-full shadow-xl transition-all duration-200 hover:scale-110 active:scale-95 ${bgMusic ? 'bg-ink-700 text-accent-cream' : 'bg-ink-200 text-ink-500'}`}
           title={bgMusic ? 'Silenciar música de fondo' : 'Activar música de fondo'}
         >
           {bgMusic ? <Volume2 size={20} /> : <VolumeX size={20} />}
@@ -1025,15 +1027,13 @@ export default function LandingPage() {
             </div>
             <div>
               <h4 className="font-heading font-semibold text-accent-cream mb-4">Paga con</h4>
-              <div className="flex flex-wrap items-center gap-4">
-                <svg width="60" height="28" viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="20" cy="20" r="18" fill="#6B21A8"/>
-                  <text x="42" y="27" font-family="Arial" font-weight="bold" font-size="22" fill="white">yape</text>
-                </svg>
-                <svg width="60" height="28" viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="20" cy="20" r="18" fill="#00B4D8"/>
-                  <text x="42" y="27" font-family="Arial" font-weight="bold" font-size="22" fill="white">plin</text>
-                </svg>
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="bg-white rounded-lg px-2 py-1 flex items-center shadow-sm">
+                  <img src="/medio-de-pagos/yape.png" alt="Yape" className="h-5 w-auto object-contain" />
+                </span>
+                <span className="bg-white rounded-lg px-2 py-1 flex items-center shadow-sm">
+                  <img src="/medio-de-pagos/plin.png" alt="Plin" className="h-5 w-auto object-contain" />
+                </span>
                 <img src="/img/bcp-logo.svg" alt="BCP" className="h-7 w-auto object-contain brightness-0 invert opacity-70" />
                 <img src="/img/bbva-logo.svg" alt="BBVA" className="h-7 w-auto object-contain brightness-0 invert opacity-70" />
                 <img src="/img/interbank-logo.svg" alt="Interbank" className="h-7 w-auto object-contain brightness-0 invert opacity-70" />

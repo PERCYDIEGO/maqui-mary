@@ -38,7 +38,7 @@ import com.factumary.ui.theme.TextoMedio
 fun CustomerSelectorDropdown(
     selectedCustomer: CustomerEntity?,
     onCustomerSelected: (CustomerEntity) -> Unit,
-    onAddNewCustomer: () -> Unit,
+    _onAddNewCustomer: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val repo = remember { CustomerRepository(FactuMaryApp.instance.database.customerDao()) }
@@ -154,7 +154,7 @@ fun CustomerSelectorDropdown(
                             }
                         }
                         
-                        Divider()
+                        HorizontalDivider()
                         
                         // Lista de clientes
                         LazyColumn(
@@ -209,7 +209,7 @@ fun CustomerSelectorDropdown(
                             
                             // Opción de agregar nuevo al final
                             item {
-                                Divider()
+                                HorizontalDivider()
                                 TextButton(
                                     onClick = { 
                                         showAddDialog = true
@@ -377,9 +377,6 @@ private fun HighlightedText(
         Text(text = text, style = style, fontWeight = fontWeight)
         return
     }
-    
-    val parts = text.split(highlight, ignoreCase = true)
-    val matches = highlight.toRegex(RegexOption.IGNORE_CASE).findAll(text)
     
     // Simplificación: mostrar texto normal si es complejo
     Text(

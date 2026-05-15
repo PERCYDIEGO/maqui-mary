@@ -17,4 +17,17 @@ sealed class Screen(val route: String) {
     data object AddCustomer : Screen("add_customer")
     // Tutorial eliminado - ahora usamos la mascota Maqui interactiva
     data object Settings : Screen("settings")
+    data object TransportistaList : Screen("transportista_list")
+    data object TransportistaForm : Screen("transportista_form/{transportistaId}") {
+        fun passId(id: Long?) = "transportista_form/${id ?: -1}"
+    }
+    data object GuiaList : Screen("guia_list")
+    data object GuiaForm : Screen("guia_form/{guiaId}") {
+        fun passId(id: Long?) = "guia_form/${id ?: -1}"
+    }
+    data object CambiarContrasena : Screen("cambiar_contrasena")
+    data object UserManagement : Screen("user_management")
+    data object Documentos : Screen("documentos")
+    data object Sunat : Screen("sunat")
+    data object PedidosWeb : Screen("pedidos_web")
 }

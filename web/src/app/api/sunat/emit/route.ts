@@ -83,6 +83,7 @@ export async function POST(req: NextRequest) {
     let cdrDescripcion = ''
     let hash = ''
     let firmaDigest = ''
+    let codigoQR = ''
 
     // ═══════════════════════════════════════════
     // MODO 1: EMISIÓN DIRECTA SUNAT (certificado digital)
@@ -122,7 +123,7 @@ export async function POST(req: NextRequest) {
           horaEmision,
           cliente: {
             tipoDoc: tipoDocCliente as any,
-            numDoc: isBoletaSinId ? '-' : (cliente_ruc || '-'),
+            numDoc: isBoletaSinId ? '00000000' : (cliente_ruc || '-'),
             nombre: isBoletaSinId ? 'CLIENTES VARIOS' : (cliente_nombre || 'CLIENTES VARIOS'),
             direccion: isBoletaSinId ? '' : (cliente_direccion || ''),
           },
@@ -146,6 +147,13 @@ export async function POST(req: NextRequest) {
 
         // 3. Firmar XML
         const signedXml = signXml(invoiceXml, certInfo)
+
+        // 3.1 Extraer DigestValue (hash SHA-256 del XML firmado)
+        const digestMatch = signedXml.match(/<(?:ds:)?DigestValue>([^<]+)<\/(?:ds:)?DigestValue>/)
+        if (digestMatch) {
+          firmaDigest = digestMatch[1].trim()
+          hash = firmaDigest
+        }
 
         // 4. Comprimir en ZIP
         const filename = getSunatFilename(config.ruc || '', tipo_comprobante, serie, numero)
@@ -305,6 +313,22 @@ export async function POST(req: NextRequest) {
       sunatError = 'No hay certificado digital ni token OSE configurado. Ve a Configuración > SUNAT.'
     }
 
+    // ─── Generar QR SUNAT (formato pipe oficial) ───
+    // Formato: RUC|TIPO|SERIE|NUMERO|IGV|TOTAL|FECHA|TIPO_DOC_CLIENTE|NUM_DOC_CLIENTE|HASH
+    const tipoDocClienteFinal = isFactura ? '6' : (isBoletaSinId ? '0' : (body.cliente_tipo_doc || '1'))
+    codigoQR = [
+      configRows.ruc || '',
+      tipo_comprobante,
+      serie,
+      String(numero).padStart(8, '0'),
+      igv.toFixed(2),
+      total.toFixed(2),
+      fechaEmision,
+      tipoDocClienteFinal,
+      isBoletaSinId ? '00000000' : (cliente_ruc || '0'),
+      hash,
+    ].join('|')
+
     // ─── Guardar factura en Supabase ───
     // Usamos SOLO columnas que existen en la BD actual
     const facturaData: any = {
@@ -324,6 +348,8 @@ export async function POST(req: NextRequest) {
       estado_sunat: sunatStatus,
       sunat_response: sunatError || 'OK',
       ticket_sunat: ticketSunat,
+      codigo_qr: codigoQR,
+      hash_cpe: hash,
       date_millis: now.getTime(),
     }
 
@@ -410,6 +436,8 @@ export async function POST(req: NextRequest) {
       estado_sunat: sunatStatus,
       modo,
       mensaje,
+      codigo_qr: codigoQR,
+      hash_cpe: hash,
       error_ose: sunatError || undefined,
     })
 

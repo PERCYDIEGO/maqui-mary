@@ -120,9 +120,9 @@ update clientes set tipo_documento = '6' where tipo_documento is null or tipo_do
 -- Migración: campos para emisión electrónica SUNAT + origen
 -- ============================================
 
--- Origen de emisión: 'crm' o 'mobile'
+-- Origen de emisión: 'crm', 'mobile' o 'web' (landing page)
 alter table facturas
-add column if not exists origen text default 'crm' check (origen in ('crm', 'mobile'));
+add column if not exists origen text default 'crm' check (origen in ('crm', 'mobile', 'web'));
 
 -- Tipo de comprobante: '01'=Factura, '03'=Boleta, '07'=Nota Crédito, '08'=Nota Débito
 alter table facturas

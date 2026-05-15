@@ -101,6 +101,8 @@ data class UserProfileDto(
     val email: String = "",
     val role: String = "viewer", // admin, editor, viewer
     val nombre: String = "",
+    val alias: String = "",
+    val force_password_change: Boolean = false,
     val created_at: String = ""
 )
 
@@ -357,7 +359,7 @@ object SupabaseClientProvider {
                 .insert(dto)
             
             // Obtener el ID generado
-            val inserted = result.decodeList<com.factumary.data.repository.FacturaInsertResponse>()
+            val inserted = result.decodeList<FacturaInsertResponse>()
             val supabaseId = inserted.firstOrNull()?.id?.toString() ?: ""
             
             Result.success(supabaseId)
@@ -377,7 +379,7 @@ object SupabaseClientProvider {
                         eq("id", supabaseId.toInt())
                     }
                 }
-                .decodeList<com.factumary.data.repository.FacturaPendienteDto>()
+                .decodeList<FacturaPendienteDto>()
             
             val factura = facturas.firstOrNull()
                 ?: return Result.failure(Exception("Factura no encontrada"))

@@ -51,17 +51,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true, email: matched.email })
     }
 
-    // Debug: mostrar qué usuarios existen (solo en desarrollo)
-    const availableAliases = usersList.users
-      .map(u => u.email?.split('@')[0])
-      .filter(Boolean)
-      .join(', ')
-    
-    console.log('[RESOLVE ALIAS] Available aliases:', availableAliases)
-
-    return NextResponse.json({ 
-      ok: false, 
-      error: `Alias '${trimmedAlias}' no encontrado. Disponibles: ${availableAliases}` 
+    return NextResponse.json({
+      ok: false,
+      error: 'Usuario no encontrado'
     }, { status: 404 })
 
   } catch (err: any) {

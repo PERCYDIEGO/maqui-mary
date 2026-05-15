@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, ChevronRight, ChevronLeft, ShoppingCart, Sparkles } from 'lucide-react'
 
@@ -67,7 +68,7 @@ const SECTIONS: { id: SectionKey; selector: string }[] = [
   { id: 'checkout', selector: '[data-section="checkout"], .checkout-panel, #checkout' },
 ]
 
-interface CrmStep { icon: string; title: string; message: string; mood: Mood }
+interface CrmStep { icon: string; title: string; message: string; mood: Mood; sectionId?: string }
 interface GuiaAnimadaProps {
   mode: 'landing' | 'crm'
   crmSteps?: CrmStep[]
@@ -78,6 +79,7 @@ let particleId = 0
 
 export default function GuiaAnimada({ mode, crmSteps, userId }: GuiaAnimadaProps) {
   const isLanding = mode === 'landing'
+  const pathname = usePathname()
   const [open, setOpen] = useState(false)
   const [minimized, setMinimized] = useState(true)
   const [seen, setSeen] = useState(false)
@@ -92,31 +94,55 @@ export default function GuiaAnimada({ mode, crmSteps, userId }: GuiaAnimadaProps
   const bubbleRef = useRef<HTMLDivElement>(null)
   const sectionRef = useRef(currentSection)
   sectionRef.current = currentSection
+  const seenRef = useRef(seen)
+  seenRef.current = seen
+  const crmStepsRef = useRef(crmSteps)
+  crmStepsRef.current = crmSteps
+  const storageKeyRef = useRef('')
+  const activeCrmSectionRef = useRef<string | null>(null)
 
   const storageKey = useMemo(() => {
     if (isLanding) return 'mm_guia_landing_v2'
-    return `mm_guia_crm_${userId || 'anon'}_${typeof window !== 'undefined' ? window.location.pathname.replace(/\//g, '_') : 'unknown'}`
-  }, [isLanding, userId])
+    const safePath = (pathname || '').replace(/\//g, '_') || 'unknown'
+    return `mm_guia_crm_${userId || 'anon'}_${safePath}`
+  }, [isLanding, userId, pathname])
 
-  // Load initial state
+  // Mantener ref sincronizada con storageKey
+  storageKeyRef.current = storageKey
+
+  // Load/restore state cuando cambia la página o la storageKey
   useEffect(() => {
-    const vh = window.innerHeight
-    // Posicionar arriba del botón WhatsApp (bottom-24 = ~96px) + espacio
-    setPosY(Math.max(80, vh - 520))
-    try {
-      const saved = localStorage.getItem(storageKey)
-      if (saved) {
-        const s = JSON.parse(saved)
-        setSeen(s.seen || false)
-        setMinimized(!s.wasOpen)
-        setStepIdx(s.stepIdx || 0)
-        if (s.wasOpen) setTimeout(() => setOpen(true), 600)
-      } else {
-        setSeen(false)
-        setMinimized(true)
-        setTimeout(() => setOpen(true), isLanding ? 1500 : 1200)
-      }
-    } catch { }
+    // Solo inicializar posY la primera vez
+    if (posY === -999) {
+      const vh = window.innerHeight
+      setPosY(Math.max(80, vh - 520))
+    }
+    // Cerrar burbuja actual antes de cargar nueva página
+    setOpen(false)
+    setMinimized(true)
+
+    const timer = setTimeout(() => {
+      try {
+        const saved = localStorage.getItem(storageKey)
+        if (saved) {
+          const s = JSON.parse(saved)
+          setSeen(s.seen || false)
+          setStepIdx(s.stepIdx || 0)
+          if (s.wasOpen) {
+            setOpen(true)
+            setMinimized(false)
+          }
+        } else {
+          setSeen(false)
+          setStepIdx(0)
+          setOpen(true)
+          setMinimized(false)
+        }
+      } catch { }
+    }, isLanding ? 1500 : 800)
+
+    return () => clearTimeout(timer)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storageKey, isLanding])
 
   // Persist
@@ -159,6 +185,59 @@ export default function GuiaAnimada({ mode, crmSteps, userId }: GuiaAnimadaProps
     targets.forEach(t => obs.observe(t))
     return () => obs.disconnect()
   }, [isLanding, open, seen, storageKey])
+
+  // Detección de secciones CRM mediante IntersectionObserver
+  useEffect(() => {
+    if (isLanding) return
+
+    let obs: IntersectionObserver | null = null
+
+    const setup = () => {
+      obs = new IntersectionObserver((entries) => {
+        // Encontrar la sección con mayor visibilidad
+        let best: { el: Element; ratio: number } | null = null
+        for (const entry of entries) {
+          if (entry.isIntersecting && entry.intersectionRatio > (best?.ratio ?? 0)) {
+            best = { el: entry.target, ratio: entry.intersectionRatio }
+          }
+        }
+        if (!best) return
+
+        const sectionId = (best.el as HTMLElement).dataset.crmSection
+        if (!sectionId || sectionId === activeCrmSectionRef.current) return
+
+        activeCrmSectionRef.current = sectionId
+        const steps = crmStepsRef.current
+        if (!steps) return
+
+        const idx = steps.findIndex(s => s.sectionId === sectionId)
+        if (idx === -1) return
+
+        setStepIdx(idx)
+        burstParticles()
+
+        // Re-abrir guía si estaba minimizada (y no fue cerrada permanentemente)
+        if (!open && !seenRef.current) {
+          try {
+            const perm = localStorage.getItem(storageKeyRef.current + '_perm')
+            if (!perm) { setOpen(true); setMinimized(false) }
+          } catch { }
+        }
+      }, { threshold: [0.25, 0.5, 0.75] })
+
+      const targets = document.querySelectorAll('[data-crm-section]')
+      targets.forEach(t => obs!.observe(t))
+    }
+
+    // Esperar a que la página renderice sus secciones
+    const timer = setTimeout(setup, 600)
+
+    return () => {
+      clearTimeout(timer)
+      obs?.disconnect()
+      activeCrmSectionRef.current = null
+    }
+  }, [isLanding, pathname]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-close after 25s on same section (landing)
   useEffect(() => {
@@ -405,60 +484,29 @@ export default function GuiaAnimada({ mode, crmSteps, userId }: GuiaAnimadaProps
     )
   }
 
-  // ─── Minimized floating sponge ───
+  // ─── Minimized floating sponge (static, sin movimiento) ───
   return (
-    <motion.div
-      initial={{ scale: 0, opacity: 0, y: 50 }}
-      animate={{ scale: 1, opacity: 1, y: 0 }}
-      transition={{ type: 'spring', stiffness: 260, damping: 20, delay: 0.3 }}
+    <div
       className="fixed z-[60]"
       style={{ right: 24, bottom: 100 }}
     >
-      <motion.button
-        whileHover={{ scale: 1.12, rotate: [0, -8, 8, 0] }}
-        whileTap={{ scale: 0.9 }}
-        transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+      <button
         onClick={() => { setOpen(true); setMinimized(false) }}
         className="relative block"
       >
-        {/* Animated ring */}
-        <motion.div
-          className="absolute inset-0 rounded-2xl bg-accent-gold/20"
-          animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
-          transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
-        />
-        <motion.div
-          className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent-gold to-accent-terracotta shadow-xl flex items-center justify-center text-2xl cursor-grab active:cursor-grabbing relative overflow-hidden"
-          animate={{ y: [0, -4, 0] }}
-          transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
-        >
-          {/* Shine sweep */}
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-            animate={{ x: ['-100%', '100%'] }}
-            transition={{ repeat: Infinity, duration: 2.5, ease: 'easeInOut', repeatDelay: 1 }}
-          />
+        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent-gold to-accent-terracotta shadow-xl flex items-center justify-center text-2xl relative overflow-hidden">
           {isLanding ? '🧽' : <Sparkles size={24} className="text-white relative z-10" />}
-        </motion.div>
-        {/* New notification dot */}
+        </div>
         {!isLanding && (
-          <motion.span
-            className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white flex items-center justify-center"
-            animate={{ scale: [1, 1.3, 1], rotate: [0, 10, -10, 0] }}
-            transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
-          >
+          <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white flex items-center justify-center">
             <span className="text-[8px] text-white font-bold">1</span>
-          </motion.span>
+          </span>
         )}
         {isLanding && (
-          <motion.span
-            className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-white"
-            animate={{ scale: [1, 1.3, 1], opacity: [1, 0.7, 1] }}
-            transition={{ repeat: Infinity, duration: 1.5 }}
-          />
+          <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-white" />
         )}
-      </motion.button>
-    </motion.div>
+      </button>
+    </div>
   )
 }
 

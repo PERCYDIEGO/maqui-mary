@@ -9,6 +9,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Science
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -33,6 +36,13 @@ import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.max
+import kotlin.math.min
+import com.factumary.data.db.entity.GuiaRemisionEntity
+import com.factumary.data.db.entity.InvoiceEntity
+import com.factumary.data.repository.GuiaRemisionRepository
+import com.factumary.data.repository.InvoiceRepositoryAprobacion
+import com.factumary.data.repository.TransportistaRepository
+import kotlinx.coroutines.flow.first
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,18 +50,53 @@ fun DashboardScreen(
     onNavigateToInvoices: () -> Unit,
     onNavigateToProducts: () -> Unit,
     onNavigateToCustomers: () -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onNavigateToDocumentos: () -> Unit = {},
+    onNavigateToSunat: () -> Unit = {},
+    onNavigateToTransportistas: () -> Unit = {},
+    onNavigateToGuias: () -> Unit = {}
 ) {
     var stats by remember { mutableStateOf<DashboardStats?>(null) }
     var isLoading by remember { mutableStateOf(true) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
     var showMaqui by remember { mutableStateOf(true) }
     var rangoMeses by remember { mutableStateOf(6) } // Default 6 meses
+
+    var documentosEsteMes by remember { mutableStateOf(0) }
+    var pendientesSunat by remember { mutableStateOf(0) }
+    var transportistasCount by remember { mutableStateOf(0) }
+
+    val invoiceRepo = remember { InvoiceRepositoryAprobacion(FactuMaryApp.instance.database.invoiceDao()) }
+    val guiaRepo = remember { GuiaRemisionRepository(FactuMaryApp.instance.database.guiaRemisionDao()) }
+    val transportistaRepo = remember { TransportistaRepository(FactuMaryApp.instance.database.transportistaDao()) }
 
     LaunchedEffect(Unit) {
         loadDashboardData { meses ->
             rangoMeses = meses
         }
+    }
+
+    LaunchedEffect(Unit) {
+        val allInvoices = invoiceRepo.getAll().first()
+        val allGuias = guiaRepo.getAllList()
+        val allTransportistas = transportistaRepo.getAllList()
+
+        val cal = Calendar.getInstance().apply {
+            set(Calendar.DAY_OF_MONTH, 1)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val startOfMonth = cal.timeInMillis
+
+        documentosEsteMes = allInvoices.count { it.dateMillis >= startOfMonth } +
+                allGuias.count { it.fechaEmision >= startOfMonth }
+
+        pendientesSunat = allInvoices.count {
+            it.sunatStatus == InvoiceEntity.SunatStatus.PENDIENTE
+        }
+
+        transportistasCount = allTransportistas.size
     }
 
     Scaffold(
@@ -69,7 +114,7 @@ fun DashboardScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, "Volver")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -117,11 +162,28 @@ fun DashboardScreen(
                     )
                 }
 
+                // Stats cards
+                StatsCards(
+                    documentosEsteMes = documentosEsteMes,
+                    pendientesSunat = pendientesSunat,
+                    transportistasCount = transportistasCount
+                )
+
                 // Accesos rápidos
                 AccesosRapidos(
                     onInvoices = onNavigateToInvoices,
                     onProducts = onNavigateToProducts,
-                    onCustomers = onNavigateToCustomers
+                    onCustomers = onNavigateToCustomers,
+                    onDocumentos = onNavigateToDocumentos,
+                    onSunat = onNavigateToSunat,
+                    onTransportistas = onNavigateToTransportistas,
+                    onGuias = onNavigateToGuias
+                )
+
+                // Documentos Recientes
+                DocumentosRecientes(
+                    invoiceRepo = invoiceRepo,
+                    guiaRepo = guiaRepo
                 )
 
                 // Alertas
@@ -206,7 +268,7 @@ private fun DashboardHeader(
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     StatItem(
-                        icon = Icons.Filled.TrendingUp,
+                        icon = Icons.AutoMirrored.Filled.TrendingUp,
                         value = currencyFormat.format(stats.promedioVenta),
                         label = "Promedio"
                     )
@@ -384,7 +446,7 @@ private fun BarraVenta(
             )
             
             LinearProgressIndicator(
-                progress = progreso,
+                progress = { progreso },
                 modifier = Modifier
                     .weight(1f)
                     .height(12.dp)
@@ -415,7 +477,11 @@ private fun BarraVenta(
 private fun AccesosRapidos(
     onInvoices: () -> Unit,
     onProducts: () -> Unit,
-    onCustomers: () -> Unit
+    onCustomers: () -> Unit,
+    onDocumentos: () -> Unit = {},
+    onSunat: () -> Unit = {},
+    onTransportistas: () -> Unit = {},
+    onGuias: () -> Unit = {}
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -427,15 +493,15 @@ private fun AccesosRapidos(
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
-            
+
             Spacer(modifier = Modifier.height(12.dp))
-            
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 AccesoRapidoItem(
-                    icon = Icons.Filled.ReceiptLong,
+                    icon = Icons.AutoMirrored.Filled.ReceiptLong,
                     label = "Facturas",
                     onClick = onInvoices
                 )
@@ -448,6 +514,34 @@ private fun AccesosRapidos(
                     icon = Icons.Filled.People,
                     label = "Clientes",
                     onClick = onCustomers
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                AccesoRapidoItem(
+                    icon = Icons.Filled.Description,
+                    label = "Documentos",
+                    onClick = onDocumentos
+                )
+                AccesoRapidoItem(
+                    icon = Icons.Filled.Cloud,
+                    label = "SUNAT",
+                    onClick = onSunat
+                )
+                AccesoRapidoItem(
+                    icon = Icons.Filled.LocalShipping,
+                    label = "Transportistas",
+                    onClick = onTransportistas
+                )
+                AccesoRapidoItem(
+                    icon = Icons.Filled.List,
+                    label = "Guías",
+                    onClick = onGuias
                 )
             }
         }
@@ -642,6 +736,210 @@ private fun TestingPanel() {
                     }
                 }
             }
+        }
+    }
+}
+
+// Stats cards
+@Composable
+private fun StatsCards(
+    documentosEsteMes: Int,
+    pendientesSunat: Int,
+    transportistasCount: Int
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            StatsCardItem(
+                icon = Icons.Filled.Description,
+                value = "$documentosEsteMes",
+                label = "Docs este mes"
+            )
+            StatsCardItem(
+                icon = Icons.Filled.Cloud,
+                value = "$pendientesSunat",
+                label = "Pendientes SUNAT"
+            )
+            StatsCardItem(
+                icon = Icons.Filled.LocalShipping,
+                value = "$transportistasCount",
+                label = "Transportistas"
+            )
+        }
+    }
+}
+
+@Composable
+private fun StatsCardItem(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    value: String,
+    label: String
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(28.dp)
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = MarrónOscuro
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = TextoMedio
+        )
+    }
+}
+
+private data class DocumentoResumen(
+    val tipo: String,
+    val numero: String,
+    val cliente: String,
+    val fecha: Long,
+    val total: Double
+)
+
+@Composable
+private fun DocumentosRecientes(
+    invoiceRepo: InvoiceRepositoryAprobacion,
+    guiaRepo: GuiaRemisionRepository
+) {
+    var documentos by remember { mutableStateOf<List<DocumentoResumen>>(emptyList()) }
+
+    LaunchedEffect(Unit) {
+        val invoices = invoiceRepo.getAll().first()
+        val guias = guiaRepo.getAllList()
+
+        val combined = mutableListOf<DocumentoResumen>()
+
+        invoices.forEach { inv ->
+            combined.add(
+                DocumentoResumen(
+                    tipo = if (inv.tipoComprobante == "01") "Factura" else "Boleta",
+                    numero = "${inv.series}-${inv.number}",
+                    cliente = inv.customerName,
+                    fecha = inv.dateMillis,
+                    total = inv.total
+                )
+            )
+        }
+
+        guias.forEach { guia ->
+            combined.add(
+                DocumentoResumen(
+                    tipo = "Guía Rem.",
+                    numero = "${guia.series}-${"%03d".format(guia.number)}",
+                    cliente = guia.destinatarioNombre,
+                    fecha = guia.fechaEmision,
+                    total = 0.0
+                )
+            )
+        }
+
+        documentos = combined.sortedByDescending { it.fecha }.take(5)
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "Documentos Recientes",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            if (documentos.isEmpty()) {
+                Text(
+                    text = "No hay documentos recientes",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = TextoMedio,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            } else {
+                documentos.forEachIndexed { index, doc ->
+                    DocumentoRecienteItem(
+                        tipo = doc.tipo,
+                        numero = doc.numero,
+                        cliente = doc.cliente,
+                        fecha = doc.fecha,
+                        total = doc.total
+                    )
+                    if (index < documentos.size - 1) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(vertical = 4.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DocumentoRecienteItem(
+    tipo: String,
+    numero: String,
+    cliente: String,
+    fecha: Long,
+    total: Double
+) {
+    val dateFormat = remember { SimpleDateFormat("dd/MM/yyyy", Locale("es", "PE")) }
+    val currencyFormat = remember { NumberFormat.getCurrencyInstance(Locale("es", "PE")) }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = "$tipo • $numero",
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium
+            )
+            Text(
+                text = cliente,
+                style = MaterialTheme.typography.bodySmall,
+                color = TextoMedio,
+                maxLines = 1
+            )
+            Text(
+                text = dateFormat.format(Date(fecha)),
+                style = MaterialTheme.typography.labelSmall,
+                color = TextoMedio.copy(alpha = 0.7f)
+            )
+        }
+        if (total > 0) {
+            Text(
+                text = currencyFormat.format(total),
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MarrónOscuro
+            )
         }
     }
 }

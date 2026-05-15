@@ -32,7 +32,7 @@ create table if not exists facturas (
   total numeric(10,2) default 0,
   notes text default '',
   tipo_comprobante text default '01' check (tipo_comprobante in ('01', '03', '07', '08')),
-  origen text default 'crm' check (origen in ('crm', 'mobile')),
+  origen text default 'crm' check (origen in ('crm', 'mobile', 'web')),
   estado_sunat text default 'PENDIENTE' check (estado_sunat in ('PENDIENTE', 'ENVIADO', 'ACEPTADO', 'RECHAZADO', 'ERROR')),
   sunat_response text default '',
   ticket_sunat text default '',

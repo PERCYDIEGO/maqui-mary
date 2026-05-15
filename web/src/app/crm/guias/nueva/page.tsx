@@ -27,7 +27,11 @@ const MOTIVOS_TRASLADO = [
 
 export default function NuevaGuiaPage() {
   const router = useRouter();
-  const { addGuia, transportistas, boletas, facturas, clientes, productos } = useApp();
+  const { addGuia, updateGuia, guias, transportistas, boletas, facturas, clientes, productos } = useApp();
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editLoaded, setEditLoaded] = useState(false);
   
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -42,6 +46,28 @@ export default function NuevaGuiaPage() {
   const [destinatarioBusqueda, setDestinatarioBusqueda] = useState('');
   const [mostrarDestinatarios, setMostrarDestinatarios] = useState(false);
   const destinatarioRef = useRef<HTMLDivElement>(null);
+
+  // Detectar modo edición vía ?edit=ID
+  useEffect(() => {
+    if (editLoaded) return;
+    const params = new URLSearchParams(window.location.search);
+    const editId = params.get('edit');
+    if (!editId) return;
+    const guia = guias.find(g => g.id === editId);
+    if (!guia) return;
+    setIsEditing(true);
+    setEditingId(editId);
+    setTransportista(guia.transportista || null);
+    if (guia.transportista) setTransportistaBusqueda(`${guia.transportista.nombreCompleto} - Placa: ${guia.transportista.numeroPlaca}`);
+    const dest = clientes.find(c => c.id === guia.destinatarioId) || null;
+    setDestinatario(dest);
+    if (dest) setDestinatarioBusqueda(dest.nombre);
+    setMotivoTraslado(guia.motivoTraslado);
+    setPuntoLlegada(guia.puntoLlegada);
+    setFechaInicioTraslado(new Date(guia.fechaInicioTraslado).toISOString().split('T')[0]);
+    setItems(guia.bienes);
+    setEditLoaded(true);
+  }, [guias, clientes, editLoaded]);
 
   // Cerrar listas al hacer clic fuera
   useEffect(() => {
@@ -140,7 +166,19 @@ export default function NuevaGuiaPage() {
     }
     
     setLoading(true);
-    
+
+    // Modo edición: actualizar guía existente
+    if (isEditing && editingId) {
+      const original = guias.find(g => g.id === editingId);
+      if (original) {
+        updateGuia({ ...original, transportistaId: transportista?.id, transportista: transportista ?? undefined, destinatarioId: destinatario!.id, destinatarioNombre: destinatario!.nombre, destinatarioDniRuc: destinatario!.dni || destinatario!.ruc || '', motivoTraslado: motivoTraslado as any, puntoLlegada, fechaInicioTraslado: new Date(fechaInicioTraslado), bienes: items, updatedAt: new Date() });
+        toast.success('Guía actualizada correctamente');
+        router.push('/crm/guias');
+      }
+      setLoading(false);
+      return;
+    }
+
     try {
       const hashCPE = generarHashCPE({
         rucEmisor: EMPRESA_DATA.ruc,
@@ -187,15 +225,15 @@ export default function NuevaGuiaPage() {
         trasladoVehiculoM1L: false,
         retornoVehiculoVacio: false,
         observacion: '',
-        estado: 'emitido',
+        estado: 'borrador',
         hashCpe: hashCPE,
         qrCode: qrData,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
-      
+
       addGuia(guia);
-      toast.success('Guía de remisión emitida correctamente');
+      toast.success('Guía guardada. Pendiente de envío a SUNAT.');
       router.push('/crm/guias');
     } catch (error) {
       toast.error('Error al emitir la guía');
@@ -211,7 +249,7 @@ export default function NuevaGuiaPage() {
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Nueva Guía de Remisión</h1>
+          <h1 className="text-2xl font-bold text-slate-800">{isEditing ? 'Editar Guía de Remisión' : 'Nueva Guía de Remisión'}</h1>
           <p className="text-slate-500">{numeroCompleto}</p>
         </div>
       </div>
@@ -426,7 +464,18 @@ export default function NuevaGuiaPage() {
                           value={item.productoId || ''}
                           onChange={(e) => {
                             const productoId = e.target.value;
-                            const producto = productos.find(p => p.id === productoId);
+                            if (!productoId) {
+                              const newItems = [...items];
+                              newItems[index] = {
+                                ...newItems[index],
+                                productoId: undefined,
+                                descripcion: '',
+                                detalle: '',
+                              };
+                              setItems(newItems);
+                              return;
+                            }
+                            const producto = productos.find(p => String(p.id) === productoId);
                             if (producto) {
                               const newItems = [...items];
                               newItems[index] = {
@@ -434,22 +483,16 @@ export default function NuevaGuiaPage() {
                                 productoId: producto.id,
                                 descripcion: producto.descripcion,
                                 detalle: producto.detalle || '',
-                                valorUnitario: producto.precioUnitario,
                                 unidadMedida: producto.unidadMedida,
                               };
-                              const calculado = calcularItem(
-                                newItems[index].cantidad,
-                                producto.precioUnitario,
-                                newItems[index].descuento,
-                                false
-                              );
-                              newItems[index].valorVenta = calculado.valorVenta;
-                              newItems[index].igv = calculado.igv;
-                              newItems[index].importeTotal = calculado.importeTotal;
                               setItems(newItems);
                             }
                           }}
-                          className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
+                          className={`w-full px-3 py-2 border rounded-lg focus:ring-2 outline-none text-sm ${
+                            !item.productoId
+                              ? 'border-red-300 focus:ring-red-400'
+                              : 'border-slate-200 focus:ring-indigo-500'
+                          }`}
                         >
                           <option value="">-- Selecciona un producto --</option>
                           {productos
@@ -522,9 +565,18 @@ export default function NuevaGuiaPage() {
               <button onClick={() => setStep(1)} className="px-6 py-3 border border-slate-300 text-slate-700 rounded-xl font-semibold">
                 Anterior
               </button>
-              <button onClick={() => setStep(3)} disabled={items.length === 0} className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-semibold disabled:bg-slate-300">
-                Continuar
-              </button>
+              <div className="flex flex-col items-end gap-1">
+                {items.length > 0 && !items.every(i => i.productoId && i.descripcion && i.cantidad > 0) && (
+                  <p className="text-xs text-red-500">Completa todos los ítems antes de continuar</p>
+                )}
+                <button
+                  onClick={() => setStep(3)}
+                  disabled={!items.every(i => i.productoId && i.descripcion && i.cantidad > 0) || items.length === 0}
+                  className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-semibold disabled:bg-slate-300"
+                >
+                  Continuar
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -578,7 +630,7 @@ export default function NuevaGuiaPage() {
                 disabled={loading}
                 className="inline-flex items-center gap-2 px-8 py-3 bg-indigo-600 text-white rounded-xl font-semibold shadow-lg"
               >
-                {loading ? 'Emitiendo...' : <><Save className="w-5 h-5" /> Emitir Guía</>}
+                {loading ? 'Guardando...' : <><Save className="w-5 h-5" /> {isEditing ? 'Guardar Cambios' : 'Emitir Guía'}</>}
               </button>
             </div>
           </div>

@@ -51,7 +51,10 @@ import com.factumary.ui.theme.TextoMedio
 import kotlinx.coroutines.launch
 
 @Composable
-fun LoginScreen(onLoginSuccess: (String) -> Unit) {
+fun LoginScreen(
+    onLoginSuccess: (String) -> Unit,
+    onForcePasswordChange: () -> Unit = {}
+) {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("factumary_login", Context.MODE_PRIVATE) }
 
@@ -215,8 +218,13 @@ fun LoginScreen(onLoginSuccess: (String) -> Unit) {
                                         
                                         // Obtener rol del usuario
                                         val profileResult = SupabaseClientProvider.fetchUserProfile()
-                                        val role = profileResult.getOrNull()?.role ?: "editor"
-                                        onLoginSuccess(role)
+                                        val profile = profileResult.getOrNull()
+                                        val role = profile?.role ?: "editor"
+                                        if (profile?.force_password_change == true) {
+                                            onForcePasswordChange()
+                                        } else {
+                                            onLoginSuccess(role)
+                                        }
                                     }
                                 },
                                 onFailure = { e -> error = e.message ?: "Error de conexión" }

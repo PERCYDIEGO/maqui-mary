@@ -312,9 +312,10 @@ export function validarRUC(ruc: string): boolean {
     suma += parseInt(ruc.charAt(i)) * factores[i];
   }
   
-  const resto = suma % 11;
-  const digitoVerificador = resto === 0 ? 0 : 11 - resto;
-  
+  let digitoVerificador = 11 - (suma % 11);
+  if (digitoVerificador === 11) digitoVerificador = 1;
+  if (digitoVerificador === 10) digitoVerificador = 0;
+
   return digitoVerificador === ultimoDigito;
 }
 

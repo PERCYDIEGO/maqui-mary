@@ -6,10 +6,17 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Plus, Search, Filter, Eye, Download } from 'lucide-react';
+import { Plus, Search, Filter, Pencil } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { formatearMoneda } from '@/lib/calculos';
 import PDFGenerator from '@/components/pdf/PDFGenerator';
+
+const ESTADO_CONFIG = {
+  borrador:  { label: 'Borrador',  bg: 'bg-slate-100', text: 'text-slate-600' },
+  enviado:   { label: 'Enviado',   bg: 'bg-blue-100',  text: 'text-blue-700'  },
+  aprobado:  { label: 'Aprobado',  bg: 'bg-green-100', text: 'text-green-700' },
+  rechazado: { label: 'Rechazado', bg: 'bg-red-100',   text: 'text-red-700'   },
+} as const;
 
 export default function FacturasPage() {
   const { facturas } = useApp();
@@ -85,6 +92,7 @@ export default function FacturasPage() {
                   <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Forma Pago</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Fecha</th>
                   <th className="px-6 py-4 text-right text-xs font-semibold text-slate-600 uppercase">Total</th>
+                  <th className="px-6 py-4 text-center text-xs font-semibold text-slate-600 uppercase">Estado</th>
                   <th className="px-6 py-4 text-center text-xs font-semibold text-slate-600 uppercase">Acciones</th>
                 </tr>
               </thead>
@@ -117,8 +125,24 @@ export default function FacturasPage() {
                     <td className="px-6 py-4 text-right font-semibold text-slate-800">
                       {formatearMoneda(factura.importeTotal, factura.moneda)}
                     </td>
+                    <td className="px-6 py-4 text-center">
+                      {factura.estado in ESTADO_CONFIG && (
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${ESTADO_CONFIG[factura.estado as keyof typeof ESTADO_CONFIG].bg} ${ESTADO_CONFIG[factura.estado as keyof typeof ESTADO_CONFIG].text}`}>
+                          {ESTADO_CONFIG[factura.estado as keyof typeof ESTADO_CONFIG].label}
+                        </span>
+                      )}
+                    </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center gap-2">
+                        {factura.estado === 'borrador' && (
+                          <Link
+                            href={`/crm/facturas/nueva?edit=${factura.id}`}
+                            className="p-1.5 hover:bg-purple-100 text-purple-600 rounded-lg transition-colors"
+                            title="Editar factura"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </Link>
+                        )}
                         <PDFGenerator documento={factura} tipo="factura" />
                       </div>
                     </td>

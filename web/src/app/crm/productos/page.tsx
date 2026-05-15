@@ -7,8 +7,6 @@ import { useApp } from '@/context/AppContext'
 import type { Producto, UnidadMedida } from '@/types/documentos'
 import toast from 'react-hot-toast'
 
-const STORAGE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL + '/storage/v1/object/public/productos'
-
 export default function ProductosPage() {
   const { productos, productosLoaded, refreshProductos } = useApp()
   const [search, setSearch] = useState('')
@@ -17,6 +15,40 @@ export default function ProductosPage() {
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+
+  async function handleImageUpload(file: File): Promise<string> {
+    const allowed = ['image/jpeg', 'image/png', 'image/webp']
+    if (!allowed.includes(file.type)) throw new Error('Solo imágenes JPG, PNG o WebP')
+    if (file.size > 5 * 1024 * 1024) throw new Error('La imagen no debe superar 5MB')
+
+    const ext = file.name.split('.').pop() || 'jpg'
+    const fileName = `producto_${Date.now()}.${ext}`
+    const buffer = await file.arrayBuffer()
+
+    const { error } = await supabase.storage
+      .from('productos')
+      .upload(fileName, buffer, { contentType: file.type, upsert: false })
+    if (error) throw new Error(error.message)
+
+    const { data: { publicUrl } } = supabase.storage.from('productos').getPublicUrl(fileName)
+    return publicUrl
+  }
+
+  async function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    try {
+      const url = await handleImageUpload(file)
+      setForm(f => ({ ...f, imagen: url }))
+      toast.success('Imagen subida')
+    } catch (err: any) {
+      toast.error(err.message || 'Error al subir imagen')
+    } finally {
+      setUploading(false)
+      if (fileRef.current) fileRef.current.value = ''
+    }
+  }
   
   // Formulario
   const [form, setForm] = useState({
@@ -25,7 +57,6 @@ export default function ProductosPage() {
     detalle: '',
     precioOriginal: 0,
     precioUnitario: 0,
-    stock: 0,
     categoria: 'Esponjas',
     unidadMedida: 'UNIDAD' as UnidadMedida,
     imagen: '',
@@ -61,7 +92,6 @@ export default function ProductosPage() {
         precioOriginal: form.precioOriginal,
         precioUnitario: form.precioUnitario,
         price: form.precioUnitario,
-        stock: form.stock,
         categoria: form.categoria,
         category: form.categoria,
         unidadMedida: form.unidadMedida,
@@ -118,7 +148,6 @@ export default function ProductosPage() {
       detalle: p.detalle || '',
       precioOriginal: p.precioOriginal,
       precioUnitario: p.precioUnitario,
-      stock: p.stock,
       categoria: p.categoria,
       unidadMedida: p.unidadMedida,
       imagen: p.imagen || '',
@@ -143,7 +172,6 @@ export default function ProductosPage() {
       detalle: '',
       precioOriginal: 0,
       precioUnitario: 0,
-      stock: 0,
       categoria: 'Esponjas',
       unidadMedida: 'UNIDAD' as UnidadMedida,
       imagen: '',
@@ -323,29 +351,18 @@ export default function ProductosPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-ink-700 mb-1">Stock</label>
-                  <input 
-                    type="number" 
-                    min="0" 
-                    value={form.stock} 
-                    onChange={e => setForm({ ...form, stock: parseInt(e.target.value) || 0 })} 
-                    className="w-full px-4 py-3 border border-ink-200 rounded-xl focus:ring-2 focus:ring-accent-terracotta focus:border-transparent outline-none bg-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-ink-700 mb-1">Unidad</label>
-                  <select 
-                    value={form.unidadMedida} 
-                    onChange={e => setForm({ ...form, unidadMedida: e.target.value as any })} 
-                    className="w-full px-4 py-3 border border-ink-200 rounded-xl focus:ring-2 focus:ring-accent-terracotta focus:border-transparent outline-none bg-white"
-                  >
-                    {['UNIDAD', 'CAJA', 'PAQUETE', 'KILO', 'LITRO'].map(u => (
-                      <option key={u} value={u}>{u}</option>
-                    ))}
-                  </select>
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-ink-700 mb-1">Unidad de medida</label>
+                <select
+                  value={form.unidadMedida}
+                  onChange={e => setForm({ ...form, unidadMedida: e.target.value as any })}
+                  className="w-full px-4 py-3 border border-ink-200 rounded-xl focus:ring-2 focus:ring-accent-terracotta focus:border-transparent outline-none bg-white"
+                >
+                  {['UNIDAD', 'CAJA', 'PAQUETE', 'KILO', 'LITRO'].map(u => (
+                    <option key={u} value={u}>{u}</option>
+                  ))}
+                </select>
+                <p className="text-xs text-ink-400 mt-1">El stock se gestiona desde la sección Inventario</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -362,15 +379,29 @@ export default function ProductosPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-ink-700 mb-1">Imagen URL</label>
-                  <input 
-                    type="text" 
-                    value={form.imagen} 
-                    onChange={e => setForm({ ...form, imagen: e.target.value })} 
-                    className="w-full px-4 py-3 border border-ink-200 rounded-xl focus:ring-2 focus:ring-accent-terracotta focus:border-transparent outline-none bg-white"
-                    placeholder="/img/producto.png"
-                  />
-                  <p className="text-xs text-ink-400 mt-1">Ej: /img/esponjas-colores.png</p>
+                  <label className="block text-sm font-medium text-ink-700 mb-1">Imagen del producto</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={form.imagen}
+                      onChange={e => setForm({ ...form, imagen: e.target.value })}
+                      className="w-full px-4 py-3 border border-ink-200 rounded-xl focus:ring-2 focus:ring-accent-terracotta focus:border-transparent outline-none bg-white text-sm"
+                      placeholder="URL o sube un archivo"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileRef.current?.click()}
+                      disabled={uploading}
+                      className="shrink-0 px-3 py-2 rounded-xl border border-ink-200 bg-white hover:bg-ink-50 text-ink-600 transition-colors disabled:opacity-50"
+                      title="Subir imagen"
+                    >
+                      {uploading ? <span className="text-xs">...</span> : <Upload size={16} />}
+                    </button>
+                  </div>
+                  <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={onFileChange} />
+                  {form.imagen && (
+                    <img src={form.imagen} alt="Preview" className="mt-2 h-16 w-16 object-cover rounded-lg border border-ink-200" />
+                  )}
                 </div>
               </div>
               

@@ -15,7 +15,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.ShoppingCart
@@ -58,9 +58,12 @@ import com.factumary.data.db.entity.InvoiceEntity
 import com.factumary.data.db.entity.InvoiceItemEntity
 import com.factumary.data.db.entity.ProductEntity
 import com.factumary.data.repository.CustomerRepository
+import com.factumary.data.repository.InvoiceRepository
 import com.factumary.data.repository.InvoiceRepositoryAprobacion
 import com.factumary.data.repository.ProductRepository
+import com.factumary.data.remote.SupabaseClientProvider
 import com.factumary.data.repository.ProductRepositorySync
+import io.github.jan.supabase.gotrue.auth
 import com.factumary.data.sunat.SunatApiService
 import com.factumary.pdf.PdfGenerator
 import com.factumary.ui.components.MaquiContext
@@ -152,7 +155,7 @@ fun CreateInvoiceScreen(
                 title = { Text(if (isFactura) "Nueva Factura" else "Nueva Boleta") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, "Volver")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -460,7 +463,7 @@ fun CreateInvoiceScreen(
                                         saving = false
                                         onInvoiceCreated(invoiceId)
                                     },
-                                    onFailure = { error ->
+                                    onFailure = { _ ->
                                         saving = false
                                         // Mostrar error
                                     }

@@ -299,7 +299,7 @@ export default function PDFGenerator({ documento, tipo }: PDFGeneratorProps) {
           ${qrDataUrl ? `<img src="${qrDataUrl}" alt="QR Code" style="width: 150px; height: 150px; margin: 10px auto; display: block;" />` : ''}
           <p>Consulte su documento en: <strong>www.sunat.gob.pe</strong></p>
           <div class="hash">
-            <strong>HASH:</strong> ${doc.hashCPE || 'N/A'}
+            <strong>HASH:</strong> ${doc.hashCpe || doc.hashCPE || doc.hash_cpe || 'N/A'}
           </div>
           <p style="font-size: 9px; margin-top: 10px;">
             Este documento ha sido emitido mediante un sistema de facturación autorizado por SUNAT.

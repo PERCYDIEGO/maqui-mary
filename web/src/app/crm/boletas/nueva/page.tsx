@@ -7,10 +7,10 @@
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  ArrowLeft, 
-  Plus, 
-  Trash2, 
+import {
+  ArrowLeft,
+  Plus,
+  Trash2,
   Calculator,
   Save,
   X,
@@ -43,8 +43,12 @@ import toast from 'react-hot-toast';
 
 export default function NuevaBoletaPage() {
   const router = useRouter();
-  const { addBoleta, clientes, productos, getSiguienteNumero } = useApp();
-  
+  const { addBoleta, updateBoleta, boletas, clientes, productos, getSiguienteNumero } = useApp();
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editLoaded, setEditLoaded] = useState(false);
+
   // Estados del formulario
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -65,6 +69,26 @@ export default function NuevaBoletaPage() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Detectar modo edición vía ?edit=ID
+  useEffect(() => {
+    if (editLoaded) return;
+    const params = new URLSearchParams(window.location.search);
+    const editId = params.get('edit');
+    if (!editId) return;
+    const boleta = boletas.find(b => b.id === editId);
+    if (!boleta) return;
+    setIsEditing(true);
+    setEditingId(editId);
+    setCliente(boleta.cliente);
+    setClienteBusqueda(boleta.cliente.nombre);
+    setFechaEmision(new Date(boleta.fechaEmision).toISOString().split('T')[0]);
+    if (boleta.fechaVencimiento) setFechaVencimiento(new Date(boleta.fechaVencimiento).toISOString().split('T')[0]);
+    setMoneda(boleta.moneda);
+    setItems(boleta.items);
+    setObservacion(boleta.observacion || '');
+    setEditLoaded(true);
+  }, [boletas, editLoaded]);
   
   const [fechaEmision, setFechaEmision] = useState(new Date().toISOString().split('T')[0]);
   const [fechaVencimiento, setFechaVencimiento] = useState('');
@@ -156,7 +180,19 @@ export default function NuevaBoletaPage() {
     }
     
     setLoading(true);
-    
+
+    // Modo edición: actualizar boleta existente
+    if (isEditing && editingId) {
+      const original = boletas.find(b => b.id === editingId);
+      if (original) {
+        updateBoleta({ ...original, cliente: cliente!, clienteId: cliente!.id, fechaEmision: new Date(fechaEmision), fechaVencimiento: fechaVencimiento ? new Date(fechaVencimiento) : undefined, moneda, items, observacion, updatedAt: new Date(), ...totales });
+        toast.success('Boleta actualizada correctamente');
+        router.push('/crm/boletas');
+      }
+      setLoading(false);
+      return;
+    }
+
     try {
       const hashCPE = generarHashCPE({
         rucEmisor: EMPRESA_DATA.ruc,
@@ -190,16 +226,16 @@ export default function NuevaBoletaPage() {
         moneda,
         items,
         observacion,
-        estado: 'emitido',
+        estado: 'borrador',
         hashCpe: hashCPE,
         qrCode: qrData,
         createdAt: new Date(),
         updatedAt: new Date(),
         ...totales,
       };
-      
+
       addBoleta(boleta);
-      toast.success('Boleta emitida correctamente');
+      toast.success('Boleta guardada. Pendiente de envío a SUNAT.');
       router.push('/crm/boletas');
     } catch (error) {
       toast.error('Error al emitir la boleta');
@@ -223,7 +259,7 @@ export default function NuevaBoletaPage() {
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Nueva Boleta de Venta</h1>
+          <h1 className="text-2xl font-bold text-slate-800">{isEditing ? 'Editar Boleta de Venta' : 'Nueva Boleta de Venta'}</h1>
           <p className="text-slate-500">{numeroCompleto}</p>
         </div>
       </div>
@@ -449,9 +485,23 @@ export default function NuevaBoletaPage() {
                             value={item.productoId || ''}
                             onChange={(e) => {
                               const productoId = e.target.value;
-                              const producto = productos.find(p => p.id === productoId);
+                              if (!productoId) {
+                                const newItems = [...items];
+                                newItems[index] = {
+                                  ...newItems[index],
+                                  productoId: undefined,
+                                  descripcion: '',
+                                  detalle: '',
+                                  valorUnitario: 0,
+                                  valorVenta: 0,
+                                  igv: 0,
+                                  importeTotal: 0,
+                                };
+                                setItems(newItems);
+                                return;
+                              }
+                              const producto = productos.find(p => String(p.id) === productoId);
                               if (producto) {
-                                // Actualizar item con datos del producto seleccionado
                                 const newItems = [...items];
                                 newItems[index] = {
                                   ...newItems[index],
@@ -461,7 +511,6 @@ export default function NuevaBoletaPage() {
                                   valorUnitario: producto.precioUnitario,
                                   unidadMedida: producto.unidadMedida,
                                 };
-                                // Recalcular totales
                                 const calculado = calcularItem(
                                   newItems[index].cantidad,
                                   producto.precioUnitario,
@@ -474,7 +523,11 @@ export default function NuevaBoletaPage() {
                                 setItems(newItems);
                               }
                             }}
-                            className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none text-sm"
+                            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 outline-none text-sm ${
+                              !item.productoId
+                                ? 'border-red-300 focus:ring-red-400'
+                                : 'border-slate-200 focus:ring-amber-500'
+                            }`}
                           >
                             <option value="">-- Selecciona un producto --</option>
                             {productos
@@ -587,13 +640,18 @@ export default function NuevaBoletaPage() {
               >
                 Anterior
               </button>
-              <button
-                onClick={() => setStep(3)}
-                disabled={items.length === 0}
-                className="px-6 py-3 bg-amber-500 hover:bg-amber-600 disabled:bg-slate-300 text-white rounded-xl font-semibold transition-colors"
-              >
-                Continuar
-              </button>
+              <div className="flex flex-col items-end gap-1">
+                {items.length > 0 && !items.every(i => i.productoId && i.descripcion && i.cantidad > 0 && i.valorUnitario > 0) && (
+                  <p className="text-xs text-red-500">Completa todos los ítems antes de continuar</p>
+                )}
+                <button
+                  onClick={() => setStep(3)}
+                  disabled={!items.every(i => i.productoId && i.descripcion && i.cantidad > 0 && i.valorUnitario > 0) || items.length === 0}
+                  className="px-6 py-3 bg-amber-500 hover:bg-amber-600 disabled:bg-slate-300 text-white rounded-xl font-semibold transition-colors"
+                >
+                  Continuar
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -692,7 +750,7 @@ export default function NuevaBoletaPage() {
                 ) : (
                   <>
                     <Save className="w-5 h-5" />
-                    Emitir Boleta
+                    {isEditing ? 'Guardar Cambios' : 'Emitir Boleta'}
                   </>
                 )}
               </button>

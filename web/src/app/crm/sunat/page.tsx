@@ -1,0 +1,661 @@
+'use client';
+
+import { useState } from 'react';
+import { Send, CheckCircle, XCircle, Clock, FileText, AlertTriangle, Eye, X, Code } from 'lucide-react';
+import { useApp } from '@/context/AppContext';
+import { formatearMoneda } from '@/lib/calculos';
+import { EMPRESA_DATA } from '@/types/documentos';
+import toast from 'react-hot-toast';
+
+type TipoDocumento = 'boleta' | 'factura';
+
+interface DocumentoPendiente {
+  id: string;
+  tipo: TipoDocumento;
+  numeroCompleto: string;
+  serie: string;
+  numero: number;
+  cliente: { nombre: string; dni?: string; ruc?: string; direccion?: string };
+  fechaEmision: Date;
+  importeTotal: number;
+  moneda: 'PEN' | 'USD';
+  estado: string;
+  items?: any[];
+  igvTotal?: number;
+  operacionGravada?: number;
+}
+
+export default function SunatPage() {
+  const { boletas, facturas, enviarDocumentoSUNAT, aprobarDocumento, rechazarDocumento } = useApp();
+  const [procesando, setProcesando] = useState<string | null>(null);
+  const [motivoRechazo, setMotivoRechazo] = useState('');
+  const [documentoRechazando, setDocumentoRechazando] = useState<string | null>(null);
+  const [vistaPrevia, setVistaPrevia] = useState<DocumentoPendiente | null>(null);
+  const [tipoVista, setTipoVista] = useState<'xml' | 'pdf'>('xml');
+
+  // Generar XML UBL que se enviará a SUNAT
+  const generarXMLUBL = (doc: DocumentoPendiente): string => {
+    const tipoDoc = doc.tipo === 'boleta' ? '03' : '01';
+    const tipoDocTexto = doc.tipo === 'boleta' ? 'Boleta de Venta' : 'Factura';
+    
+    const itemsXml = doc.items?.map((item: any, index: number) => `
+    <cac:InvoiceLine>
+      <cbc:ID>${index + 1}</cbc:ID>
+      <cbc:InvoicedQuantity unitCode="${item.unidadMedida}">${item.cantidad}</cbc:InvoicedQuantity>
+      <cbc:LineExtensionAmount currencyID="${doc.moneda}">${item.valorVenta?.toFixed(2) || '0.00'}</cbc:LineExtensionAmount>
+      <cac:PricingReference>
+        <cac:AlternativeConditionPrice>
+          <cbc:PriceAmount currencyID="${doc.moneda}">${item.importeTotal?.toFixed(2) || '0.00'}</cbc:PriceAmount>
+          <cbc:PriceTypeCode>01</cbc:PriceTypeCode>
+        </cac:AlternativeConditionPrice>
+      </cac:PricingReference>
+      <cac:TaxTotal>
+        <cbc:TaxAmount currencyID="${doc.moneda}">${item.igv?.toFixed(2) || '0.00'}</cbc:TaxAmount>
+        <cac:TaxSubtotal>
+          <cbc:TaxableAmount currencyID="${doc.moneda}">${item.valorVenta?.toFixed(2) || '0.00'}</cbc:TaxableAmount>
+          <cbc:TaxAmount currencyID="${doc.moneda}">${item.igv?.toFixed(2) || '0.00'}</cbc:TaxAmount>
+          <cac:TaxCategory>
+            <cbc:Percent>18.00</cbc:Percent>
+            <cbc:TaxExemptionReasonCode>10</cbc:TaxExemptionReasonCode>
+            <cac:TaxScheme>
+              <cbc:ID>1000</cbc:ID>
+              <cbc:Name>IGV</cbc:Name>
+              <cbc:TaxTypeCode>VAT</cbc:TaxTypeCode>
+            </cac:TaxScheme>
+          </cac:TaxCategory>
+        </cac:TaxSubtotal>
+      </cac:TaxTotal>
+      <cac:Item>
+        <cbc:Description>${item.descripcion}</cbc:Description>
+      </cac:Item>
+      <cac:Price>
+        <cbc:PriceAmount currencyID="${doc.moneda}">${item.valorUnitario?.toFixed(2) || '0.00'}</cbc:PriceAmount>
+      </cac:Price>
+    </cac:InvoiceLine>`).join('') || '';
+
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
+         xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+         xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+  
+  <!-- CABECERA DEL DOCUMENTO -->
+  <cbc:UBLVersionID>2.1</cbc:UBLVersionID>
+  <cbc:CustomizationID>2.0</cbc:CustomizationID>
+  <cbc:ID>${doc.numeroCompleto}</cbc:ID>
+  <cbc:IssueDate>${new Date(doc.fechaEmision).toISOString().split('T')[0]}</cbc:IssueDate>
+  <cbc:IssueTime>${new Date(doc.fechaEmision).toTimeString().split(' ')[0]}</cbc:IssueTime>
+  <cbc:InvoiceTypeCode listID="${tipoDoc}" listAgencyName="PE:SUNAT" 
+                       listName="Tipo de Documento" listURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo01">${tipoDoc}</cbc:InvoiceTypeCode>
+  <cbc:DocumentCurrencyCode listID="ISO 4217 Alpha" listAgencyName="United Nations Economic Commission for Europe" 
+                            listName="Currency">${doc.moneda}</cbc:DocumentCurrencyCode>
+  
+  <!-- EMISOR (MAQUI MARY) -->
+  <cac:AccountingSupplierParty>
+    <cac:Party>
+      <cac:PartyIdentification>
+        <cbc:ID schemeID="6" schemeName="Documento de Identidad" schemeAgencyName="PE:SUNAT" 
+                schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06">${EMPRESA_DATA.ruc}</cbc:ID>
+      </cac:PartyIdentification>
+      <cac:PartyLegalEntity>
+        <cbc:RegistrationName>${EMPRESA_DATA.razonSocial}</cbc:RegistrationName>
+        <cac:RegistrationAddress>
+          <cbc:AddressTypeCode>0001</cbc:AddressTypeCode>
+          <cbc:CitySubdivisionName>${EMPRESA_DATA.direccion}</cbc:CitySubdivisionName>
+          <cbc:CityName>${EMPRESA_DATA.provincia}</cbc:CityName>
+          <cbc:CountrySubentity>${EMPRESA_DATA.departamento}</cbc:CountrySubentity>
+          <cbc:District>${EMPRESA_DATA.distrito}</cbc:District>
+          <cac:Country>
+            <cbc:IdentificationCode>PE</cbc:IdentificationCode>
+          </cac:Country>
+        </cac:RegistrationAddress>
+      </cac:PartyLegalEntity>
+    </cac:Party>
+  </cac:AccountingSupplierParty>
+  
+  <!-- ADQUIRIENTE (CLIENTE) -->
+  <cac:AccountingCustomerParty>
+    <cac:Party>
+      <cac:PartyIdentification>
+        <cbc:ID schemeID="${doc.cliente.dni ? '1' : '6'}" schemeName="Documento de Identidad" 
+                schemeAgencyName="PE:SUNAT">${doc.cliente.dni || doc.cliente.ruc || '00000000'}</cbc:ID>
+      </cac:PartyIdentification>
+      <cac:PartyLegalEntity>
+        <cbc:RegistrationName>${doc.cliente.nombre}</cbc:RegistrationName>
+        <cac:RegistrationAddress>
+          <cbc:AddressTypeCode>0000</cbc:AddressTypeCode>
+          <cbc:CitySubdivisionName>${doc.cliente.direccion || 'Direccion no especificada'}</cbc:CitySubdivisionName>
+          <cac:Country>
+            <cbc:IdentificationCode>PE</cbc:IdentificationCode>
+          </cac:Country>
+        </cac:RegistrationAddress>
+      </cac:PartyLegalEntity>
+    </cac:Party>
+  </cac:AccountingCustomerParty>
+  
+  <!-- TOTALES -->
+  <cac:TaxTotal>
+    <cbc:TaxAmount currencyID="${doc.moneda}">${(doc.igvTotal || 0).toFixed(2)}</cbc:TaxAmount>
+    <cac:TaxSubtotal>
+      <cbc:TaxableAmount currencyID="${doc.moneda}">${(doc.operacionGravada || 0).toFixed(2)}</cbc:TaxableAmount>
+      <cbc:TaxAmount currencyID="${doc.moneda}">${(doc.igvTotal || 0).toFixed(2)}</cbc:TaxAmount>
+      <cac:TaxCategory>
+        <cbc:ID schemeID="UN/ECE 5305" schemeName="Tax Category Identifier" schemeAgencyName="United Nations Economic Commission for Europe">S</cbc:ID>
+        <cac:TaxScheme>
+          <cbc:ID schemeID="UN/ECE 5153" schemeAgencyID="6">1000</cbc:ID>
+          <cbc:Name>IGV</cbc:Name>
+          <cbc:TaxTypeCode>VAT</cbc:TaxTypeCode>
+        </cac:TaxScheme>
+      </cac:TaxCategory>
+    </cac:TaxSubtotal>
+  </cac:TaxTotal>
+  
+  <cac:LegalMonetaryTotal>
+    <cbc:LineExtensionAmount currencyID="${doc.moneda}">${(doc.operacionGravada || 0).toFixed(2)}</cbc:LineExtensionAmount>
+    <cbc:TaxInclusiveAmount currencyID="${doc.moneda}">${doc.importeTotal.toFixed(2)}</cbc:TaxInclusiveAmount>
+    <cbc:PayableAmount currencyID="${doc.moneda}">${doc.importeTotal.toFixed(2)}</cbc:PayableAmount>
+  </cac:LegalMonetaryTotal>
+  
+  <!-- ÍTEMS / DETALLE -->${itemsXml}
+  
+</Invoice>`;
+  };
+
+  // Documentos pendientes de envío (borrador o pendiente_envio)
+  const documentosPendientes: DocumentoPendiente[] = [
+    ...boletas
+      .filter(b => b.estado === 'borrador' || b.estado === 'pendiente_envio')
+      .map(b => ({ ...b, tipo: 'boleta' as TipoDocumento })),
+    ...facturas
+      .filter(f => f.estado === 'borrador' || f.estado === 'pendiente_envio')
+      .map(f => ({ ...f, tipo: 'factura' as TipoDocumento })),
+  ];
+
+  // Documentos enviados a SUNAT
+  const documentosEnviados: DocumentoPendiente[] = [
+    ...boletas
+      .filter(b => b.estado === 'enviado' || b.estado === 'aprobado' || b.estado === 'rechazado')
+      .map(b => ({ ...b, tipo: 'boleta' as TipoDocumento })),
+    ...facturas
+      .filter(f => f.estado === 'enviado' || f.estado === 'aprobado' || f.estado === 'rechazado')
+      .map(f => ({ ...f, tipo: 'factura' as TipoDocumento })),
+  ];
+
+  const handleEnviar = async (doc: DocumentoPendiente) => {
+    setProcesando(doc.id);
+    try {
+      const resultado = await enviarDocumentoSUNAT(doc.id, doc.tipo);
+      if (resultado.success) {
+        toast.success(resultado.message);
+      } else {
+        toast.error(resultado.message);
+      }
+    } catch (error) {
+      toast.error('Error al enviar documento');
+    } finally {
+      setProcesando(null);
+    }
+  };
+
+  const handleAprobar = async (doc: DocumentoPendiente) => {
+    setProcesando(doc.id);
+    try {
+      await aprobarDocumento(doc.id, doc.tipo);
+    } catch (error) {
+      toast.error('Error al aprobar documento');
+    } finally {
+      setProcesando(null);
+    }
+  };
+
+  const handleRechazar = async (doc: DocumentoPendiente) => {
+    if (!motivoRechazo.trim()) {
+      toast.error('Debe ingresar un motivo de rechazo');
+      return;
+    }
+    setProcesando(doc.id);
+    try {
+      await rechazarDocumento(doc.id, doc.tipo, motivoRechazo);
+      setMotivoRechazo('');
+      setDocumentoRechazando(null);
+    } catch (error) {
+      toast.error('Error al rechazar documento');
+    } finally {
+      setProcesando(null);
+    }
+  };
+
+  const getEstadoBadge = (estado: string) => {
+    switch (estado) {
+      case 'borrador':
+        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700"><Clock className="w-3 h-3" /> Borrador</span>;
+      case 'pendiente_envio':
+        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700"><Clock className="w-3 h-3" /> Pendiente</span>;
+      case 'enviado':
+        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700"><Send className="w-3 h-3" /> Enviado</span>;
+      case 'aprobado':
+        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700"><CheckCircle className="w-3 h-3" /> Aprobado</span>;
+      case 'rechazado':
+        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700"><XCircle className="w-3 h-3" /> Rechazado</span>;
+      default:
+        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700">{estado}</span>;
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-heading font-bold text-ink-800">Envío a SUNAT</h1>
+          <p className="text-ink-500">Gestiona el envío de documentos electrónicos a SUNAT</p>
+        </div>
+      </div>
+
+      {/* Alerta informativa */}
+      <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
+        <div className="flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5" />
+          <div>
+            <h3 className="font-medium text-amber-800">Módulo de Envío a SUNAT</h3>
+            <p className="text-sm text-amber-700 mt-1">
+              Desde aquí los administradores pueden enviar boletas y facturas a SUNAT para su validación. 
+              Los documentos deben estar en estado &quot;Pendiente&quot; para poder enviarse.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Documentos Pendientes */}
+      <div className="bg-accent-cream rounded-xl border border-ink-200 shadow-soft overflow-hidden">
+        <div className="px-6 py-4 border-b border-ink-200 bg-ink-50">
+          <div className="flex items-center gap-2">
+            <Clock className="w-5 h-5 text-amber-600" />
+            <h2 className="font-heading font-semibold text-ink-800">Documentos Pendientes de Envío</h2>
+            <span className="ml-2 px-2.5 py-0.5 bg-amber-100 text-amber-700 rounded-full text-xs font-medium">
+              {documentosPendientes.length}
+            </span>
+          </div>
+        </div>
+
+        {documentosPendientes.length === 0 ? (
+          <div className="p-8 text-center">
+            <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
+            <p className="text-ink-600 font-medium">No hay documentos pendientes</p>
+            <p className="text-ink-400 text-sm mt-1">Todos los documentos han sido enviados a SUNAT</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-ink-100">
+            {documentosPendientes.map((doc) => (
+              <div key={doc.id} className="p-4 hover:bg-ink-50/50 transition-colors">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-white rounded-lg border border-ink-200">
+                      <FileText className="w-5 h-5 text-accent-terracotta" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${doc.tipo === 'boleta' ? 'bg-amber-100 text-amber-700' : 'bg-purple-100 text-purple-700'}`}>
+                          {doc.tipo === 'boleta' ? 'Boleta' : 'Factura'}
+                        </span>
+                        <span className="font-mono font-medium text-ink-800">{doc.numeroCompleto}</span>
+                        {getEstadoBadge(doc.estado)}
+                      </div>
+                      <p className="text-sm text-ink-600 mt-1">{doc.cliente.nombre}</p>
+                      <p className="text-xs text-ink-400">
+                        {doc.cliente.dni ? `DNI: ${doc.cliente.dni}` : doc.cliente.ruc ? `RUC: ${doc.cliente.ruc}` : 'Sin documento'}
+                        {' • '}
+                        {new Date(doc.fechaEmision).toLocaleDateString('es-PE')}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <p className="font-heading font-bold text-accent-terracotta">
+                        {formatearMoneda(doc.importeTotal, doc.moneda)}
+                      </p>
+                      <p className="text-xs text-ink-400">{doc.moneda === 'PEN' ? 'Soles' : 'Dólares'}</p>
+                    </div>
+                    <button
+                      onClick={() => setVistaPrevia(doc)}
+                      className="inline-flex items-center gap-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition-colors"
+                      title="Ver formato que se enviará a SUNAT"
+                    >
+                      <Eye className="w-4 h-4" />
+                      Vista previa
+                    </button>
+                    <button
+                      onClick={() => handleEnviar(doc)}
+                      disabled={procesando === doc.id}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-accent-terracotta hover:bg-accent-terracotta/90 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                    >
+                      {procesando === doc.id ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          Enviando...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4" />
+                          Enviar
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Documentos Enviados */}
+      <div className="bg-accent-cream rounded-xl border border-ink-200 shadow-soft overflow-hidden">
+        <div className="px-6 py-4 border-b border-ink-200 bg-ink-50">
+          <div className="flex items-center gap-2">
+            <CheckCircle className="w-5 h-5 text-green-600" />
+            <h2 className="font-heading font-semibold text-ink-800">Historial de Envíos</h2>
+            <span className="ml-2 px-2.5 py-0.5 bg-slate-200 text-ink-700 rounded-full text-xs font-medium">
+              {documentosEnviados.length}
+            </span>
+          </div>
+        </div>
+
+        {documentosEnviados.length === 0 ? (
+          <div className="p-8 text-center">
+            <FileText className="w-12 h-12 text-ink-300 mx-auto mb-3" />
+            <p className="text-ink-400">No hay documentos enviados aún</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-ink-100">
+            {documentosEnviados.map((doc) => (
+              <div key={doc.id} className="p-4 hover:bg-ink-50/50 transition-colors">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-white rounded-lg border border-ink-200">
+                      <FileText className="w-5 h-5 text-accent-terracotta" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${doc.tipo === 'boleta' ? 'bg-amber-100 text-amber-700' : 'bg-purple-100 text-purple-700'}`}>
+                          {doc.tipo === 'boleta' ? 'Boleta' : 'Factura'}
+                        </span>
+                        <span className="font-mono font-medium text-ink-800">{doc.numeroCompleto}</span>
+                        {getEstadoBadge(doc.estado)}
+                      </div>
+                      <p className="text-sm text-ink-600 mt-1">{doc.cliente.nombre}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <p className="font-heading font-bold text-accent-terracotta">
+                        {formatearMoneda(doc.importeTotal, doc.moneda)}
+                      </p>
+                    </div>
+                    
+                    {doc.estado === 'enviado' && (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleAprobar(doc)}
+                          disabled={procesando === doc.id}
+                          className="inline-flex items-center gap-1.5 px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 text-sm"
+                        >
+                          <CheckCircle className="w-4 h-4" />
+                          Aprobar
+                        </button>
+                        <button
+                          onClick={() => setDocumentoRechazando(doc.id)}
+                          disabled={procesando === doc.id}
+                          className="inline-flex items-center gap-1.5 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 text-sm"
+                        >
+                          <XCircle className="w-4 h-4" />
+                          Rechazar
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Formulario de rechazo */}
+                {documentoRechazando === doc.id && (
+                  <div className="mt-4 p-4 bg-red-50 rounded-lg border border-red-200">
+                    <label className="block text-sm font-medium text-red-700 mb-2">
+                      Motivo del rechazo:
+                    </label>
+                    <textarea
+                      value={motivoRechazo}
+                      onChange={(e) => setMotivoRechazo(e.target.value)}
+                      className="w-full px-3 py-2 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm"
+                      rows={2}
+                      placeholder="Ingrese el motivo del rechazo..."
+                    />
+                    <div className="flex gap-2 mt-3">
+                      <button
+                        onClick={() => handleRechazar(doc)}
+                        disabled={procesando === doc.id}
+                        className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium text-sm disabled:opacity-50"
+                      >
+                        Confirmar Rechazo
+                      </button>
+                      <button
+                        onClick={() => {
+                          setDocumentoRechazando(null);
+                          setMotivoRechazo('');
+                        }}
+                        className="px-4 py-2 border border-red-200 text-red-700 rounded-lg font-medium text-sm hover:bg-red-100"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Instrucciones */}
+      <div className="bg-slate-50 rounded-xl border border-slate-200 p-6">
+        <h3 className="font-heading font-semibold text-slate-800 mb-3">Proceso de Envío a SUNAT</h3>
+        <div className="grid md:grid-cols-4 gap-4">
+          <div className="p-4 bg-white rounded-lg border border-slate-200">
+            <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center mb-2">
+              <span className="font-bold text-slate-600">1</span>
+            </div>
+            <h4 className="font-medium text-slate-800">Creación</h4>
+            <p className="text-sm text-slate-500 mt-1">El empleado crea la boleta o factura</p>
+          </div>
+          <div className="p-4 bg-white rounded-lg border border-slate-200">
+            <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center mb-2">
+              <span className="font-bold text-amber-600">2</span>
+            </div>
+            <h4 className="font-medium text-slate-800">Vista Previa</h4>
+            <p className="text-sm text-slate-500 mt-1">Admin revisa el formato UBL/XML antes de enviar</p>
+          </div>
+          <div className="p-4 bg-white rounded-lg border border-slate-200">
+            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mb-2">
+              <span className="font-bold text-blue-600">3</span>
+            </div>
+            <h4 className="font-medium text-slate-800">Envío</h4>
+            <p className="text-sm text-slate-500 mt-1">Admin envía a SUNAT y espera respuesta</p>
+          </div>
+          <div className="p-4 bg-white rounded-lg border border-slate-200">
+            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mb-2">
+              <span className="font-bold text-green-600">4</span>
+            </div>
+            <h4 className="font-medium text-slate-800">Aprobación</h4>
+            <p className="text-sm text-slate-500 mt-1">SUNAT aprueba y se genera el CDR</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Modal de Vista Previa */}
+      {vistaPrevia && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-900/50">
+          <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-elevated">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-ink-200">
+              <div className="flex items-center gap-3">
+                <Code className="w-5 h-5 text-accent-terracotta" />
+                <div>
+                  <h3 className="font-heading font-semibold text-ink-800">
+                    Vista Previa: {vistaPrevia.numeroCompleto}
+                  </h3>
+                  <p className="text-xs text-ink-500">
+                    Formato UBL 2.1 que se enviará a SUNAT
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setVistaPrevia(null)}
+                className="p-2 hover:bg-ink-100 rounded-lg text-ink-400 hover:text-ink-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Tabs */}
+            <div className="flex border-b border-ink-200">
+              <button
+                onClick={() => setTipoVista('xml')}
+                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                  tipoVista === 'xml'
+                    ? 'border-accent-terracotta text-accent-terracotta'
+                    : 'border-transparent text-ink-500 hover:text-ink-700'
+                }`}
+              >
+                <Code className="w-4 h-4" />
+                XML UBL
+              </button>
+              <button
+                onClick={() => setTipoVista('pdf')}
+                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                  tipoVista === 'pdf'
+                    ? 'border-accent-terracotta text-accent-terracotta'
+                    : 'border-transparent text-ink-500 hover:text-ink-700'
+                }`}
+              >
+                <FileText className="w-4 h-4" />
+                Resumen PDF
+              </button>
+            </div>
+
+            {/* Contenido */}
+            <div className="flex-1 overflow-auto p-4">
+              {tipoVista === 'xml' ? (
+                <div className="bg-slate-900 rounded-lg p-4 overflow-x-auto">
+                  <pre className="text-xs text-green-400 font-mono whitespace-pre-wrap">
+                    {generarXMLUBL(vistaPrevia)}
+                  </pre>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* Resumen del documento */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 bg-accent-cream rounded-xl border border-ink-200">
+                      <h4 className="font-medium text-ink-700 mb-2">Emisor</h4>
+                      <p className="text-sm text-ink-800 font-medium">{EMPRESA_DATA.razonSocial}</p>
+                      <p className="text-xs text-ink-500">RUC: {EMPRESA_DATA.ruc}</p>
+                    </div>
+                    <div className="p-4 bg-accent-cream rounded-xl border border-ink-200">
+                      <h4 className="font-medium text-ink-700 mb-2">Adquiriente</h4>
+                      <p className="text-sm text-ink-800 font-medium">{vistaPrevia.cliente.nombre}</p>
+                      <p className="text-xs text-ink-500">
+                        {vistaPrevia.cliente.dni ? `DNI: ${vistaPrevia.cliente.dni}` : vistaPrevia.cliente.ruc ? `RUC: ${vistaPrevia.cliente.ruc}` : 'Sin documento'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-accent-cream rounded-xl border border-ink-200">
+                    <h4 className="font-medium text-ink-700 mb-3">Detalle del Documento</h4>
+                    <div className="grid grid-cols-3 gap-4 text-sm">
+                      <div>
+                        <span className="text-ink-500">Tipo:</span>
+                        <p className="font-medium text-ink-800">{vistaPrevia.tipo === 'boleta' ? 'Boleta de Venta' : 'Factura'}</p>
+                      </div>
+                      <div>
+                        <span className="text-ink-500">Número:</span>
+                        <p className="font-medium text-ink-800">{vistaPrevia.numeroCompleto}</p>
+                      </div>
+                      <div>
+                        <span className="text-ink-500">Fecha:</span>
+                        <p className="font-medium text-ink-800">{new Date(vistaPrevia.fechaEmision).toLocaleDateString('es-PE')}</p>
+                      </div>
+                      <div>
+                        <span className="text-ink-500">Moneda:</span>
+                        <p className="font-medium text-ink-800">{vistaPrevia.moneda === 'PEN' ? 'Soles (PEN)' : 'Dólares (USD)'}</p>
+                      </div>
+                      <div>
+                        <span className="text-ink-500">Total:</span>
+                        <p className="font-medium text-accent-terracotta">{formatearMoneda(vistaPrevia.importeTotal, vistaPrevia.moneda)}</p>
+                      </div>
+                      <div>
+                        <span className="text-ink-500">Ítems:</span>
+                        <p className="font-medium text-ink-800">{vistaPrevia.items?.length || 0}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {vistaPrevia.items && vistaPrevia.items.length > 0 && (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead className="bg-ink-50">
+                          <tr>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-ink-600">N°</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-ink-600">Descripción</th>
+                            <th className="px-3 py-2 text-center text-xs font-medium text-ink-600">Cant.</th>
+                            <th className="px-3 py-2 text-right text-xs font-medium text-ink-600">P. Unit.</th>
+                            <th className="px-3 py-2 text-right text-xs font-medium text-ink-600">Total</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-ink-100">
+                          {vistaPrevia.items.map((item: any, idx: number) => (
+                            <tr key={idx}>
+                              <td className="px-3 py-2 text-ink-600">{idx + 1}</td>
+                              <td className="px-3 py-2 text-ink-800">{item.descripcion}</td>
+                              <td className="px-3 py-2 text-center text-ink-600">{item.cantidad}</td>
+                              <td className="px-3 py-2 text-right text-ink-600">{formatearMoneda(item.valorUnitario, vistaPrevia.moneda)}</td>
+                              <td className="px-3 py-2 text-right font-medium text-ink-800">{formatearMoneda(item.importeTotal, vistaPrevia.moneda)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-between p-4 border-t border-ink-200 bg-ink-50 rounded-b-2xl">
+              <div className="flex items-center gap-2 text-sm text-ink-500">
+                <AlertTriangle className="w-4 h-4 text-amber-500" />
+                <span>Revise cuidadosamente antes de enviar a SUNAT</span>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setVistaPrevia(null)}
+                  className="px-4 py-2 border border-ink-200 text-ink-700 rounded-lg font-medium hover:bg-ink-100 transition-colors"
+                >
+                  Cerrar
+                </button>
+                <button
+                  onClick={() => {
+                    setVistaPrevia(null);
+                    handleEnviar(vistaPrevia);
+                  }}
+                  className="px-4 py-2 bg-accent-terracotta hover:bg-accent-terracotta/90 text-white rounded-lg font-medium transition-colors"
+                >
+                  <Send className="w-4 h-4 inline mr-2" />
+                  Enviar a SUNAT
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

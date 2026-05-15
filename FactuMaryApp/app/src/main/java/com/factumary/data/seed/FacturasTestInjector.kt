@@ -9,6 +9,7 @@ import com.factumary.data.db.entity.InvoiceItemEntity
 import com.factumary.data.db.entity.ProductEntity
 import com.factumary.data.remote.SupabaseClientProvider
 import com.factumary.data.repository.InvoiceRepositoryAprobacion
+import io.github.jan.supabase.gotrue.auth
 import com.factumary.pdf.PdfGenerator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -94,12 +95,12 @@ object FacturasTestInjector {
                 
                 // Crear items
                 val items = productosSeleccionados.map { producto ->
-                    val cantidad = (1..10).random()
+                    val cant = (1..10).random()
                     InvoiceItemEntity(
                         invoiceId = 0,
                         productId = producto.id,
                         description = producto.name,
-                        quantity = cantidad,
+                        quantity = cant,
                         unitPrice = producto.price,
                         total = producto.price * cantidad
                     )
@@ -144,7 +145,7 @@ object FacturasTestInjector {
                 result.fold(
                     onSuccess = { invoiceId ->
                         // Generar PDF preliminar
-                        val pdfFile = PdfGenerator.generate(
+                        val _pdfFile = PdfGenerator.generate(
                             context = context,
                             invoice = invoice.copy(id = invoiceId),
                             items = items,

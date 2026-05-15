@@ -6,11 +6,17 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Plus, Search, Filter, Eye, Download } from 'lucide-react';
+import { Plus, Search, Filter, Pencil } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { formatearMoneda } from '@/lib/calculos';
 import PDFGenerator from '@/components/pdf/PDFGenerator';
-import { Boleta } from '@/types/documentos';
+
+const ESTADO_CONFIG = {
+  borrador:  { label: 'Borrador',  bg: 'bg-slate-100', text: 'text-slate-600' },
+  enviado:   { label: 'Enviado',   bg: 'bg-blue-100',  text: 'text-blue-700'  },
+  aprobado:  { label: 'Aprobado',  bg: 'bg-green-100', text: 'text-green-700' },
+  rechazado: { label: 'Rechazado', bg: 'bg-red-100',   text: 'text-red-700'   },
+} as const;
 
 export default function BoletasPage() {
   const { boletas } = useApp();
@@ -103,6 +109,9 @@ export default function BoletasPage() {
                     Total
                   </th>
                   <th className="px-6 py-4 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                    Estado
+                  </th>
+                  <th className="px-6 py-4 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider">
                     Acciones
                   </th>
                 </tr>
@@ -135,8 +144,24 @@ export default function BoletasPage() {
                         {formatearMoneda(boleta.importeTotal, boleta.moneda)}
                       </span>
                     </td>
+                    <td className="px-6 py-4 text-center">
+                      {boleta.estado in ESTADO_CONFIG && (
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${ESTADO_CONFIG[boleta.estado as keyof typeof ESTADO_CONFIG].bg} ${ESTADO_CONFIG[boleta.estado as keyof typeof ESTADO_CONFIG].text}`}>
+                          {ESTADO_CONFIG[boleta.estado as keyof typeof ESTADO_CONFIG].label}
+                        </span>
+                      )}
+                    </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center gap-2">
+                        {boleta.estado === 'borrador' && (
+                          <Link
+                            href={`/crm/boletas/nueva?edit=${boleta.id}`}
+                            className="p-1.5 hover:bg-amber-100 text-amber-600 rounded-lg transition-colors"
+                            title="Editar boleta"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </Link>
+                        )}
                         <PDFGenerator documento={boleta} tipo="boleta" />
                       </div>
                     </td>

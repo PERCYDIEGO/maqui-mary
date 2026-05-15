@@ -45,9 +45,9 @@ const config: Config = {
         },
       },
       fontFamily: {
-        display: ['"DM Serif Display"', 'Georgia', 'serif'],
-        heading: ['Lora', 'Georgia', 'serif'],
-        body: ['Nunito', 'sans-serif'],
+        display: ['var(--font-display)', 'Georgia', 'serif'],
+        heading: ['var(--font-heading)', 'Lora', 'Georgia', 'serif'],
+        body: ['var(--font-body)', 'sans-serif'],
       },
       animation: {
         'fade-in': 'fadeIn 0.6s ease-out forwards',

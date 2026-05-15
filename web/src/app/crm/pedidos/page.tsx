@@ -31,6 +31,7 @@ export default function PedidosPage() {
   async function loadPedidos() {
     const { data } = await supabase.from('facturas')
       .select('*')
+      .or('origen.eq.web,payment_method.in.(yape,plin)')
       .order('created_at', { ascending: false })
     if (data) setPedidos(data)
     setLoading(false)
@@ -109,7 +110,7 @@ export default function PedidosPage() {
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+      <div data-crm-section="filtros" className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-1">
           <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-primary-400" />
           <input type="text" placeholder="Buscar por cliente..." value={search} onChange={e => setSearch(e.target.value)} className="input-field pl-12" />
@@ -129,7 +130,7 @@ export default function PedidosPage() {
           <p className="font-medium">No hay pedidos</p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div data-crm-section="lista-pedidos" className="space-y-4">
           {filtered.map(p => (
             <div key={p.id} className={`card !p-5 border-l-4 ${p.status === 'confirmed' ? 'border-l-green-500' : p.status === 'cancelled' ? 'border-l-red-500' : 'border-l-amber-500'}`}>
               <div className="flex items-start justify-between gap-4">

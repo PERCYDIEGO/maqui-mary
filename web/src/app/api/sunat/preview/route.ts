@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
       horaEmision,
       cliente: {
         tipoDoc: tipoDocCliente as any,
-        numDoc: isBoletaSinId ? '-' : (cliente_ruc || '-'),
+        numDoc: isBoletaSinId ? '00000000' : (cliente_ruc || '-'),
         nombre: isBoletaSinId ? 'CLIENTES VARIOS' : (cliente_nombre || 'CLIENTES VARIOS'),
         direccion: isBoletaSinId ? '' : (cliente_direccion || ''),
       },

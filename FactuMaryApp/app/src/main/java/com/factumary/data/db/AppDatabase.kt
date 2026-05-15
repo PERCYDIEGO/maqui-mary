@@ -5,12 +5,16 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.factumary.data.db.dao.CustomerDao
+import com.factumary.data.db.dao.GuiaRemisionDao
 import com.factumary.data.db.dao.InvoiceDao
 import com.factumary.data.db.dao.ProductDao
+import com.factumary.data.db.dao.TransportistaDao
 import com.factumary.data.db.entity.CustomerEntity
+import com.factumary.data.db.entity.GuiaRemisionEntity
 import com.factumary.data.db.entity.InvoiceEntity
 import com.factumary.data.db.entity.InvoiceItemEntity
 import com.factumary.data.db.entity.ProductEntity
+import com.factumary.data.db.entity.TransportistaEntity
 import com.factumary.data.seed.SeedData
 
 @Database(
@@ -18,9 +22,11 @@ import com.factumary.data.seed.SeedData
         ProductEntity::class,
         CustomerEntity::class,
         InvoiceEntity::class,
-        InvoiceItemEntity::class
+        InvoiceItemEntity::class,
+        TransportistaEntity::class,
+        GuiaRemisionEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -28,6 +34,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun productDao(): ProductDao
     abstract fun customerDao(): CustomerDao
     abstract fun invoiceDao(): InvoiceDao
+    abstract fun transportistaDao(): TransportistaDao
+    abstract fun guiaRemisionDao(): GuiaRemisionDao
 
     companion object {
         @Volatile

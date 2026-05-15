@@ -6,9 +6,16 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Plus, Search, Truck, Eye, Download } from 'lucide-react';
+import { Plus, Search, Truck, Pencil } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import PDFGenerator from '@/components/pdf/PDFGenerator';
+
+const ESTADO_CONFIG = {
+  borrador:  { label: 'Borrador',  bg: 'bg-slate-100', text: 'text-slate-600' },
+  enviado:   { label: 'Enviado',   bg: 'bg-blue-100',  text: 'text-blue-700'  },
+  aprobado:  { label: 'Aprobado',  bg: 'bg-green-100', text: 'text-green-700' },
+  rechazado: { label: 'Rechazado', bg: 'bg-red-100',   text: 'text-red-700'   },
+} as const;
 
 export default function GuiasPage() {
   const { guias, boletas, facturas } = useApp();
@@ -69,6 +76,7 @@ export default function GuiasPage() {
                 <th className="px-6 py-4 text-left text-xs font-semibold uppercase">Destinatario</th>
                 <th className="px-6 py-4 text-left text-xs font-semibold uppercase">Motivo</th>
                 <th className="px-6 py-4 text-left text-xs font-semibold uppercase">Fecha Traslado</th>
+                <th className="px-6 py-4 text-center text-xs font-semibold uppercase">Estado</th>
                 <th className="px-6 py-4 text-center text-xs font-semibold uppercase">Acciones</th>
               </tr>
             </thead>
@@ -86,8 +94,24 @@ export default function GuiasPage() {
                   </td>
                   <td className="px-6 py-4 capitalize">{guia.motivoTraslado.replace('_', ' ')}</td>
                   <td className="px-6 py-4 text-slate-600">{guia.fechaInicioTraslado.toLocaleDateString('es-PE')}</td>
+                  <td className="px-6 py-4 text-center">
+                    {guia.estado in ESTADO_CONFIG && (
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${ESTADO_CONFIG[guia.estado as keyof typeof ESTADO_CONFIG].bg} ${ESTADO_CONFIG[guia.estado as keyof typeof ESTADO_CONFIG].text}`}>
+                        {ESTADO_CONFIG[guia.estado as keyof typeof ESTADO_CONFIG].label}
+                      </span>
+                    )}
+                  </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center justify-center gap-2">
+                      {guia.estado === 'borrador' && (
+                        <Link
+                          href={`/crm/guias/nueva?edit=${guia.id}`}
+                          className="p-1.5 hover:bg-indigo-100 text-indigo-600 rounded-lg transition-colors"
+                          title="Editar guía"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Link>
+                      )}
                       <PDFGenerator documento={guia} tipo="guia" />
                     </div>
                   </td>

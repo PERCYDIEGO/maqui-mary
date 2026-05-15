@@ -109,21 +109,7 @@ interface InvoiceDao {
     @Query("UPDATE invoices SET supabaseSynced = :synced, supabaseId = :supabaseId, syncedAt = :timestamp WHERE id = :id")
     suspend fun updateSupabaseSync(id: Long, synced: Boolean, supabaseId: String, timestamp: Long = System.currentTimeMillis())
 
-    @Query("UPDATE invoices SET 
-        aprobacionStatus = :aprobacionStatus,
-        aprobadoPor = :aprobadoPor,
-        aprobadoPorName = :aprobadoPorName,
-        aprobadoAt = :aprobadoAt,
-        rechazoRazon = :rechazoRazon,
-        sunatStatus = :sunatStatus,
-        sunatCodigo = :sunatCodigo,
-        sunatDescripcion = :sunatDescripcion,
-        sunatHash = :sunatHash,
-        sunatXmlUrl = :sunatXmlUrl,
-        sunatCdrUrl = :sunatCdrUrl,
-        sunatError = :sunatError,
-        sunatSentAt = :sunatSentAt
-        WHERE id = :id")
+    @Query("UPDATE invoices SET aprobacionStatus = :aprobacionStatus, aprobadoPor = :aprobadoPor, aprobadoPorName = :aprobadoPorName, aprobadoAt = :aprobadoAt, rechazoRazon = :rechazoRazon, sunatStatus = :sunatStatus, sunatCodigo = :sunatCodigo, sunatDescripcion = :sunatDescripcion, sunatHash = :sunatHash, sunatXmlUrl = :sunatXmlUrl, sunatCdrUrl = :sunatCdrUrl, sunatError = :sunatError, sunatSentAt = :sunatSentAt WHERE id = :id")
     suspend fun updateEstadoDesdeSupabase(
         id: Long,
         aprobacionStatus: String,

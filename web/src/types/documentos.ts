@@ -18,6 +18,24 @@ export const EMPRESA_DATA = {
 // Tipos de documentos
 export type TipoDocumento = 'boleta' | 'factura' | 'guia';
 
+// Estados del documento
+export type EstadoDocumento = 
+  | 'borrador'           // Creado, pendiente de envío a SUNAT
+  | 'pendiente_envio'    // Listo para enviar a SUNAT (espera aprobación admin)
+  | 'enviado'            // Enviado a SUNAT, esperando respuesta
+  | 'aprobado'           // Aprobado por SUNAT (CDR recibido)
+  | 'rechazado'          // Rechazado por SUNAT
+  | 'anulado';           // Anulado
+
+// Respuesta CDR de SUNAT
+export interface CDRData {
+  codigo: string;        // Código de respuesta (0 = éxito)
+  mensaje: string;       // Mensaje de SUNAT
+  observaciones?: string[];
+  fechaRecepcion: Date;
+  cdrXml?: string;       // Contenido XML del CDR
+}
+
 export interface DocumentoBase {
   id: string;
   tipo: TipoDocumento;
@@ -27,9 +45,13 @@ export interface DocumentoBase {
   fechaEmision: Date;
   fechaVencimiento?: Date;
   observacion?: string;
-  estado: 'emitido' | 'anulado' | 'pendiente';
+  estado: EstadoDocumento;
   qrCode?: string;
   hashCpe?: string;
+  // Datos SUNAT
+  cdr?: CDRData;         // Constancia de Recepción de SUNAT
+  enviadoPor?: string;   // ID del usuario que envió a SUNAT
+  enviadoAt?: Date;      // Fecha de envío a SUNAT
   createdAt: Date;
   updatedAt: Date;
 }

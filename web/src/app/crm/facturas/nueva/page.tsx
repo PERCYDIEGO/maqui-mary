@@ -11,22 +11,25 @@ import { ArrowLeft, Plus, Trash2, Save, X, Search, User, Building2 } from 'lucid
 import Link from 'next/link';
 import { useApp } from '@/context/AppContext';
 import { Factura, Cliente, ItemDocumento, EMPRESA_DATA } from '@/types/documentos';
-import { 
-  calcularItem, 
-  calcularTotalesFactura, 
+import {
+  calcularItem,
+  calcularTotalesFactura,
   formatearMoneda,
   formatearNumeroDocumento,
   generarHashCPE,
   generarDatosQR,
-  validarRUC,
   redondear
 } from '@/lib/calculos';
 import toast from 'react-hot-toast';
 
 export default function NuevaFacturaPage() {
   const router = useRouter();
-  const { addFactura, clientes, productos, getSiguienteNumero } = useApp();
-  
+  const { addFactura, updateFactura, facturas, clientes, productos, getSiguienteNumero } = useApp();
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editLoaded, setEditLoaded] = useState(false);
+
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   
@@ -46,6 +49,27 @@ export default function NuevaFacturaPage() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Detectar modo edición vía ?edit=ID
+  useEffect(() => {
+    if (editLoaded) return;
+    const params = new URLSearchParams(window.location.search);
+    const editId = params.get('edit');
+    if (!editId) return;
+    const factura = facturas.find(f => f.id === editId);
+    if (!factura) return;
+    setIsEditing(true);
+    setEditingId(editId);
+    setCliente(factura.cliente);
+    setClienteBusqueda(`${factura.cliente.nombre} - RUC: ${factura.cliente.ruc}`);
+    setFechaEmision(new Date(factura.fechaEmision).toISOString().split('T')[0]);
+    if (factura.fechaVencimiento) setFechaVencimiento(new Date(factura.fechaVencimiento).toISOString().split('T')[0]);
+    setFormaPago(factura.formaPago);
+    setMoneda(factura.moneda);
+    setItems(factura.items);
+    setObservacion(factura.observacion || '');
+    setEditLoaded(true);
+  }, [facturas, editLoaded]);
   
   const [fechaEmision, setFechaEmision] = useState(new Date().toISOString().split('T')[0]);
   const [fechaVencimiento, setFechaVencimiento] = useState('');
@@ -57,10 +81,12 @@ export default function NuevaFacturaPage() {
   const [anticipoGlobal, setAnticipoGlobal] = useState(0);
   const [otrosCargos, setOtrosCargos] = useState(0);
   
-  // Buscar clientes
-  const clientesFiltrados = clientes.filter(c => 
-    c.nombre.toLowerCase().includes(clienteBusqueda.toLowerCase()) ||
-    c.ruc?.includes(clienteBusqueda)
+  // Buscar clientes que tengan RUC
+  const clientesFiltrados = clientes.filter(c =>
+    c.ruc && (
+      c.nombre.toLowerCase().includes(clienteBusqueda.toLowerCase()) ||
+      c.ruc.includes(clienteBusqueda)
+    )
   );
   
   // Calcular totales
@@ -71,8 +97,8 @@ export default function NuevaFacturaPage() {
   const numeroCompleto = formatearNumeroDocumento('E001', siguienteNumero);
   
   const handleSelectCliente = (c: Cliente) => {
-    if (c.tipo !== 'juridica' || !c.ruc) {
-      toast.error('Las facturas solo pueden emitirse a empresas con RUC');
+    if (!c.ruc) {
+      toast.error('Este cliente no tiene RUC registrado. Las facturas requieren RUC.');
       return;
     }
     setCliente(c);
@@ -122,8 +148,8 @@ export default function NuevaFacturaPage() {
       toast.error('Selecciona un cliente con RUC');
       return;
     }
-    if (!cliente.ruc || !validarRUC(cliente.ruc)) {
-      toast.error('El cliente debe tener un RUC válido');
+    if (!cliente.ruc) {
+      toast.error('El cliente seleccionado no tiene RUC registrado');
       return;
     }
     if (items.length === 0) {
@@ -132,7 +158,19 @@ export default function NuevaFacturaPage() {
     }
     
     setLoading(true);
-    
+
+    // Modo edición: actualizar factura existente
+    if (isEditing && editingId) {
+      const original = facturas.find(f => f.id === editingId);
+      if (original) {
+        updateFactura({ ...original, cliente: cliente!, clienteId: cliente!.id, fechaEmision: new Date(fechaEmision), fechaVencimiento: formaPago === 'credito' && fechaVencimiento ? new Date(fechaVencimiento) : undefined, formaPago, moneda, items, observacion, updatedAt: new Date(), ...totales });
+        toast.success('Factura actualizada correctamente');
+        router.push('/crm/facturas');
+      }
+      setLoading(false);
+      return;
+    }
+
     try {
       const hashCPE = generarHashCPE({
         rucEmisor: EMPRESA_DATA.ruc,
@@ -167,7 +205,7 @@ export default function NuevaFacturaPage() {
         formaPago,
         items,
         observacion,
-        estado: 'emitido',
+        estado: 'borrador',
         hashCpe: hashCPE,
         qrCode: qrData,
         createdAt: new Date(),
@@ -176,7 +214,7 @@ export default function NuevaFacturaPage() {
       };
       
       addFactura(factura);
-      toast.success('Factura emitida correctamente');
+      toast.success('Factura guardada. Pendiente de envío a SUNAT.');
       router.push('/crm/facturas');
     } catch (error) {
       toast.error('Error al emitir la factura');
@@ -192,7 +230,7 @@ export default function NuevaFacturaPage() {
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Nueva Factura Electrónica</h1>
+          <h1 className="text-2xl font-bold text-slate-800">{isEditing ? 'Editar Factura Electrónica' : 'Nueva Factura Electrónica'}</h1>
           <p className="text-slate-500">{numeroCompleto}</p>
         </div>
       </div>
@@ -376,9 +414,23 @@ export default function NuevaFacturaPage() {
                           value={item.productoId || ''}
                           onChange={(e) => {
                             const productoId = e.target.value;
-                            const producto = productos.find(p => p.id === productoId);
+                            if (!productoId) {
+                              const newItems = [...items];
+                              newItems[index] = {
+                                ...newItems[index],
+                                productoId: undefined,
+                                descripcion: '',
+                                detalle: '',
+                                valorUnitario: 0,
+                                valorVenta: 0,
+                                igv: 0,
+                                importeTotal: 0,
+                              };
+                              setItems(newItems);
+                              return;
+                            }
+                            const producto = productos.find(p => String(p.id) === productoId);
                             if (producto) {
-                              // Actualizar item con datos del producto seleccionado
                               const newItems = [...items];
                               newItems[index] = {
                                 ...newItems[index],
@@ -388,7 +440,6 @@ export default function NuevaFacturaPage() {
                                 valorUnitario: producto.precioUnitario,
                                 unidadMedida: producto.unidadMedida,
                               };
-                              // Recalcular totales
                               const calculado = calcularItem(
                                 newItems[index].cantidad,
                                 producto.precioUnitario,
@@ -401,7 +452,11 @@ export default function NuevaFacturaPage() {
                               setItems(newItems);
                             }
                           }}
-                          className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm"
+                          className={`w-full px-3 py-2 border rounded-lg focus:ring-2 outline-none text-sm ${
+                            !item.productoId
+                              ? 'border-red-300 focus:ring-red-400'
+                              : 'border-slate-200 focus:ring-purple-500'
+                          }`}
                         >
                           <option value="">-- Selecciona un producto --</option>
                           {productos
@@ -490,9 +545,18 @@ export default function NuevaFacturaPage() {
               <button onClick={() => setStep(1)} className="px-6 py-3 border border-slate-300 text-slate-700 rounded-xl font-semibold">
                 Anterior
               </button>
-              <button onClick={() => setStep(3)} disabled={items.length === 0} className="px-6 py-3 bg-purple-600 text-white rounded-xl font-semibold disabled:bg-slate-300">
-                Continuar
-              </button>
+              <div className="flex flex-col items-end gap-1">
+                {items.length > 0 && !items.every(i => i.productoId && i.descripcion && i.cantidad > 0 && i.valorUnitario > 0) && (
+                  <p className="text-xs text-red-500">Completa todos los ítems antes de continuar</p>
+                )}
+                <button
+                  onClick={() => setStep(3)}
+                  disabled={!items.every(i => i.productoId && i.descripcion && i.cantidad > 0 && i.valorUnitario > 0) || items.length === 0}
+                  className="px-6 py-3 bg-purple-600 text-white rounded-xl font-semibold disabled:bg-slate-300"
+                >
+                  Continuar
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -574,7 +638,7 @@ export default function NuevaFacturaPage() {
                 disabled={loading}
                 className="inline-flex items-center gap-2 px-8 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-semibold shadow-lg"
               >
-                {loading ? 'Emitiendo...' : <><Save className="w-5 h-5" /> Emitir Factura</>}
+                {loading ? 'Guardando...' : <><Save className="w-5 h-5" /> {isEditing ? 'Guardar Cambios' : 'Emitir Factura'}</>}
               </button>
             </div>
           </div>

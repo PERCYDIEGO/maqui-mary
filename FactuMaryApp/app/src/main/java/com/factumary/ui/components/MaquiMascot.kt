@@ -9,7 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Help
+import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -442,7 +442,7 @@ fun MaquiMini(
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = Icons.Filled.Help,
+                imageVector = Icons.AutoMirrored.Filled.Help,
                 contentDescription = null,
                 tint = Color.White,
                 modifier = Modifier.size(12.dp)
@@ -467,7 +467,7 @@ fun MaquiHelpButton(
         shape = RoundedCornerShape(18.dp)
     ) {
         Icon(
-            imageVector = Icons.Filled.Help,
+            imageVector = Icons.AutoMirrored.Filled.Help,
             contentDescription = "Ayuda",
             modifier = Modifier.size(28.dp)
         )

@@ -70,13 +70,20 @@ interface AppContextType extends AppState {
   
   setProductos: (productos: Producto[]) => void;
   refreshProductos: () => Promise<void>;
-  
+  refreshClientes: () => Promise<void>;
+  refreshTransportistas: () => Promise<void>;
+
+  // SUNAT - Envío de documentos
+  enviarDocumentoSUNAT: (documentoId: string, tipo: 'boleta' | 'factura') => Promise<{ success: boolean; message: string }>;
+  aprobarDocumento: (documentoId: string, tipo: 'boleta' | 'factura') => Promise<void>;
+  rechazarDocumento: (documentoId: string, tipo: 'boleta' | 'factura', motivo: string) => Promise<void>;
+
   // Utilidades
   showNotificacion: (tipo: 'success' | 'error' | 'info' | 'warning', mensaje: string) => void;
   hideNotificacion: () => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
-  
+
   // Obtener siguiente número de serie
   getSiguienteNumero: (tipo: 'boleta' | 'factura' | 'guia') => number;
 }
@@ -97,177 +104,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [facturas, setFacturasState] = useState<Factura[]>([]);
   const [guias, setGuiasState] = useState<GuiaRemision[]>([]);
   
-  // Clientes ficticios
-  const [clientes, setClientesState] = useState<Cliente[]>([
-    {
-      id: '1',
-      tipo: 'natural',
-      nombre: 'Juan Pérez García',
-      apellidos: 'Pérez García',
-      dni: '45678912',
-      direccion: 'Av. Los Pinos 456, San Isidro, Lima',
-      telefono: '987654321',
-      email: 'juan.perez@email.com',
-      esFrecuente: true,
-      totalCompras: 15,
-      createdAt: new Date('2024-01-15'),
-    },
-    {
-      id: '2',
-      tipo: 'natural',
-      nombre: 'María Rosa López',
-      apellidos: 'Rosa López',
-      dni: '47896523',
-      direccion: 'Jr. Amazonas 123, Miraflores, Lima',
-      telefono: '912345678',
-      email: 'maria.lopez@email.com',
-      esFrecuente: true,
-      totalCompras: 8,
-      createdAt: new Date('2024-02-20'),
-    },
-    {
-      id: '3',
-      tipo: 'juridica',
-      nombre: 'Distribuciones del Norte S.A.C.',
-      razonSocial: 'Distribuciones del Norte S.A.C.',
-      ruc: '20548796321',
-      direccion: 'Av. Industrial 789, Ate Vitarte, Lima',
-      telefono: '01-4567890',
-      email: 'ventas@distribucionesnorte.com',
-      esFrecuente: true,
-      totalCompras: 42,
-      createdAt: new Date('2023-11-10'),
-    },
-    {
-      id: '4',
-      tipo: 'juridica',
-      nombre: 'Supermercados La Económica E.I.R.L.',
-      razonSocial: 'Supermercados La Económica E.I.R.L.',
-      ruc: '20604578912',
-      direccion: 'Av. Universitaria 3456, Comas, Lima',
-      telefono: '01-7894561',
-      email: 'compras@laeconomica.pe',
-      esFrecuente: false,
-      totalCompras: 3,
-      createdAt: new Date('2024-05-10'),
-    },
-    {
-      id: '5',
-      tipo: 'natural',
-      nombre: 'Carlos Alberto Mendoza',
-      apellidos: 'Mendoza Castillo',
-      dni: '41256398',
-      direccion: 'Calle Las Flores 89, Surco, Lima',
-      telefono: '956789123',
-      email: 'carlos.mendoza@email.com',
-      esFrecuente: false,
-      totalCompras: 2,
-      createdAt: new Date('2024-06-15'),
-    },
-    {
-      id: '6',
-      tipo: 'juridica',
-      nombre: 'Tiendas Maxi S.A.',
-      razonSocial: 'Tiendas Maxi S.A.',
-      ruc: '20145678901',
-      direccion: 'Av. Javier Prado 5678, San Borja, Lima',
-      telefono: '01-2345678',
-      email: 'proveedores@tiendasmaxi.com',
-      esFrecuente: true,
-      totalCompras: 28,
-      createdAt: new Date('2023-08-05'),
-    },
-    {
-      id: '7',
-      tipo: 'natural',
-      nombre: 'Ana Lucía Torres',
-      apellidos: 'Torres Vega',
-      dni: '48956231',
-      direccion: 'Av. Arequipa 2345, Lince, Lima',
-      telefono: '934567891',
-      email: 'ana.torres@email.com',
-      esFrecuente: false,
-      totalCompras: 1,
-      createdAt: new Date('2024-07-01'),
-    },
-    {
-      id: '8',
-      tipo: 'juridica',
-      nombre: 'Comercial Los Andes S.R.L.',
-      razonSocial: 'Comercial Los Andes S.R.L.',
-      ruc: '20561234879',
-      direccion: 'Jr. Cusco 456, Centro de Lima, Lima',
-      telefono: '01-3456789',
-      email: 'admin@comerciallosandes.com',
-      esFrecuente: false,
-      totalCompras: 5,
-      createdAt: new Date('2024-03-20'),
-    },
-  ]);
+  const [clientes, setClientesState] = useState<Cliente[]>([]);
   
-  // Transportistas ficticios
-  const [transportistas, setTransportistasState] = useState<Transportista[]>([
-    {
-      id: '1',
-      nombres: 'Pedro José',
-      apellidos: 'Vásquez Chávez',
-      nombreCompleto: 'Vásquez Chávez, Pedro José',
-      dni: '41526389',
-      licenciaConducir: 'Q41526389',
-      numeroPlaca: 'ABC-123',
-      activo: true,
-      createdAt: new Date('2023-06-15'),
-      updatedAt: new Date('2024-01-10'),
-    },
-    {
-      id: '2',
-      nombres: 'Luis Alberto',
-      apellidos: 'Quispe Mamani',
-      nombreCompleto: 'Quispe Mamani, Luis Alberto',
-      dni: '42879561',
-      licenciaConducir: 'B42879561',
-      numeroPlaca: 'XYZ-789',
-      activo: true,
-      createdAt: new Date('2023-08-20'),
-      updatedAt: new Date('2024-02-15'),
-    },
-    {
-      id: '3',
-      nombres: 'Miguel Ángel',
-      apellidos: 'Huamán Rojas',
-      nombreCompleto: 'Huamán Rojas, Miguel Ángel',
-      dni: '43987156',
-      licenciaConducir: 'Q43987156',
-      numeroPlaca: 'DEF-456',
-      activo: true,
-      createdAt: new Date('2024-01-05'),
-      updatedAt: new Date('2024-06-20'),
-    },
-    {
-      id: '4',
-      nombres: 'Roberto Carlos',
-      apellidos: 'Sánchez Pérez',
-      nombreCompleto: 'Sánchez Pérez, Roberto Carlos',
-      dni: '45612378',
-      licenciaConducir: 'A45612378',
-      numeroPlaca: 'GHI-789',
-      activo: false,
-      createdAt: new Date('2023-04-10'),
-      updatedAt: new Date('2024-05-01'),
-    },
-    {
-      id: '5',
-      nombres: 'Jorge Enrique',
-      apellidos: 'Castillo Vega',
-      nombreCompleto: 'Castillo Vega, Jorge Enrique',
-      dni: '46789523',
-      licenciaConducir: 'B46789523',
-      numeroPlaca: 'JKL-321',
-      activo: true,
-      createdAt: new Date('2024-03-15'),
-      updatedAt: new Date('2024-07-10'),
-    },
-  ]);
+  const [transportistas, setTransportistasState] = useState<Transportista[]>([]);
   
   // Productos - iniciales + se cargan desde Supabase
   const [productos, setProductosState] = useState<Producto[]>([
@@ -332,8 +171,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         .from('productos')
         .select('*')
         .eq('activo', true)
-        .order('categoria')
-        .order('descripcion');
+        .order('category')
+        .order('name');
 
       if (error) {
         console.error('Error cargando productos:', error);
@@ -344,7 +183,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (data && data.length > 0) {
         // Mapear los datos de Supabase al formato Producto
         const productosMapeados: Producto[] = data.map((p: any) => ({
-          id: p.id,
+          id: String(p.id),
           codigo: p.codigo,
           descripcion: p.name || p.descripcion,
           detalle: p.detalle || p.description || '',
@@ -370,10 +209,64 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Cargar productos desde Supabase al iniciar
+  const loadClientes = useCallback(async () => {
+    try {
+      const { data, error } = await supabase.from('clientes').select('*').order('name')
+      if (error) { console.error('Error cargando clientes:', error); return; }
+      if (data) {
+        setClientesState(data.map((row: any): Cliente => ({
+          id: String(row.id),
+          tipo: row.tipo_documento === '6' ? 'juridica' : 'natural',
+          nombre: row.name,
+          razonSocial: row.tipo_documento === '6' ? row.name : undefined,
+          ruc: row.tipo_documento === '6' ? (row.num_documento || '') : undefined,
+          dni: row.tipo_documento !== '6' ? (row.num_documento || row.dni || '') : (row.dni || undefined),
+          direccion: row.address || '',
+          telefono: row.phone || undefined,
+          email: row.email || undefined,
+          esFrecuente: false,
+          totalCompras: 0,
+          createdAt: new Date(row.created_at),
+        })))
+      }
+    } catch (err) {
+      console.error('Error cargando clientes:', err)
+    }
+  }, [])
+
+  const loadTransportistas = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('transportistas')
+        .select('*')
+        .eq('activo', true)
+        .order('apellidos')
+      if (error) { console.error('Error cargando transportistas:', error); return; }
+      if (data) {
+        setTransportistasState(data.map((row: any): Transportista => ({
+          id: String(row.id),
+          nombres: row.nombres,
+          apellidos: row.apellidos,
+          nombreCompleto: row.nombre_completo || `${row.apellidos}, ${row.nombres}`,
+          dni: row.dni,
+          licenciaConducir: row.licencia_conducir || '',
+          numeroPlaca: row.numero_placa || '',
+          activo: row.activo,
+          createdAt: new Date(row.created_at),
+          updatedAt: new Date(row.updated_at || row.created_at),
+        })))
+      }
+    } catch (err) {
+      console.error('Error cargando transportistas:', err)
+    }
+  }, [])
+
+  // Cargar datos desde Supabase al iniciar
   useEffect(() => {
     loadProductos();
-  }, [loadProductos]);
+    loadClientes();
+    loadTransportistas();
+  }, [loadProductos, loadClientes, loadTransportistas]);
 
   // ============================================
   // ACTIONS - BOLETAS
@@ -484,7 +377,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // ============================================
   // ACTIONS - PRODUCTOS
   // ============================================
-  
+
   const setProductos = useCallback((nuevosProductos: Producto[]) => {
     setProductosState(nuevosProductos);
   }, []);
@@ -492,7 +385,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // ============================================
   // UTILIDADES
   // ============================================
-  
+
   const showNotificacion = useCallback((tipo: 'success' | 'error' | 'info' | 'warning', mensaje: string) => {
     setNotificacion({ tipo, mensaje, visible: true });
     // Auto-ocultar después de 5 segundos
@@ -500,6 +393,206 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setNotificacion(null);
     }, 5000);
   }, []);
+
+  // ============================================
+  // SUNAT - ENVÍO DE DOCUMENTOS
+  // ============================================
+
+  const enviarDocumentoSUNAT = useCallback(async (documentoId: string, tipo: 'boleta' | 'factura'): Promise<{ success: boolean; message: string }> => {
+    try {
+      // Obtener el documento
+      const documento = tipo === 'boleta' 
+        ? boletas.find(b => b.id === documentoId)
+        : facturas.find(f => f.id === documentoId);
+
+      if (!documento) {
+        return { success: false, message: 'Documento no encontrado' };
+      }
+
+      // Transformar items al formato de la API
+      const items = documento.items.map(item => ({
+        producto_id: item.productoId || null,
+        codigo: item.productoId || `ITEM-${item.numeroOrden}`,
+        description: item.descripcion,
+        quantity: item.cantidad,
+        unit_price: item.valorUnitario,
+      }));
+
+      // Determinar tipo de comprobante
+      const tipo_comprobante = tipo === 'factura' ? '01' : '03';
+
+      // Preparar datos del cliente
+      const cliente_id = documento.cliente.id;
+      const cliente_nombre = tipo === 'boleta' 
+        ? (documento as Boleta).cliente.nombre 
+        : (documento as Factura).cliente.razonSocial || documento.cliente.nombre;
+      const cliente_ruc = documento.cliente.ruc || documento.cliente.dni || '';
+      const cliente_tipo_doc = documento.cliente.ruc ? '6' : '1';
+      const cliente_direccion = documento.cliente.direccion || '';
+
+      // Llamar a la API de SUNAT
+      const response = await fetch('/api/sunat/emit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cliente_id,
+          cliente_nombre,
+          cliente_ruc,
+          cliente_tipo_doc,
+          cliente_direccion,
+          tipo_comprobante,
+          items,
+          notes: documento.observacion || '',
+          origen: 'crm',
+          moneda: documento.moneda,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.ok) {
+        const errorMsg = result.error || 'Error en el envío a SUNAT';
+        
+        // Actualizar estado a rechazado
+        if (tipo === 'boleta') {
+          setBoletasState(prev => prev.map(b =>
+            b.id === documentoId
+              ? { 
+                  ...b, 
+                  estado: 'rechazado', 
+                  cdr: {
+                    codigo: result.estado_sunat || 'ERROR',
+                    mensaje: errorMsg,
+                    fechaRecepcion: new Date(),
+                  }
+                }
+              : b
+          ));
+        } else {
+          setFacturasState(prev => prev.map(f =>
+            f.id === documentoId
+              ? { 
+                  ...f, 
+                  estado: 'rechazado', 
+                  cdr: {
+                    codigo: result.estado_sunat || 'ERROR',
+                    mensaje: errorMsg,
+                    fechaRecepcion: new Date(),
+                  }
+                }
+              : f
+          ));
+        }
+        
+        return { success: false, message: errorMsg };
+      }
+
+      // Determinar el estado final basado en la respuesta de SUNAT
+      const estadoSunat = result.estado_sunat || 'PENDIENTE';
+      let nuevoEstado: 'enviado' | 'aprobado' | 'rechazado';
+      
+      if (estadoSunat === 'ACEPTADO') {
+        nuevoEstado = 'aprobado';
+      } else if (estadoSunat === 'RECHAZADO' || estadoSunat === 'ERROR') {
+        nuevoEstado = 'rechazado';
+      } else {
+        nuevoEstado = 'enviado';
+      }
+
+      // Actualizar estado del documento
+      if (tipo === 'boleta') {
+        setBoletasState(prev => prev.map(b =>
+          b.id === documentoId
+            ? { 
+                ...b, 
+                estado: nuevoEstado, 
+                enviadoAt: new Date(),
+                cdr: nuevoEstado === 'aprobado' ? {
+                  codigo: result.factura?.ticket_sunat || '0',
+                  mensaje: result.mensaje || 'Documento aceptado por SUNAT',
+                  fechaRecepcion: new Date(),
+                } : b.cdr
+              }
+            : b
+        ));
+      } else {
+        setFacturasState(prev => prev.map(f =>
+          f.id === documentoId
+            ? { 
+                ...f, 
+                estado: nuevoEstado, 
+                enviadoAt: new Date(),
+                cdr: nuevoEstado === 'aprobado' ? {
+                  codigo: result.factura?.ticket_sunat || '0',
+                  mensaje: result.mensaje || 'Documento aceptado por SUNAT',
+                  fechaRecepcion: new Date(),
+                } : f.cdr
+              }
+            : f
+        ));
+      }
+
+      return { 
+        success: true, 
+        message: result.mensaje || 'Documento procesado correctamente' 
+      };
+    } catch (error: any) {
+      console.error('Error enviando a SUNAT:', error);
+      return { success: false, message: error.message || 'Error al enviar a SUNAT' };
+    }
+  }, [boletas, facturas]);
+
+  const aprobarDocumento = useCallback(async (documentoId: string, tipo: 'boleta' | 'factura') => {
+    const cdrData = {
+      codigo: '0',
+      mensaje: 'La Boleta de Venta o Factura ha sido aceptada',
+      fechaRecepcion: new Date(),
+    };
+
+    if (tipo === 'boleta') {
+      setBoletasState(prev => prev.map(b =>
+        b.id === documentoId
+          ? { ...b, estado: 'aprobado', cdr: cdrData }
+          : b
+      ));
+    } else {
+      setFacturasState(prev => prev.map(f =>
+        f.id === documentoId
+          ? { ...f, estado: 'aprobado', cdr: cdrData }
+          : f
+      ));
+    }
+
+    showNotificacion('success', 'Documento aprobado por SUNAT');
+  }, [showNotificacion]);
+
+  const rechazarDocumento = useCallback(async (documentoId: string, tipo: 'boleta' | 'factura', motivo: string) => {
+    const cdrData = {
+      codigo: 'ERROR',
+      mensaje: motivo,
+      fechaRecepcion: new Date(),
+    };
+
+    if (tipo === 'boleta') {
+      setBoletasState(prev => prev.map(b =>
+        b.id === documentoId
+          ? { ...b, estado: 'rechazado', cdr: cdrData }
+          : b
+      ));
+    } else {
+      setFacturasState(prev => prev.map(f =>
+        f.id === documentoId
+          ? { ...f, estado: 'rechazado', cdr: cdrData }
+          : f
+      ));
+    }
+
+    showNotificacion('error', `Documento rechazado: ${motivo}`);
+  }, [showNotificacion]);
+
+  // ============================================
+  // UTILIDADES (continuación)
+  // ============================================
 
   const hideNotificacion = useCallback(() => {
     setNotificacion(null);
@@ -547,6 +640,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     updateTransportista,
     setProductos,
     refreshProductos: loadProductos,
+    refreshClientes: loadClientes,
+    refreshTransportistas: loadTransportistas,
+    enviarDocumentoSUNAT,
+    aprobarDocumento,
+    rechazarDocumento,
     showNotificacion,
     hideNotificacion,
     setLoading,
