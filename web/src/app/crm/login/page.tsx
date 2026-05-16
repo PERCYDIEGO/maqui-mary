@@ -50,9 +50,6 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      // Si hay sesión activa de otro usuario, cerrarla primero
-      if (sessionEmail) await supabase.auth.signOut()
-
       const { data, error } = await supabase.auth.signInWithPassword({
         email: loginId,
         password,
