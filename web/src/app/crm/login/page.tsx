@@ -23,15 +23,15 @@ export default function LoginPage() {
   useEffect(() => {
     setLoading(false) // Resetea si viene del caché del navegador (bfcache / Next.js Router Cache)
     mountedRef.current = true
+    setIsClient(true) // Muestra el formulario de inmediato, sin esperar la red
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!mountedRef.current) return
       if (session?.user?.email) {
-        setSessionEmail(session.user.email) // Hay sesión: muestra banner con opción de ir al CRM
+        setSessionEmail(session.user.email)
       }
-      setIsClient(true)
-    }).catch(() => {
-      setIsClient(true)
-    })
+    }).catch(() => {})
+
     return () => { mountedRef.current = false; audioRef.current?.stopTrack?.() }
   }, [])
 
