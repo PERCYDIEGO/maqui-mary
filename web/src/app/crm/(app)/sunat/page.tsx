@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Send, CheckCircle, XCircle, Clock, FileText, AlertTriangle, Eye, X, Code, User } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { formatearMoneda } from '@/lib/calculos';
@@ -30,12 +31,23 @@ interface DocumentoPendiente {
 
 export default function SunatPage() {
   const { boletas, facturas, enviarDocumentoSUNAT, aprobarDocumento, rechazarDocumento } = useApp();
+  const router = useRouter();
   const [procesando, setProcesando] = useState<string | null>(null);
   const [motivoRechazo, setMotivoRechazo] = useState('');
   const [documentoRechazando, setDocumentoRechazando] = useState<string | null>(null);
   const [vistaPrevia, setVistaPrevia] = useState<DocumentoPendiente | null>(null);
-  const [tipoVista, setTipoVista] = useState<'xml' | 'pdf'>('xml');
+  const [mostrarXML, setMostrarXML] = useState(false);
   const [userMap, setUserMap] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session) return;
+      const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single();
+      if (profile?.role !== 'admin') {
+        router.replace('/crm');
+      }
+    });
+  }, [router]);
 
   useEffect(() => {
     supabase.from('profiles').select('id, full_name, alias').then(({ data }) => {
@@ -322,6 +334,12 @@ export default function SunatPage() {
                         {' • '}
                         {new Date(doc.fechaEmision).toLocaleDateString('es-PE')}
                       </p>
+                      {(doc as any).createdBy && userMap[(doc as any).createdBy] && (
+                        <p className="text-xs text-ink-400 mt-0.5 flex items-center gap-1">
+                          <User className="w-3 h-3" />
+                          Generado por: {userMap[(doc as any).createdBy]}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -400,6 +418,12 @@ export default function SunatPage() {
                         {getEstadoBadge(doc.estado)}
                       </div>
                       <p className="text-sm text-ink-600 mt-1">{doc.cliente.nombre}</p>
+                      {(doc as any).createdBy && userMap[(doc as any).createdBy] && (
+                        <p className="text-xs text-ink-400 mt-0.5 flex items-center gap-1">
+                          <User className="w-3 h-3" />
+                          Generado por: {userMap[(doc as any).createdBy]}
+                        </p>
+                      )}
                       {doc.enviadoPor && userMap[doc.enviadoPor] && (
                         <p className="text-xs text-ink-400 mt-0.5 flex items-center gap-1">
                           <User className="w-3 h-3" />
@@ -521,134 +545,123 @@ export default function SunatPage() {
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-ink-200">
               <div className="flex items-center gap-3">
-                <Code className="w-5 h-5 text-accent-terracotta" />
+                <FileText className="w-5 h-5 text-accent-terracotta" />
                 <div>
                   <h3 className="font-heading font-semibold text-ink-800">
-                    Vista Previa: {vistaPrevia.numeroCompleto}
+                    Resumen: {vistaPrevia.numeroCompleto}
                   </h3>
                   <p className="text-xs text-ink-500">
-                    Formato UBL 2.1 que se enviará a SUNAT
+                    {vistaPrevia.tipo === 'boleta' ? 'Boleta de Venta' : 'Factura'} — revisa antes de enviar a SUNAT
                   </p>
                 </div>
               </div>
               <button
-                onClick={() => setVistaPrevia(null)}
+                onClick={() => { setVistaPrevia(null); setMostrarXML(false); }}
                 className="p-2 hover:bg-ink-100 rounded-lg text-ink-400 hover:text-ink-600"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Tabs */}
-            <div className="flex border-b border-ink-200">
-              <button
-                onClick={() => setTipoVista('xml')}
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                  tipoVista === 'xml'
-                    ? 'border-accent-terracotta text-accent-terracotta'
-                    : 'border-transparent text-ink-500 hover:text-ink-700'
-                }`}
-              >
-                <Code className="w-4 h-4" />
-                XML UBL
-              </button>
-              <button
-                onClick={() => setTipoVista('pdf')}
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                  tipoVista === 'pdf'
-                    ? 'border-accent-terracotta text-accent-terracotta'
-                    : 'border-transparent text-ink-500 hover:text-ink-700'
-                }`}
-              >
-                <FileText className="w-4 h-4" />
-                Resumen PDF
-              </button>
-            </div>
-
             {/* Contenido */}
             <div className="flex-1 overflow-auto p-4">
-              {tipoVista === 'xml' ? (
-                <div className="bg-slate-900 rounded-lg p-4 overflow-x-auto">
-                  <pre className="text-xs text-green-400 font-mono whitespace-pre-wrap">
-                    {generarXMLUBL(vistaPrevia)}
-                  </pre>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {/* Resumen del documento */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 bg-accent-cream rounded-xl border border-ink-200">
-                      <h4 className="font-medium text-ink-700 mb-2">Emisor</h4>
-                      <p className="text-sm text-ink-800 font-medium">{EMPRESA_DATA.razonSocial}</p>
-                      <p className="text-xs text-ink-500">RUC: {EMPRESA_DATA.ruc}</p>
-                    </div>
-                    <div className="p-4 bg-accent-cream rounded-xl border border-ink-200">
-                      <h4 className="font-medium text-ink-700 mb-2">Adquiriente</h4>
-                      <p className="text-sm text-ink-800 font-medium">{vistaPrevia.cliente.nombre}</p>
-                      <p className="text-xs text-ink-500">
-                        {vistaPrevia.cliente.dni ? `DNI: ${vistaPrevia.cliente.dni}` : vistaPrevia.cliente.ruc ? `RUC: ${vistaPrevia.cliente.ruc}` : 'Sin documento'}
-                      </p>
-                    </div>
-                  </div>
-
+              <div className="space-y-4">
+                {/* Emisor / Adquiriente */}
+                <div className="grid grid-cols-2 gap-4">
                   <div className="p-4 bg-accent-cream rounded-xl border border-ink-200">
-                    <h4 className="font-medium text-ink-700 mb-3">Detalle del Documento</h4>
-                    <div className="grid grid-cols-3 gap-4 text-sm">
-                      <div>
-                        <span className="text-ink-500">Tipo:</span>
-                        <p className="font-medium text-ink-800">{vistaPrevia.tipo === 'boleta' ? 'Boleta de Venta' : 'Factura'}</p>
-                      </div>
-                      <div>
-                        <span className="text-ink-500">Número:</span>
-                        <p className="font-medium text-ink-800">{vistaPrevia.numeroCompleto}</p>
-                      </div>
-                      <div>
-                        <span className="text-ink-500">Fecha:</span>
-                        <p className="font-medium text-ink-800">{new Date(vistaPrevia.fechaEmision).toLocaleDateString('es-PE')}</p>
-                      </div>
-                      <div>
-                        <span className="text-ink-500">Moneda:</span>
-                        <p className="font-medium text-ink-800">{vistaPrevia.moneda === 'PEN' ? 'Soles (PEN)' : 'Dólares (USD)'}</p>
-                      </div>
-                      <div>
-                        <span className="text-ink-500">Total:</span>
-                        <p className="font-medium text-accent-terracotta">{formatearMoneda(vistaPrevia.importeTotal, vistaPrevia.moneda)}</p>
-                      </div>
-                      <div>
-                        <span className="text-ink-500">Ítems:</span>
-                        <p className="font-medium text-ink-800">{vistaPrevia.items?.length || 0}</p>
-                      </div>
+                    <h4 className="font-medium text-ink-700 mb-2">Emisor</h4>
+                    <p className="text-sm text-ink-800 font-medium">{EMPRESA_DATA.razonSocial}</p>
+                    <p className="text-xs text-ink-500">RUC: {EMPRESA_DATA.ruc}</p>
+                  </div>
+                  <div className="p-4 bg-accent-cream rounded-xl border border-ink-200">
+                    <h4 className="font-medium text-ink-700 mb-2">Adquiriente</h4>
+                    <p className="text-sm text-ink-800 font-medium">{vistaPrevia.cliente.nombre}</p>
+                    <p className="text-xs text-ink-500">
+                      {vistaPrevia.cliente.dni ? `DNI: ${vistaPrevia.cliente.dni}` : vistaPrevia.cliente.ruc ? `RUC: ${vistaPrevia.cliente.ruc}` : 'Sin documento'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Detalle del documento */}
+                <div className="p-4 bg-accent-cream rounded-xl border border-ink-200">
+                  <h4 className="font-medium text-ink-700 mb-3">Detalle del Documento</h4>
+                  <div className="grid grid-cols-3 gap-4 text-sm">
+                    <div>
+                      <span className="text-ink-500">Tipo:</span>
+                      <p className="font-medium text-ink-800">{vistaPrevia.tipo === 'boleta' ? 'Boleta de Venta' : 'Factura'}</p>
+                    </div>
+                    <div>
+                      <span className="text-ink-500">Número:</span>
+                      <p className="font-medium text-ink-800">{vistaPrevia.numeroCompleto}</p>
+                    </div>
+                    <div>
+                      <span className="text-ink-500">Fecha:</span>
+                      <p className="font-medium text-ink-800">{new Date(vistaPrevia.fechaEmision).toLocaleDateString('es-PE')}</p>
+                    </div>
+                    <div>
+                      <span className="text-ink-500">Moneda:</span>
+                      <p className="font-medium text-ink-800">{vistaPrevia.moneda === 'PEN' ? 'Soles (PEN)' : 'Dólares (USD)'}</p>
+                    </div>
+                    <div>
+                      <span className="text-ink-500">Total:</span>
+                      <p className="font-medium text-accent-terracotta">{formatearMoneda(vistaPrevia.importeTotal, vistaPrevia.moneda)}</p>
+                    </div>
+                    <div>
+                      <span className="text-ink-500">Ítems:</span>
+                      <p className="font-medium text-ink-800">{vistaPrevia.items?.length || 0}</p>
                     </div>
                   </div>
+                </div>
 
-                  {vistaPrevia.items && vistaPrevia.items.length > 0 && (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
-                        <thead className="bg-ink-50">
-                          <tr>
-                            <th className="px-3 py-2 text-left text-xs font-medium text-ink-600">N°</th>
-                            <th className="px-3 py-2 text-left text-xs font-medium text-ink-600">Descripción</th>
-                            <th className="px-3 py-2 text-center text-xs font-medium text-ink-600">Cant.</th>
-                            <th className="px-3 py-2 text-right text-xs font-medium text-ink-600">P. Unit.</th>
-                            <th className="px-3 py-2 text-right text-xs font-medium text-ink-600">Total</th>
+                {/* Tabla de ítems */}
+                {vistaPrevia.items && vistaPrevia.items.length > 0 && (
+                  <div className="overflow-x-auto rounded-xl border border-ink-200">
+                    <table className="w-full text-sm">
+                      <thead className="bg-ink-50">
+                        <tr>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-ink-600">N°</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-ink-600">Descripción</th>
+                          <th className="px-3 py-2 text-center text-xs font-medium text-ink-600">Cant.</th>
+                          <th className="px-3 py-2 text-right text-xs font-medium text-ink-600">P. Unit.</th>
+                          <th className="px-3 py-2 text-right text-xs font-medium text-ink-600">Total</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-ink-100">
+                        {vistaPrevia.items.map((item: any, idx: number) => (
+                          <tr key={idx} className="hover:bg-ink-50/50">
+                            <td className="px-3 py-2 text-ink-600">{idx + 1}</td>
+                            <td className="px-3 py-2 text-ink-800">{item.descripcion}</td>
+                            <td className="px-3 py-2 text-center text-ink-600">{item.cantidad}</td>
+                            <td className="px-3 py-2 text-right text-ink-600">{formatearMoneda(item.valorUnitario, vistaPrevia.moneda)}</td>
+                            <td className="px-3 py-2 text-right font-medium text-ink-800">{formatearMoneda(item.importeTotal, vistaPrevia.moneda)}</td>
                           </tr>
-                        </thead>
-                        <tbody className="divide-y divide-ink-100">
-                          {vistaPrevia.items.map((item: any, idx: number) => (
-                            <tr key={idx}>
-                              <td className="px-3 py-2 text-ink-600">{idx + 1}</td>
-                              <td className="px-3 py-2 text-ink-800">{item.descripcion}</td>
-                              <td className="px-3 py-2 text-center text-ink-600">{item.cantidad}</td>
-                              <td className="px-3 py-2 text-right text-ink-600">{formatearMoneda(item.valorUnitario, vistaPrevia.moneda)}</td>
-                              <td className="px-3 py-2 text-right font-medium text-ink-800">{formatearMoneda(item.importeTotal, vistaPrevia.moneda)}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {/* XML técnico — colapsable, oculto por defecto */}
+                <div className="border border-ink-200 rounded-xl overflow-hidden">
+                  <button
+                    onClick={() => setMostrarXML(v => !v)}
+                    className="w-full flex items-center justify-between px-4 py-2.5 bg-ink-50 hover:bg-ink-100 transition-colors text-xs text-ink-500"
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <Code className="w-3.5 h-3.5" />
+                      Ver XML técnico (UBL 2.1)
+                    </span>
+                    <span>{mostrarXML ? '▲' : '▼'}</span>
+                  </button>
+                  {mostrarXML && (
+                    <div className="bg-slate-900 p-4 overflow-x-auto">
+                      <pre className="text-xs text-green-400 font-mono whitespace-pre-wrap">
+                        {generarXMLUBL(vistaPrevia)}
+                      </pre>
                     </div>
                   )}
                 </div>
-              )}
+              </div>
             </div>
 
             {/* Footer */}

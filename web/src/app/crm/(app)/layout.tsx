@@ -5,7 +5,7 @@
 
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
@@ -29,6 +29,8 @@ import {
   Send
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { audio } from '@/lib/audio';
+import { useApp } from '@/context/AppContext';
 import toast from 'react-hot-toast';
 
 const GuiaAnimada = dynamic(() => import('@/components/GuiaAnimada'), { ssr: false });
@@ -118,24 +120,24 @@ const PAGE_STEPS: Record<string, PageStepEntry[]> = {
   ],
 };
 
-// Rutas públicas que NO requieren autenticación y NO usan este layout
-const PUBLIC_ROUTES = ['/crm/login', '/crm/cambiar-contrasena'];
+// Este layout solo aplica a rutas protegidas — login y cambiar-contrasena
+// están fuera del route group (app) y no usan este layout.
 
 // ============================================
 // ITEMS DE NAVEGACIÓN SIMPLIFICADOS
 // ============================================
 
 const menuItems = [
-  { href: '/crm',              label: 'Dashboard',     icon: BarChart3     },
-  { href: '/crm/documentos',   label: 'Documentos',    icon: FileText,     badge: 'BOL/FAC/GUI' },
-  { href: '/crm/pedidos',      label: 'Pedidos web',   icon: ShoppingCart  },
-  { href: '/crm/sunat',        label: 'Envío SUNAT',   icon: Send,         badge: 'ADMIN'       },
-  { href: '/crm/clientes',     label: 'Clientes',      icon: Users         },
-  { href: '/crm/transportistas', label: 'Transportistas', icon: Package    },
-  { href: '/crm/productos',    label: 'Productos',     icon: ShoppingBag   },
-  { href: '/crm/inventario',   label: 'Inventario',    icon: Boxes         },
-  { href: '/crm/configuracion', label: 'Configuración', icon: Settings     },
-  { href: '/crm/usuarios',     label: 'Usuarios',     icon: User,  badge: 'ADMIN'  },
+  { href: '/crm',                label: 'Dashboard',       icon: BarChart3,  adminOnly: false },
+  { href: '/crm/documentos',     label: 'Documentos',      icon: FileText,   adminOnly: false, badge: 'BOL/FAC/GUI' },
+  { href: '/crm/pedidos',        label: 'Pedidos web',     icon: ShoppingCart, adminOnly: false },
+  { href: '/crm/sunat',          label: 'Envío SUNAT',     icon: Send,       adminOnly: true  },
+  { href: '/crm/clientes',       label: 'Clientes',        icon: Users,      adminOnly: false },
+  { href: '/crm/transportistas', label: 'Transportistas',  icon: Package,    adminOnly: false },
+  { href: '/crm/productos',      label: 'Productos',       icon: ShoppingBag, adminOnly: false },
+  { href: '/crm/inventario',     label: 'Inventario',      icon: Boxes,      adminOnly: false },
+  { href: '/crm/configuracion',  label: 'Configuración',   icon: Settings,   adminOnly: false },
+  { href: '/crm/usuarios',       label: 'Usuarios',        icon: User,       adminOnly: true  },
 ];
 
 // ============================================
@@ -163,20 +165,23 @@ function Sidebar({
   onLogout,
   pendingOrders,
   userName,
+  userRole,
 }: {
   isOpen: boolean;
   onClose: () => void;
   onLogout: () => void;
   pendingOrders: number;
   userName: string;
+  userRole: UserRole;
 }) {
   const pathname = usePathname();
+  const visibleItems = menuItems.filter(item => !item.adminOnly || userRole === 'admin');
 
   return (
     <>
       {/* Overlay móvil */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-ink-900/50 z-40 lg:hidden"
           onClick={onClose}
         />
@@ -223,7 +228,7 @@ function Sidebar({
 
         {/* Menú */}
         <nav className="px-3 pb-3 space-y-1">
-          {menuItems.map((item) => {
+          {visibleItems.map((item) => {
             const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
             const Icon = item.icon;
             
@@ -362,11 +367,32 @@ export default function CRMLayout({
   const [userRole, setUserRole] = useState<UserRole>(null);
   const [userName, setUserName] = useState('');
   const [pendingOrders, setPendingOrders] = useState(0);
+  const [authError, setAuthError] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const mountedRef = useRef(true);
+  const { loadCrmData } = useApp();
+
+  // Cargar y reproducir el track del CRM configurado
+  const startCrmAudio = React.useCallback(() => {
+    fetch('/api/config').then(r => r.json()).then(data => {
+      if (!data.ok) return;
+      const trackId = data.settings?.default_tracks?.crm;
+      if (!trackId) return;
+      const handler = () => {
+        audio.startTrack(trackId);
+        document.removeEventListener('pointerdown', handler);
+        document.removeEventListener('keydown', handler);
+      };
+      document.addEventListener('pointerdown', handler);
+      document.addEventListener('keydown', handler);
+    }).catch(() => {});
+  }, []);
 
   // Verificar autenticación al cargar
   useEffect(() => {
+    mountedRef.current = true
+
     const checkAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -376,19 +402,30 @@ export default function CRMLayout({
           return;
         }
 
+        if (!session.user) {
+          setIsAuthenticated(false);
+          return;
+        }
+
         setIsAuthenticated(true);
         setUserId(session.user.id);
+        // Liberar loading apenas confirmamos sesión — no esperar queries de perfil
+        if (mountedRef.current) setLoading(false);
+        startCrmAudio();
+        loadCrmData();
 
-        // Obtener rol y nombre del perfil
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role, full_name, alias')
-          .eq('id', session.user.id)
-          .single();
+        // Perfil y conteo de pedidos en paralelo, sin bloquear
+        const [profileResult, countResult] = await Promise.allSettled([
+          supabase.from('profiles').select('role, full_name, alias').eq('id', session.user.id).single(),
+          supabase.from('facturas').select('id', { count: 'exact', head: true }).eq('status', 'pending').or('origen.eq.web,payment_method.in.(yape,plin)'),
+        ]);
 
-        setUserName(profile?.full_name || profile?.alias || '');
-        if (profile?.role) {
-          const rol = profile.role as string;
+        if (!mountedRef.current) return;
+
+        if (profileResult.status === 'fulfilled') {
+          const profile = profileResult.value.data;
+          setUserName(profile?.full_name || profile?.alias || '');
+          const rol = (profile?.role as string) || '';
           if (rol === 'admin' || rol === 'superusuario') setUserRole('admin');
           else if (rol === 'almacen' || rol === 'visor') setUserRole('almacen');
           else setUserRole('vendedor');
@@ -396,38 +433,62 @@ export default function CRMLayout({
           setUserRole('vendedor');
         }
 
-        // Conteo de pedidos web pendientes para el badge del sidebar
-        const { count } = await supabase.from('facturas')
-          .select('id', { count: 'exact', head: true })
-          .eq('status', 'pending')
-          .or('origen.eq.web,payment_method.in.(yape,plin)');
-        setPendingOrders(count || 0);
+        if (countResult.status === 'fulfilled') {
+          setPendingOrders(countResult.value.count || 0);
+        }
       } catch (error) {
         console.error('Error verificando auth:', error);
-        router.push('/crm/login');
+        setAuthError(true);
       } finally {
-        setLoading(false);
+        if (mountedRef.current) setLoading(false);
       }
     };
 
     checkAuth();
 
     // Escuchar cambios en la autenticación
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT' || !session) {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mountedRef.current) return;
+      if (event === 'SIGNED_IN' && session) {
+        setIsAuthenticated(true);
+        setUserId(session.user.id);
+        if (mountedRef.current) setLoading(false);
+
+        const [profileResult, countResult] = await Promise.allSettled([
+          supabase.from('profiles').select('role, full_name, alias').eq('id', session.user.id).single(),
+          supabase.from('facturas').select('id', { count: 'exact', head: true }).eq('status', 'pending').or('origen.eq.web,payment_method.in.(yape,plin)'),
+        ]);
+        if (!mountedRef.current) return;
+
+        if (profileResult.status === 'fulfilled') {
+          const profile = profileResult.value.data;
+          setUserName(profile?.full_name || profile?.alias || '');
+          const rol = (profile?.role as string) || '';
+          if (rol === 'admin' || rol === 'superusuario') setUserRole('admin');
+          else if (rol === 'almacen' || rol === 'visor') setUserRole('almacen');
+          else setUserRole('vendedor');
+        } else {
+          setUserRole('vendedor');
+        }
+        if (countResult.status === 'fulfilled') {
+          setPendingOrders(countResult.value.count || 0);
+        }
+      } else if (event === 'SIGNED_OUT' || !session) {
         setIsAuthenticated(false);
-        router.push('/crm/login');
+        if (mountedRef.current) router.push('/crm/login');
       }
     });
 
     return () => {
+      mountedRef.current = false;
       subscription.unsubscribe();
     };
-  }, [router]);
+  }, []);
 
   // Función de logout
   const handleLogout = async () => {
     try {
+      audio.stopTrack();
       await supabase.auth.signOut();
       toast.success('Sesión cerrada');
       router.push('/crm/login');
@@ -458,11 +519,25 @@ export default function CRMLayout({
     return item?.label || 'Dashboard';
   };
 
-  // Si es ruta pública, renderizar solo los children sin layout ni protección
-  const isPublicRoute = PUBLIC_ROUTES.some(route => pathname?.startsWith(route));
-  
-  if (isPublicRoute) {
-    return <>{children}</>;
+  // Si hay error de auth, mostrar pantalla de error con botón reintentar
+  if (authError) {
+    return (
+      <div className="min-h-screen bg-accent-sand/30 flex items-center justify-center">
+        <div className="bg-white rounded-2xl p-8 shadow-elevated max-w-sm text-center">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-2xl">⚠️</span>
+          </div>
+          <h2 className="font-heading text-lg font-bold text-ink-800 mb-2">Error de conexión</h2>
+          <p className="text-ink-500 text-sm mb-6">No se pudo verificar tu sesión. Revisa tu conexión e intenta de nuevo.</p>
+          <button
+            onClick={() => { setAuthError(false); setLoading(true); window.location.reload(); }}
+            className="bg-accent-terracotta text-white px-6 py-2.5 rounded-xl font-medium hover:bg-accent-terracotta/90 transition-colors"
+          >
+            Reintentar
+          </button>
+        </div>
+      </div>
+    );
   }
 
   // Mostrar pantalla de carga mientras verifica auth
@@ -484,6 +559,7 @@ export default function CRMLayout({
         onLogout={handleLogout}
         pendingOrders={pendingOrders}
         userName={userName}
+        userRole={userRole}
       />
 
       {/* Contenido principal */}

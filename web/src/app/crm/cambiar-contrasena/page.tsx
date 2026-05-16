@@ -55,22 +55,22 @@ export default function CambiarContrasenaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-700 via-primary-600 to-primary-800 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-ink-900 via-ink-800 to-accent-navy flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
-        <div className="bg-white rounded-3xl p-8 shadow-2xl">
+        <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-8 shadow-elevated border border-white/60">
           {checkingSession ? (
             <div className="text-center py-8">
-              <Loader size={24} className="mx-auto mb-3 text-primary-400 animate-spin" />
-              <p className="text-primary-500 text-sm">Verificando acceso...</p>
+              <Loader size={24} className="mx-auto mb-3 text-ink-400 animate-spin" />
+              <p className="text-ink-500 text-sm">Verificando acceso...</p>
             </div>
           ) : (
           <>
           <div className="text-center mb-6">
             <div className="w-16 h-16 bg-accent-gold rounded-xl flex items-center justify-center mx-auto mb-4">
-              <Shield size={28} className="text-primary-800" />
+              <Shield size={28} className="text-ink-800" />
             </div>
-            <h1 className="font-heading text-xl font-bold text-primary-800">Cambiar contraseña</h1>
-            <p className="text-primary-500 text-sm mt-1">Debes cambiar tu contraseña por seguridad</p>
+            <h1 className="font-heading text-xl font-bold text-ink-800">Cambiar contraseña</h1>
+            <p className="text-ink-500 text-sm mt-1">Debes cambiar tu contraseña por seguridad</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -80,10 +80,10 @@ export default function CambiarContrasenaPage() {
                 value={pass}
                 onChange={e => setPass(e.target.value)}
                 placeholder="Nueva contraseña"
-                className="w-full px-4 py-3 pr-12 rounded-xl border border-primary-200 bg-primary-50 text-primary-800 placeholder:text-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-600"
+                className="w-full px-4 py-3 pr-12 rounded-xl border border-ink-200 bg-ink-50/50 text-ink-800 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-accent-gold/30 focus:border-accent-gold transition-all duration-200"
                 autoFocus
               />
-              <button type="button" onClick={() => setShow(!show)} className="absolute right-3 top-1/2 -translate-y-1/2 text-primary-400">
+              <button type="button" onClick={() => setShow(!show)} className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-400 hover:text-ink-600 transition-colors">
                 {show ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
@@ -93,7 +93,7 @@ export default function CambiarContrasenaPage() {
                 value={confirm}
                 onChange={e => setConfirm(e.target.value)}
                 placeholder="Confirmar contraseña"
-                className="w-full px-4 py-3 rounded-xl border border-primary-200 bg-primary-50 text-primary-800 placeholder:text-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-600"
+                className="w-full px-4 py-3 rounded-xl border border-ink-200 bg-ink-50/50 text-ink-800 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-accent-gold/30 focus:border-accent-gold transition-all duration-200"
               />
             </div>
 
@@ -111,13 +111,13 @@ export default function CambiarContrasenaPage() {
               )}
             </div>
 
-            <button type="submit" disabled={!valid || loading} className="w-full btn-primary py-3 disabled:opacity-50">
+            <button type="submit" disabled={!valid || loading} className="w-full bg-accent-terracotta hover:bg-accent-terracotta/90 text-white font-semibold py-3.5 rounded-xl disabled:opacity-50 flex items-center justify-center gap-2 transition-colors">
               {loading ? 'Actualizando...' : 'Actualizar contraseña'}
             </button>
           </form>
 
           <div className="mt-4 text-center">
-            <button onClick={() => { supabase.auth.signOut(); router.push('/crm/login') }} className="text-sm text-primary-400 hover:text-primary-600 flex items-center justify-center gap-1 mx-auto">
+            <button onClick={() => { supabase.auth.signOut(); router.push('/crm/login') }} className="text-sm text-ink-400 hover:text-accent-gold transition-colors flex items-center justify-center gap-1 mx-auto">
               <ArrowLeft size={14} /> Volver al login
             </button>
           </div>

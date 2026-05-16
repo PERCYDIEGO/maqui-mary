@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { Users, Plus, UserCog, Shield, Trash2, X, Search } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import toast from 'react-hot-toast'
@@ -26,6 +27,7 @@ function generarPass(): string {
 }
 
 export default function UsuariosPage() {
+  const router = useRouter()
   const [users, setUsers] = useState<UserRow[]>([])
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
@@ -42,13 +44,17 @@ export default function UsuariosPage() {
       if (session?.user) {
         setMyId(session.user.id)
         supabase.from('profiles').select('role').eq('id', session.user.id).single().then(({ data }) => {
-          if (data?.role === 'admin') setIsAdmin(true)
+          if (data?.role === 'admin') {
+            setIsAdmin(true)
+          } else {
+            router.replace('/crm')
+          }
           setMyRole(data?.role || 'editor')
         })
       }
     })
     loadUsers()
-  }, [])
+  }, [router])
 
   useEffect(() => {
     if (showModal === 'create') {

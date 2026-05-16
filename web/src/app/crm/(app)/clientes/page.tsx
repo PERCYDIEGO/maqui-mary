@@ -54,7 +54,13 @@ export default function ClientesPage() {
   const [formData, setFormData] = useState<FormData>(FORM_DEFAULT)
   const [saving, setSaving] = useState(false)
 
-  useEffect(() => { loadClientes() }, [])
+  useEffect(() => {
+    const cached = localStorage.getItem('mm_clientes_cache')
+    if (cached) {
+      try { setClientes(JSON.parse(cached)); setLoading(false) } catch {}
+    }
+    loadClientes()
+  }, [])
 
   async function loadClientes() {
     setLoading(true)
@@ -64,8 +70,9 @@ export default function ClientesPage() {
       .order('name')
     if (error) {
       toast.error('Error al cargar clientes')
-    } else {
-      setClientes(data || [])
+    } else if (data) {
+      setClientes(data)
+      try { localStorage.setItem('mm_clientes_cache', JSON.stringify(data)) } catch {}
     }
     setLoading(false)
   }

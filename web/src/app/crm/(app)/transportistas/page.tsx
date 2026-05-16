@@ -49,7 +49,13 @@ export default function TransportistasPage() {
   const [formData, setFormData] = useState<FormData>(FORM_DEFAULT);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => { loadTransportistas() }, []);
+  useEffect(() => {
+    const cached = localStorage.getItem('mm_transportistas_cache')
+    if (cached) {
+      try { setTransportistas(JSON.parse(cached)); setLoading(false) } catch {}
+    }
+    loadTransportistas();
+  }, []);
 
   async function loadTransportistas() {
     setLoading(true);
@@ -60,8 +66,9 @@ export default function TransportistasPage() {
       .order('nombres');
     if (error) {
       toast.error('Error al cargar transportistas');
-    } else {
-      setTransportistas(data || []);
+    } else if (data) {
+      setTransportistas(data);
+      try { localStorage.setItem('mm_transportistas_cache', JSON.stringify(data)) } catch {}
     }
     setLoading(false);
   }

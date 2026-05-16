@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="spongeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#7C3AED" />
+      <stop offset="100%" style="stop-color:#6B21A8" />
+    </linearGradient>
+    <linearGradient id="highlight" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0" />
+      <stop offset="40%" style="stop-color:#ffffff;stop-opacity:0.2" />
+      <stop offset="60%" style="stop-color:#ffffff;stop-opacity:0.2" />
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#6B21A8" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <style>
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    @keyframes squeeze {
+      0%, 100% { transform: scaleX(1) scaleY(1); }
+      25% { transform: scaleX(1.05) scaleY(0.92); }
+      75% { transform: scaleX(0.95) scaleY(1.05); }
+    }
+    @keyframes drip {
+      0% { transform: translateY(0); opacity: 0.8; }
+      100% { transform: translateY(40px); opacity: 0; }
+    }
+    @keyframes bubble {
+      0% { transform: scale(0) translateY(0); opacity: 0.7; }
+      50% { transform: scale(1) translateY(-10px); opacity: 0.4; }
+      100% { transform: scale(0.5) translateY(-25px); opacity: 0; }
+    }
+    @keyframes shine {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(200%); }
+    }
+    @keyframes sparkle {
+      0%, 100% { opacity: 0; transform: scale(0) rotate(0deg); }
+      50% { opacity: 1; transform: scale(1) rotate(180deg); }
+    }
+    .sponge-group { animation: float 3s ease-in-out infinite; transform-origin: center; }
+    .sponge-body { animation: squeeze 4s ease-in-out infinite; transform-origin: center; }
+    .shine { animation: shine 3s ease-in-out infinite; }
+    .drip-1 { animation: drip 2s ease-in infinite; }
+    .drip-2 { animation: drip 2.5s ease-in infinite 1s; }
+    .bubble-1 { animation: bubble 2s ease-out infinite; }
+    .bubble-2 { animation: bubble 2.5s ease-out infinite 1.2s; }
+    .sparkle-1 { animation: sparkle 2s ease-in-out infinite 0.5s; }
+    .sparkle-2 { animation: sparkle 2.5s ease-in-out infinite 1.5s; }
+  </style>
+
+  <g class="sponge-group">
+    <!-- Sombra -->
+    <ellipse cx="100" cy="175" rx="50" ry="8" fill="#6B21A8" opacity="0.15">
+      <animate attributeName="rx" values="50;55;48;50" dur="4s" repeatCount="indefinite"/>
+    </ellipse>
+
+    <!-- Cuerpo esponja -->
+    <g class="sponge-body" filter="url(#shadow)">
+      <!-- Cuerpo principal -->
+      <rect x="50" y="50" width="100" height="85" rx="18" ry="18" fill="url(#spongeGrad)" stroke="#5B1E96" stroke-width="1.5"/>
+
+      <!-- Textura porosa (puntos) -->
+      <circle cx="70" cy="75" r="4" fill="#5B1E96" opacity="0.25"/>
+      <circle cx="90" cy="70" r="3.5" fill="#5B1E96" opacity="0.2"/>
+      <circle cx="115" cy="80" r="4.5" fill="#5B1E96" opacity="0.2"/>
+      <circle cx="135" cy="72" r="3" fill="#5B1E96" opacity="0.25"/>
+      <circle cx="80" cy="100" r="3.5" fill="#5B1E96" opacity="0.2"/>
+      <circle cx="105" cy="105" r="4" fill="#5B1E96" opacity="0.2"/>
+      <circle cx="130" cy="100" r="3" fill="#5B1E96" opacity="0.25"/>
+      <circle cx="65" cy="115" r="3" fill="#5B1E96" opacity="0.2"/>
+      <circle cx="120" cy="120" r="3.5" fill="#5B1E96" opacity="0.2"/>
+      <circle cx="95" cy="118" r="2.5" fill="#5B1E96" opacity="0.25"/>
+
+      <!-- Highlight / shine -->
+      <rect x="50" y="50" width="100" height="30" rx="18" ry="18" fill="url(#highlight)" class="shine">
+        <animate attributeName="opacity" values="0;0.5;0" dur="3s" repeatCount="indefinite"/>
+      </rect>
+
+      <!-- Borde superior suave -->
+      <rect x="50" y="50" width="100" height="12" rx="18" ry="18" fill="#8B5CF6" opacity="0.3"/>
+    </g>
+
+    <!-- Gotitas de agua -->
+    <ellipse cx="80" cy="140" rx="3" ry="5" fill="#60A5FA" opacity="0.6" class="drip-1"/>
+    <ellipse cx="120" cy="138" rx="2.5" ry="4" fill="#60A5FA" opacity="0.6" class="drip-2"/>
+
+    <!-- Burbujas -->
+    <circle cx="60" cy="45" r="6" fill="none" stroke="#93C5FD" stroke-width="1.5" class="bubble-1"/>
+    <circle cx="135" cy="42" r="4" fill="none" stroke="#93C5FD" stroke-width="1.2" class="bubble-2"/>
+
+    <!-- Estrellitas / sparkles -->
+    <path d="M155 55 L157 61 L163 61 L158 65 L160 71 L155 67 L150 71 L152 65 L147 61 L153 61 Z" fill="#FCD34D" class="sparkle-1"/>
+    <path d="M40 80 L42 85 L47 85 L43 88 L44 93 L40 90 L36 93 L37 88 L33 85 L38 85 Z" fill="#FCD34D" class="sparkle-2"/>
+
+    <!-- Etiqueta Maqui Mary -->
+    <g transform="translate(100, 160)">
+      <text x="0" y="0" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" font-weight="bold" fill="#6B21A8">
+        MAQUI MARY
+      </text>
+    </g>
+  </g>
+</svg>

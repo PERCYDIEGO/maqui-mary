@@ -75,9 +75,12 @@ interface AppContextType extends AppState {
   refreshDocuments: () => Promise<void>;
 
   // SUNAT - Envío de documentos
-  enviarDocumentoSUNAT: (documentoId: string, tipo: 'boleta' | 'factura') => Promise<{ success: boolean; message: string }>;
+    enviarDocumentoSUNAT: (documentoId: string, tipo: 'boleta' | 'factura') => Promise<{ success: boolean; message: string }>;
   aprobarDocumento: (documentoId: string, tipo: 'boleta' | 'factura') => Promise<void>;
   rechazarDocumento: (documentoId: string, tipo: 'boleta' | 'factura', motivo: string) => Promise<void>;
+
+  // Carga bajo demanda para CRM
+  loadCrmData: () => Promise<void>;
 
   // Utilidades
   showNotificacion: (tipo: 'success' | 'error' | 'info' | 'warning', mensaje: string) => void;
@@ -187,13 +190,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const productosMapeados: Producto[] = data.map((p: any) => ({
           id: String(p.id),
           codigo: p.codigo,
-          descripcion: p.name || p.descripcion,
-          detalle: p.detalle || p.description || '',
-          unidadMedida: p.unidadMedida || 'UNIDAD',
-          precioOriginal: Number(p.precioOriginal || p.precioUnitario || p.price || 0),
-          precioUnitario: Number(p.precioUnitario || p.price || 0),
+          descripcion: p.name,
+          detalle: p.description || '',
+          unidadMedida: p.unidad_de_medida || 'UNIDAD',
+          precioOriginal: Number(p.precio_original || p.price || 0),
+          precioUnitario: Number(p.price || 0),
           stock: p.stock || 0,
-          categoria: p.categoria || p.category || 'General',
+          categoria: p.category || 'General',
           imagen: p.imagen || p.image || '',
           activo: p.activo !== false,
           usosFrecuentes: p.usosFrecuentes || 0,
@@ -316,6 +319,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const doc = reviveDates(row.data_json || {})
         if (!doc || !doc.id) continue
 
+        if (row.created_by) doc.createdBy = row.created_by
+
         if (row.tipo_comprobante === '03') {
           boletasBD.push(doc as Boleta)
         } else if (row.tipo_comprobante === '01') {
@@ -331,17 +336,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   // ============================================
-  // Cargar datos desde Supabase al iniciar
+  // Obtener sesión al iniciar (sin cargar datos)
+  // Productos se cargan bajo demanda desde cada página
   // ============================================
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) setUserId(session.user.id)
     })
-    loadProductos();
-    loadClientes();
-    loadTransportistas();
-    loadDocuments();
-  }, [loadProductos, loadClientes, loadTransportistas, loadDocuments]);
+  }, []);
+
+  // Cargar clientes, transportistas y documentos solo si estamos en CRM
+  const loadCrmData = useCallback(async () => {
+    await Promise.all([
+      loadClientes(),
+      loadTransportistas(),
+      loadDocuments(),
+    ])
+  }, [loadClientes, loadTransportistas, loadDocuments])
 
   // ============================================
   // ACTIONS - BOLETAS
@@ -352,8 +363,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const addBoleta = useCallback((boleta: Boleta) => {
-    setBoletasState(prev => [boleta, ...prev]);
-    setSeries(prev => prev.map(s => 
+    const boletaConUsuario = { ...boleta, createdBy: userId } as any;
+    setBoletasState(prev => [boletaConUsuario, ...prev]);
+    setSeries(prev => prev.map(s =>
       s.tipo === 'boleta' && s.serie === boleta.serie
         ? { ...s, numeroActual: s.numeroActual + 1 }
         : s
@@ -369,7 +381,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       tipo_comprobante: '03',
       origen: 'crm',
       estado_sunat: mapEstadoToSunat(boleta.estado),
-      data_json: JSON.parse(JSON.stringify(boleta)),
+      data_json: JSON.parse(JSON.stringify(boletaConUsuario)),
       created_by: userId,
     }).then(({ error }) => {
       if (error) console.error('Error persistiendo boleta:', error)
@@ -391,8 +403,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const addFactura = useCallback((factura: Factura) => {
-    setFacturasState(prev => [factura, ...prev]);
-    setSeries(prev => prev.map(s => 
+    const facturaConUsuario = { ...factura, createdBy: userId } as any;
+    setFacturasState(prev => [facturaConUsuario, ...prev]);
+    setSeries(prev => prev.map(s =>
       s.tipo === 'factura' && s.serie === factura.serie
         ? { ...s, numeroActual: s.numeroActual + 1 }
         : s
@@ -408,7 +421,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       tipo_comprobante: '01',
       origen: 'crm',
       estado_sunat: mapEstadoToSunat(factura.estado),
-      data_json: JSON.parse(JSON.stringify(factura)),
+      data_json: JSON.parse(JSON.stringify(facturaConUsuario)),
       created_by: userId,
     }).then(({ error }) => {
       if (error) console.error('Error persistiendo factura:', error)
@@ -762,6 +775,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setLoading,
     setError,
     getSiguienteNumero,
+    loadCrmData,
   };
 
   return (

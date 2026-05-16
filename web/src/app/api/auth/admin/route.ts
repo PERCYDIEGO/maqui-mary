@@ -137,7 +137,6 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ ok: false, error: 'No puedes modificar otros usuarios' }, { status: 403 })
     }
     const allowedFields: Record<string, any> = {}
-    if (password !== undefined) allowedFields.generated_password = password
     if (alias !== undefined) allowedFields.alias = alias
     if (Object.keys(allowedFields).length === 0) {
       return NextResponse.json({ ok: false, error: 'No hay campos válidos para actualizar' }, { status: 400 })
@@ -160,19 +159,28 @@ export async function PUT(req: NextRequest) {
   }
 
   try {
+    const authUpdate: Record<string, any> = {}
     if (password) {
+      authUpdate.password = password
+      authUpdate.email_confirm = true
+    }
+    if (alias !== undefined) {
+      authUpdate.email = alias.includes('@') ? alias : `${alias}@maquimary.local`
+      authUpdate.email_confirm = true
+    }
+
+    if (Object.keys(authUpdate).length > 0) {
       const r = await fetch(`${supabaseUrl}/auth/v1/admin/users/${user_id}`, {
         method: 'PUT',
         headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password, email_confirm: true }),
+        body: JSON.stringify(authUpdate),
       })
-      if (!r.ok) { const d = await r.json(); throw new Error(d.msg || 'Error al actualizar') }
+      if (!r.ok) { const d = await r.json(); throw new Error(d.msg || d.message || 'Error al actualizar credenciales') }
     }
 
     const updateData: Record<string, any> = {}
     if (full_name !== undefined) updateData.full_name = full_name
     if (role !== undefined) updateData.role = role
-    if (password !== undefined) updateData.generated_password = password
     if (alias !== undefined) updateData.alias = alias
 
     if (Object.keys(updateData).length > 0) {

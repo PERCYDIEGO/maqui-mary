@@ -86,16 +86,12 @@ export default function ProductosPage() {
       const payload = {
         codigo: editing ? form.codigo : await getNextCodigo(),
         name: form.descripcion,
-        descripcion: form.descripcion,
-        detalle: form.detalle,
         description: form.detalle,
-        precioOriginal: form.precioOriginal,
-        precioUnitario: form.precioUnitario,
+        precio_original: form.precioOriginal,
         price: form.precioUnitario,
         category: form.categoria,
-        unidadMedida: form.unidadMedida,
+        unidad_de_medida: form.unidadMedida,
         imagen: form.imagen,
-        image: form.imagen,
         activo: true,
       }
 

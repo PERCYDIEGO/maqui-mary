@@ -13,7 +13,18 @@ export async function POST(req: NextRequest) {
     if (action === 'login') {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 401 })
-      return NextResponse.json({ ok: true, user: data.user })
+
+      return NextResponse.json({
+        ok: true,
+        user: data.user,
+        session: {
+          access_token: data.session?.access_token,
+          refresh_token: data.session?.refresh_token,
+          expires_in: data.session?.expires_in,
+          expires_at: data.session?.expires_at,
+          user: data.user,
+        }
+      })
     }
 
     if (action === 'check') {
