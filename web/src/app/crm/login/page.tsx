@@ -14,14 +14,12 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [recordar, setRecordar] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
-  const [isClient, setIsClient] = useState(false)
   const router = useRouter()
   const mountedRef = useRef(true)
 
   useEffect(() => {
     setLoading(false) // Resetea si viene del caché del navegador (bfcache / Next.js Router Cache)
     mountedRef.current = true
-    setIsClient(true)
     return () => { mountedRef.current = false }
   }, [])
 
@@ -88,28 +86,6 @@ export default function LoginPage() {
     } finally {
       setLoading(false)
     }
-  }
-
-  // No renderizar hasta estar en cliente (evita hydration mismatch)
-  if (!isClient) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-ink-900 via-ink-800 to-accent-navy flex items-center justify-center">
-        <div className="w-full max-w-sm">
-          <div className="bg-white/95 rounded-3xl p-8 shadow-elevated">
-            <div className="flex justify-center mb-5">
-              <div className="w-12 h-12 bg-accent-terracotta rounded-xl" />
-            </div>
-            <div className="h-8 bg-ink-100 rounded mb-4" />
-            <div className="h-4 bg-ink-100 rounded mb-8" />
-            <div className="space-y-4">
-              <div className="h-12 bg-ink-100 rounded-xl" />
-              <div className="h-12 bg-ink-100 rounded-xl" />
-              <div className="h-12 bg-accent-terracotta/20 rounded-xl" />
-            </div>
-          </div>
-        </div>
-      </div>
-    )
   }
 
   return (
