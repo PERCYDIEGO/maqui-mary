@@ -15,24 +15,14 @@ export default function LoginPage() {
   const [recordar, setRecordar] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
   const [isClient, setIsClient] = useState(false)
-  const [sessionEmail, setSessionEmail] = useState<string | null>(null)
   const router = useRouter()
-  const audioRef = useRef<any>(null)
   const mountedRef = useRef(true)
 
   useEffect(() => {
     setLoading(false) // Resetea si viene del caché del navegador (bfcache / Next.js Router Cache)
     mountedRef.current = true
-    setIsClient(true) // Muestra el formulario de inmediato, sin esperar la red
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!mountedRef.current) return
-      if (session?.user?.email) {
-        setSessionEmail(session.user.email)
-      }
-    }).catch(() => {})
-
-    return () => { mountedRef.current = false; audioRef.current?.stopTrack?.() }
+    setIsClient(true)
+    return () => { mountedRef.current = false }
   }, [])
 
   async function handleSubmit(e: React.FormEvent) {
@@ -146,30 +136,6 @@ export default function LoginPage() {
             <p className="font-body text-ink-500 text-sm mt-1">Ingresa tus credenciales para acceder</p>
             <p className="text-xs text-ink-400 mt-2">Sistema interno Maqui Mary</p>
           </div>
-
-          {sessionEmail && (
-            <div className="mb-4 bg-accent-gold/10 border border-accent-gold/40 rounded-xl p-3.5">
-              <p className="text-xs text-ink-600 mb-2">
-                Sesión activa: <span className="font-semibold text-ink-800">{sessionEmail}</span>
-              </p>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => router.replace('/crm')}
-                  className="flex-1 bg-accent-terracotta text-white text-xs font-semibold py-2 rounded-lg hover:bg-accent-terracotta/90 transition-colors"
-                >
-                  Ir al CRM →
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSessionEmail(null)}
-                  className="flex-1 border border-ink-300 text-ink-600 text-xs font-semibold py-2 rounded-lg hover:bg-ink-50 transition-colors"
-                >
-                  Cambiar cuenta
-                </button>
-              </div>
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="relative group">
