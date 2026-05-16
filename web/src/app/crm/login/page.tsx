@@ -5,8 +5,6 @@ import { useRouter } from 'next/navigation'
 import { Lock, Eye, EyeOff, User, CheckSquare, Square, Sparkles } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
-import { audio } from '@/lib/audio'
-import { TIMEOUT_AUTH_MS } from '@/lib/constants'
 import { MaquiMaryLogo } from '@/components/Logo'
 
 export default function LoginPage() {
@@ -16,55 +14,26 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [recordar, setRecordar] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
-  const [loginTrack, setLoginTrack] = useState('')
-  const loginTrackRef = useRef(loginTrack)
-  loginTrackRef.current = loginTrack
   const [isClient, setIsClient] = useState(false)
+  const [sessionEmail, setSessionEmail] = useState<string | null>(null)
   const router = useRouter()
+  const audioRef = useRef<any>(null)
+  const mountedRef = useRef(true)
 
   useEffect(() => {
-    setIsClient(true)
-    
-    // Cargar datos guardados
-    try {
-      const savedEmail = sessionStorage.getItem('maqui_remember_email')
-      const savedPass = sessionStorage.getItem('maqui_remember_pass')
-      if (savedEmail) {
-        setEmail(savedEmail)
-        if (savedPass) setPassword(savedPass)
-        setRecordar(true)
+    setLoading(false) // Resetea si viene del caché del navegador (bfcache / Next.js Router Cache)
+    mountedRef.current = true
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mountedRef.current) return
+      if (session?.user?.email) {
+        setSessionEmail(session.user.email) // Hay sesión: muestra banner con opción de ir al CRM
       }
-    } catch {
-      // Ignorar errores de sessionStorage
-    }
-
-    // Cargar música de login
-    fetch('/api/config').then(r => r.json()).then(data => {
-      if (data.ok) {
-        const dt = data.settings.default_tracks || {}
-        if (dt.login !== undefined) setLoginTrack(dt.login)
-        if (dt.login) audio.startTrack(dt.login)
-      }
+      setIsClient(true)
     }).catch(() => {
-      // Si falla la API, no hay música
+      setIsClient(true)
     })
-
-    const handler = () => {
-      if (loginTrackRef.current) audio.startTrack(loginTrackRef.current)
-    }
-    document.addEventListener('pointerdown', handler)
-    document.addEventListener('keydown', handler)
-    return () => {
-      audio.stopTrack()
-      document.removeEventListener('pointerdown', handler)
-      document.removeEventListener('keydown', handler)
-    }
+    return () => { mountedRef.current = false; audioRef.current?.stopTrack?.() }
   }, [])
-
-  useEffect(() => {
-    loginTrackRef.current = loginTrack
-    if (loginTrack) audio.startTrack(loginTrack)
-  }, [loginTrack])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -81,52 +50,53 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      const { error } = await Promise.race([
-        supabase.auth.signInWithPassword({
-          email: loginId,
-          password,
-        }),
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('Timeout')), TIMEOUT_AUTH_MS)
-        )
-      ])
+      // Si hay sesión activa de otro usuario, cerrarla primero
+      if (sessionEmail) await supabase.auth.signOut()
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: loginId,
+        password,
+      })
 
       if (error) {
         const msg = error.message === 'Invalid login credentials'
           ? 'Correo o contraseña incorrectos'
-          : error.message
+          : error.message || 'Error al iniciar sesión'
         setErrorMsg(msg)
         toast.error(msg)
-      } else {
-        setErrorMsg('')
-        // Guardar credenciales si se seleccionó recordar
-        try {
-          if (recordar) {
-            sessionStorage.setItem('maqui_remember_email', email.trim())
-            sessionStorage.setItem('maqui_remember_pass', password)
-          } else {
-            sessionStorage.removeItem('maqui_remember_email')
-            sessionStorage.removeItem('maqui_remember_pass')
-          }
-        } catch {
-          // Ignorar errores
-        }
-        
-        const { data: { session } } = await supabase.auth.getSession()
-        if (session?.user) {
-          const { data: profile } = await supabase.from('profiles').select('force_password_change').eq('id', session.user.id).single()
-          if (profile?.force_password_change) {
-            router.push('/crm/cambiar-contrasena')
-            return
-          }
-        }
-        toast.success('Bienvenido')
-        router.push('/crm')
-        router.refresh()
+        setLoading(false)
+        return
       }
-    } catch {
-      setErrorMsg('Error al conectar con el servidor')
-      toast.error('Error al conectar')
+
+      setErrorMsg('')
+
+      if (!data.session) {
+        setErrorMsg('No se pudo obtener la sesión. Intenta de nuevo.')
+        toast.error('Error al iniciar sesión')
+        setLoading(false)
+        return
+      }
+
+      try {
+        if (recordar) {
+          sessionStorage.setItem('maqui_remember_email', email.trim())
+        } else {
+          sessionStorage.removeItem('maqui_remember_email')
+        }
+        sessionStorage.removeItem('maqui_remember_pass')
+      } catch {}
+
+      toast.success('Bienvenido')
+      if (mountedRef.current) router.replace('/crm')
+    } catch (err: any) {
+      if (!window.navigator.onLine) {
+        setErrorMsg('Sin conexión a internet')
+        toast.error('Sin conexión')
+      } else {
+        const msg = err?.message || 'Error al conectar con el servidor. Intenta de nuevo.'
+        setErrorMsg(msg)
+        toast.error(msg)
+      }
     } finally {
       setLoading(false)
     }
@@ -179,6 +149,30 @@ export default function LoginPage() {
             <p className="text-xs text-ink-400 mt-2">Sistema interno Maqui Mary</p>
           </div>
 
+          {sessionEmail && (
+            <div className="mb-4 bg-accent-gold/10 border border-accent-gold/40 rounded-xl p-3.5">
+              <p className="text-xs text-ink-600 mb-2">
+                Sesión activa: <span className="font-semibold text-ink-800">{sessionEmail}</span>
+              </p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => router.replace('/crm')}
+                  className="flex-1 bg-accent-terracotta text-white text-xs font-semibold py-2 rounded-lg hover:bg-accent-terracotta/90 transition-colors"
+                >
+                  Ir al CRM →
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSessionEmail(null)}
+                  className="flex-1 border border-ink-300 text-ink-600 text-xs font-semibold py-2 rounded-lg hover:bg-ink-50 transition-colors"
+                >
+                  Cambiar cuenta
+                </button>
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="relative group">
               <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-400 group-focus-within:text-accent-gold transition-colors" />
@@ -219,7 +213,7 @@ export default function LoginPage() {
               {recordar
                 ? <CheckSquare size={18} className="text-accent-gold" />
                 : <Square size={18} className="text-ink-400" />}
-              Recordar datos
+              Recordar correo
             </label>
 
             <button
@@ -260,7 +254,7 @@ export default function LoginPage() {
 
         <p className="text-center mt-6 text-xs text-ink-500/60">
           <Sparkles size={12} className="inline mr-1" />
-          ES PONJAS MAQUI MARY — Ate Vitarte, Lima
+          ESPONJAS MAQUI MARY — Ate Vitarte, Lima
         </p>
       </div>
     </div>
