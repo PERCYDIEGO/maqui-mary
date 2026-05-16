@@ -87,7 +87,8 @@ export default function LoginPage() {
       } catch {}
 
       toast.success('Bienvenido')
-      if (mountedRef.current) router.replace('/crm')
+      router.push('/crm')
+      router.refresh()
     } catch (err: any) {
       if (!window.navigator.onLine) {
         setErrorMsg('Sin conexión a internet')
