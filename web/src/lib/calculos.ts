@@ -371,14 +371,9 @@ export function generarDatosQR(documento: {
   fechaEmision: Date;
   hashCPE: string;
 }): string {
-  // Formato estándar SUNAT para QR
-  return [
-    documento.rucEmisor,
-    documento.tipoDocumento,
-    documento.serie,
-    documento.numero.toString(),
-    documento.importeTotal.toFixed(2),
-    documento.fechaEmision.toISOString().split('T')[0],
-    documento.hashCPE,
-  ].join('|');
+  const baseUrl = typeof window !== 'undefined'
+    ? window.location.origin
+    : (process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') || 'https://maquimary.vercel.app')
+  const numPadded = documento.numero.toString().padStart(8, '0')
+  return `${baseUrl}/doc/${documento.serie}-${numPadded}`
 }
