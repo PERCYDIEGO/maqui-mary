@@ -27,29 +27,32 @@ export interface CalculoItemResult {
 
 export function calcularItem(
   cantidad: number,
-  valorUnitarioSinIgv: number,
+  precioConIgv: number,          // precio que el cliente paga (IGV incluido)
   descuento: number = 0,
   aplicaIcbper: boolean = false
 ): CalculoItemResult {
-  // Valor de venta (cantidad x precio unitario sin IGV)
-  const valorVenta = redondear(cantidad * valorUnitarioSinIgv);
-  
-  // IGV (18% del valor de venta)
-  const igv = redondear(valorVenta * TASAS.IGV);
-  
+  // Importe total = lo que paga el cliente
+  const importeTotal = redondear(cantidad * precioConIgv - descuento);
+
+  // Base imponible (sin IGV) — lo que se reporta a SUNAT como valorVenta
+  const valorVenta = redondear(importeTotal / (1 + TASAS.IGV));
+
+  // IGV = diferencia entre total y base
+  const igv = redondear(importeTotal - valorVenta);
+
+  // Precio unitario sin IGV para campos XML SUNAT
+  const valorUnitarioSinIgv = redondear(precioConIgv / (1 + TASAS.IGV));
+
   // ICBPER (si aplica)
   const icbper = aplicaIcbper ? redondear(cantidad * TASAS.ICBPER) : 0;
-  
-  // Importe total
-  const importeTotal = redondear(valorVenta + igv + icbper - descuento);
-  
+
   return {
     valorUnitarioSinIgv,
     valorVenta,
     igv,
     icbper,
     descuento,
-    importeTotal,
+    importeTotal: importeTotal + icbper,
   };
 }
 

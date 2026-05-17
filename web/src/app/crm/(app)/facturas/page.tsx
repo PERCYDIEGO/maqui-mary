@@ -6,7 +6,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Plus, Search, Filter, Pencil } from 'lucide-react';
+import { Plus, Search, Filter, Pencil, Truck } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { formatearMoneda } from '@/lib/calculos';
 import PDFGenerator from '@/components/pdf/PDFGenerator';
@@ -143,6 +143,13 @@ export default function FacturasPage() {
                             <Pencil className="w-4 h-4" />
                           </Link>
                         )}
+                        <Link
+                          href={`/crm/guias/nueva?factura=${factura.id}`}
+                          className="p-1.5 hover:bg-indigo-100 text-indigo-500 rounded-lg transition-colors"
+                          title="Crear guía de remisión"
+                        >
+                          <Truck className="w-4 h-4" />
+                        </Link>
                         <PDFGenerator documento={factura} tipo="factura" />
                       </div>
                     </td>

@@ -155,16 +155,30 @@ export interface Factura extends DocumentoBase {
 // Transportista
 export interface Transportista {
   id: string;
+  modalidad: 'privado' | 'publico';
+  // Privado — conductor propio de la empresa
   nombres: string;
   apellidos: string;
   nombreCompleto: string;
-  dni: string;
-  licenciaConducir: string;
-  numeroPlaca: string;
+  dni?: string;
+  licenciaConducir?: string;
+  numeroPlaca?: string;
+  // Público — empresa/persona transportista externa
+  ruc?: string;
+  numeroRegistroMTC?: string;
+  // Común
   fotoUrl?: string;
   activo: boolean;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface DocRelacionado {
+  id: string;
+  tipo: 'boleta' | 'factura';
+  numero: string;   // numeroCompleto, ej: "EB01-000135"
+  serie: string;
+  clienteNombre: string;
 }
 
 // Guía de Remisión
@@ -172,7 +186,9 @@ export interface GuiaRemision extends DocumentoBase {
   tipo: 'guia';
   fechaInicioTraslado: Date;
   motivoTraslado: MotivoTraslado;
-  // Documento relacionado (opcional)
+  // Documentos relacionados — puede ser UNO O MÁS (boletas y/o facturas)
+  documentosRelacionados: DocRelacionado[];
+  // Backward compat (deprecated)
   documentoRelacionadoId?: string;
   documentoRelacionadoTipo?: 'boleta' | 'factura';
   documentoRelacionadoNumero?: string;
@@ -181,7 +197,7 @@ export interface GuiaRemision extends DocumentoBase {
   destinatarioNombre: string;
   destinatarioDniRuc: string;
   // Puntos de traslado
-  puntoPartida: string; // Fijo
+  puntoPartida: string; // Fijo: almacén Lurigancho
   puntoLlegada: string;
   // Bienes
   bienes: ItemDocumento[];

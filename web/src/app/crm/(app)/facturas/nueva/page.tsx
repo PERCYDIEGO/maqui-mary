@@ -80,6 +80,13 @@ export default function NuevaFacturaPage() {
   const [items, setItems] = useState<ItemDocumento[]>([]);
   const [anticipoGlobal, setAnticipoGlobal] = useState(0);
   const [otrosCargos, setOtrosCargos] = useState(0);
+  const [rawInputs, setRawInputs] = useState<Record<string, string>>({});
+
+  const getRaw = (idx: number, field: string) => rawInputs[`${idx}_${field}`];
+  const setRaw = (idx: number, field: string, val: string) =>
+    setRawInputs(prev => ({ ...prev, [`${idx}_${field}`]: val }));
+  const clearRaw = (idx: number, field: string) =>
+    setRawInputs(prev => { const n = { ...prev }; delete n[`${idx}_${field}`]; return n; });
   
   // Buscar clientes que tengan RUC
   const clientesFiltrados = clientes.filter(c =>
@@ -498,10 +505,20 @@ export default function NuevaFacturaPage() {
                         <div className="md:col-span-2">
                           <label className="block text-xs text-slate-600 mb-1">Cantidad</label>
                           <input
-                            type="number"
-                            min="1"
-                            value={item.cantidad}
-                            onChange={(e) => handleActualizarItem(index, 'cantidad', parseInt(e.target.value) || 1)}
+                            type="text"
+                            inputMode="numeric"
+                            value={getRaw(index, 'qty') ?? String(item.cantidad)}
+                            onChange={(e) => {
+                              const raw = e.target.value;
+                              if (raw !== '' && !/^\d+$/.test(raw)) return;
+                              setRaw(index, 'qty', raw);
+                              const val = parseInt(raw);
+                              if (val > 0) handleActualizarItem(index, 'cantidad', val);
+                            }}
+                            onBlur={() => {
+                              if (!item.cantidad || item.cantidad < 1) handleActualizarItem(index, 'cantidad', 1);
+                              clearRaw(index, 'qty');
+                            }}
                             className="w-full px-3 py-2 border rounded-lg text-sm"
                           />
                         </div>
@@ -519,12 +536,20 @@ export default function NuevaFacturaPage() {
                           </select>
                         </div>
                         <div className="md:col-span-2">
-                          <label className="block text-xs text-slate-600 mb-1">P. Unit.</label>
+                          <label className="block text-xs text-slate-600 mb-1">P. Unit. (c/IGV)</label>
                           <input
-                            type="number"
-                            step="0.01"
-                            value={item.valorUnitario || ''}
-                            onChange={(e) => handleActualizarItem(index, 'valorUnitario', parseFloat(e.target.value) || 0)}
+                            type="text"
+                            inputMode="decimal"
+                            value={getRaw(index, 'precio') ?? (item.valorUnitario === 0 ? '' : String(item.valorUnitario))}
+                            onChange={(e) => {
+                              const raw = e.target.value.replace(',', '.');
+                              if (raw !== '' && !/^\d*\.?\d*$/.test(raw)) return;
+                              setRaw(index, 'precio', raw);
+                              const val = parseFloat(raw);
+                              handleActualizarItem(index, 'valorUnitario', isNaN(val) ? 0 : val);
+                            }}
+                            onBlur={() => clearRaw(index, 'precio')}
+                            placeholder="0.00"
                             className="w-full px-3 py-2 border rounded-lg text-sm"
                           />
                         </div>
@@ -590,25 +615,23 @@ export default function NuevaFacturaPage() {
             
             <div className="bg-slate-50 rounded-xl p-4 space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-slate-600">Sub Total</span>
-                <span className="font-medium">{formatearMoneda(totales.subTotal, moneda)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-600">Descuento</span>
-                <span className="font-medium">{formatearMoneda(totales.descuentoTotal, moneda)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-600">Operación Gravada</span>
+                <span className="text-slate-600">Subtotal (sin IGV)</span>
                 <span className="font-medium">{formatearMoneda(totales.valorVenta, moneda)}</span>
               </div>
+              {totales.descuentoTotal > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-600">Descuento</span>
+                  <span className="font-medium">- {formatearMoneda(totales.descuentoTotal, moneda)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-sm">
-                <span className="text-slate-600">IGV (18%)</span>
-                <span className="font-medium">{formatearMoneda(totales.igvTotal, moneda)}</span>
+                <span className="text-purple-700 font-medium">IGV 18% <span className="text-xs font-normal text-slate-500">(a cargo del vendedor)</span></span>
+                <span className="font-medium text-purple-700">{formatearMoneda(totales.igvTotal, moneda)}</span>
               </div>
-              <div className="border-t border-slate-200 pt-2 mt-2">
-                <div className="flex justify-between">
-                  <span className="text-lg font-bold text-slate-800">IMPORTE TOTAL</span>
-                  <span className="text-lg font-bold text-slate-800">{formatearMoneda(totales.importeTotal, moneda)}</span>
+              <div className="border-t-2 border-slate-300 pt-3 mt-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-lg font-bold text-slate-800">Total a pagar</span>
+                  <span className="text-2xl font-bold text-purple-700">{formatearMoneda(totales.importeTotal, moneda)}</span>
                 </div>
                 <p className="text-sm text-slate-500 mt-1">{totales.importeEnLetras}</p>
               </div>

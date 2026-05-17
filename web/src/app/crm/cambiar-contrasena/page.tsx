@@ -15,16 +15,19 @@ export default function CambiarContrasenaPage() {
   const router = useRouter()
 
   useEffect(() => {
+    let sub: { unsubscribe: () => void } | null = null
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
-        supabase.auth.onAuthStateChange((event) => {
+        const { data } = supabase.auth.onAuthStateChange((event) => {
           if (event === 'SIGNED_IN') setCheckingSession(false)
         })
+        sub = data.subscription
         setTimeout(() => setCheckingSession(false), 3000)
       } else {
         setCheckingSession(false)
       }
     })
+    return () => { sub?.unsubscribe() }
   }, [])
 
   const errors: string[] = []

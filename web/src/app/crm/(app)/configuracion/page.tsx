@@ -1,10 +1,20 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { Play, Pause, Lock, Unlock, Trash2, Volume2, Save, RotateCcw, Settings, Search, Music, Undo2, Headphones, Sparkles, Eye, EyeOff, RefreshCw, Shield, FileText, Upload, AlertCircle, CheckCircle, Globe, CreditCard, Building2, Hash, MessageCircle, MapPin, Clock } from 'lucide-react'
+import { Play, Pause, Lock, Unlock, Trash2, Volume2, Save, RotateCcw, Settings, Search, Music, Undo2, Headphones, Sparkles, Eye, EyeOff, RefreshCw, Shield, FileText, Upload, AlertCircle, CheckCircle, Globe, CreditCard, Building2, Hash, MessageCircle, MapPin, Clock, Truck, Plus, Pencil, X, Check, ToggleLeft, ToggleRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { audio, TRACK_PRESETS } from '@/lib/audio'
 import toast from 'react-hot-toast'
+
+type ZonaDelivery = {
+  id: number
+  nombre: string
+  distancia_min: number
+  distancia_max: number | null
+  tarifa: number
+  tiempo_estimado: string
+  activo: boolean
+}
 
 type SceneKey = 'landing' | 'crm' | 'login' | 'menu' | 'success'
 type GameFilter = 'all' | 'top-gear' | 'gunbound'
@@ -66,6 +76,20 @@ export default function MusicPlayerPage() {
   })
   const [empresaSaving, setEmpresaSaving] = useState(false)
 
+  // ─── Delivery Zonas State ───
+  const [zonas, setZonas] = useState<ZonaDelivery[]>([])
+  const [zonasLoading, setZonasLoading] = useState(true)
+  const [editId, setEditId] = useState<number | null>(null)
+  const [editData, setEditData] = useState<{ nombre: string; distancia_min: string; distancia_max: string; tarifa: string; tiempo_estimado: string }>({ nombre: '', distancia_min: '', distancia_max: '', tarifa: '', tiempo_estimado: '' })
+  const [savingId, setSavingId] = useState<number | null>(null)
+  const [adding, setAdding] = useState(false)
+  const [newZona, setNewZona] = useState({ nombre: '', distancia_min: '', distancia_max: '', tarifa: '', tiempo_estimado: '1-2 días hábiles' })
+  const [addingSaving, setAddingSaving] = useState(false)
+
+  // ─── Tema visual ───
+  const [temaActivo, setTemaActivo] = useState('terracota')
+  const [temaSaving, setTemaSaving] = useState(false)
+
   useEffect(() => {
     const seen = localStorage.getItem('mm-music-seen')
     if (seen) setFirstTime(false)
@@ -78,7 +102,10 @@ export default function MusicPlayerPage() {
       }
     })
     fetch('/api/config').then(r => r.json()).then(data => {
-      if (data.ok) setConfig({ ...DEFAULT_CONFIG, ...data.settings })
+      if (data.ok) {
+        setConfig({ ...DEFAULT_CONFIG, ...data.settings })
+        if (data.settings?.tema) setTemaActivo(data.settings.tema)
+      }
     }).finally(() => setLoading(false))
   }, [])
 
@@ -112,12 +139,104 @@ export default function MusicPlayerPage() {
     loadSunatConfig()
   }, [])
 
+  // Cargar zonas de delivery
+  useEffect(() => {
+    supabase
+      .from('zonas_delivery')
+      .select('*')
+      .order('distancia_min', { ascending: true })
+      .then(({ data, error }) => {
+        if (!error && data) setZonas(data)
+        setZonasLoading(false)
+      })
+  }, [])
+
+  function startEdit(z: ZonaDelivery) {
+    setEditId(z.id)
+    setEditData({
+      nombre: z.nombre,
+      distancia_min: String(z.distancia_min),
+      distancia_max: z.distancia_max !== null ? String(z.distancia_max) : '',
+      tarifa: String(z.tarifa),
+      tiempo_estimado: z.tiempo_estimado,
+    })
+  }
+
+  function cancelEdit() {
+    setEditId(null)
+  }
+
+  async function saveEdit(id: number) {
+    const tarifa = parseFloat(editData.tarifa)
+    const distMin = parseFloat(editData.distancia_min)
+    if (!editData.nombre.trim() || isNaN(tarifa) || tarifa < 0 || isNaN(distMin) || distMin < 0) {
+      toast.error('Nombre, distancia mínima y tarifa válidos son requeridos')
+      return
+    }
+    const distMax = editData.distancia_max.trim() ? parseFloat(editData.distancia_max) : null
+    setSavingId(id)
+    const { error } = await supabase
+      .from('zonas_delivery')
+      .update({ nombre: editData.nombre.trim(), distancia_min: distMin, distancia_max: distMax, tarifa, tiempo_estimado: editData.tiempo_estimado.trim() })
+      .eq('id', id)
+    if (error) { toast.error('Error al guardar: ' + error.message) }
+    else {
+      setZonas(zs => zs.map(z => z.id === id ? { ...z, nombre: editData.nombre.trim(), distancia_min: distMin, distancia_max: distMax, tarifa, tiempo_estimado: editData.tiempo_estimado.trim() } : z))
+      setEditId(null)
+      toast.success('Zona actualizada ✅')
+    }
+    setSavingId(null)
+  }
+
+  async function toggleActivo(z: ZonaDelivery) {
+    const { error } = await supabase.from('zonas_delivery').update({ activo: !z.activo }).eq('id', z.id)
+    if (error) toast.error('Error: ' + error.message)
+    else setZonas(zs => zs.map(x => x.id === z.id ? { ...x, activo: !z.activo } : x))
+  }
+
+  async function deleteZona(id: number) {
+    if (!confirm('¿Eliminar esta zona de delivery?')) return
+    const { error } = await supabase.from('zonas_delivery').delete().eq('id', id)
+    if (error) toast.error('Error: ' + error.message)
+    else { setZonas(zs => zs.filter(z => z.id !== id)); toast.success('Zona eliminada') }
+  }
+
+  async function handleAddZona() {
+    const tarifa = parseFloat(newZona.tarifa)
+    const distMin = parseFloat(newZona.distancia_min)
+    if (!newZona.nombre.trim() || isNaN(tarifa) || tarifa < 0 || isNaN(distMin) || distMin < 0) {
+      toast.error('Completa nombre, distancia mínima y tarifa válida')
+      return
+    }
+    const distMax = newZona.distancia_max.trim() ? parseFloat(newZona.distancia_max) : null
+    setAddingSaving(true)
+    const { data, error } = await supabase
+      .from('zonas_delivery')
+      .insert({ nombre: newZona.nombre.trim(), distancia_min: distMin, distancia_max: distMax, tarifa, tiempo_estimado: newZona.tiempo_estimado.trim(), activo: true })
+      .select()
+      .single()
+    if (error) toast.error('Error: ' + error.message)
+    else {
+      setZonas(zs => [...zs, data].sort((a, b) => a.distancia_min - b.distancia_min))
+      setNewZona({ nombre: '', distancia_min: '', distancia_max: '', tarifa: '', tiempo_estimado: '1-2 días hábiles' })
+      setAdding(false)
+      toast.success('Zona agregada ✅')
+    }
+    setAddingSaving(false)
+  }
+
+  async function getToken(): Promise<string> {
+    const { data: { session } } = await supabase.auth.getSession()
+    return session?.access_token ?? ''
+  }
+
   async function handleSaveEmpresa() {
     setEmpresaSaving(true)
     try {
+      const token = await getToken()
       const r = await fetch('/api/empresa', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(empresaConfig),
       })
       const data = await r.json()
@@ -185,9 +304,10 @@ export default function MusicPlayerPage() {
   async function handleSave() {
     setSaving(true)
     try {
+      const token = await getToken()
       const r = await fetch('/api/config', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(config),
       })
       const data = await r.json()
@@ -195,6 +315,23 @@ export default function MusicPlayerPage() {
       else toast.error(data.error || 'Error al guardar')
     } catch { toast.error('Error al guardar') }
     finally { setSaving(false) }
+  }
+
+  async function handleSaveTema(tema: string) {
+    setTemaActivo(tema)
+    setTemaSaving(true)
+    try {
+      const token = await getToken()
+      const res = await fetch('/api/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ tema }),
+      })
+      const data = await res.json()
+      if (data.ok) toast.success('Tema aplicado ✅')
+      else toast.error(data.error || 'Error al guardar tema')
+    } catch { toast.error('Error al guardar tema') }
+    finally { setTemaSaving(false) }
   }
 
   function resetDefaults() {
@@ -700,6 +837,366 @@ export default function MusicPlayerPage() {
             )}
           </>
         )}
+      </div>
+
+      {/* ═══════════════════════════════════════════ */}
+      {/* SECCIÓN TARIFAS DE DELIVERY               */}
+      {/* ═══════════════════════════════════════════ */}
+      <div className="card mb-8">
+        <div className="flex items-center justify-between gap-3 mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
+              <Truck size={20} />
+            </div>
+            <div>
+              <h2 className="font-heading font-bold text-primary-800 text-lg">Tarifas de Delivery</h2>
+              <p className="text-primary-500 text-sm">Zonas por distancia (km) desde Cajamarquilla — tarifa y tiempo estimado</p>
+            </div>
+          </div>
+          <button
+            onClick={() => { setAdding(true); setNewZona({ nombre: '', distancia_min: '', distancia_max: '', tarifa: '', tiempo_estimado: '1-2 días hábiles' }) }}
+            className="btn-primary flex items-center gap-2 !px-4 !py-2 text-sm"
+          >
+            <Plus size={15} /> Agregar zona
+          </button>
+        </div>
+
+        {zonasLoading ? (
+          <div className="text-center py-8 text-primary-400">
+            <RefreshCw size={20} className="mx-auto mb-2 animate-spin" />
+            <p className="text-sm">Cargando zonas...</p>
+          </div>
+        ) : (
+          <>
+            {/* Tabla de zonas */}
+            <div className="overflow-x-auto rounded-xl border border-primary-100">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-primary-50 border-b border-primary-100">
+                    <th className="text-left px-4 py-3 font-semibold text-primary-700 w-[22%]">Zona</th>
+                    <th className="text-left px-4 py-3 font-semibold text-primary-700 w-[18%]">Distancia (km)</th>
+                    <th className="text-left px-4 py-3 font-semibold text-primary-700 w-[13%]">Tarifa (S/)</th>
+                    <th className="text-left px-4 py-3 font-semibold text-primary-700 w-[22%]">Tiempo estimado</th>
+                    <th className="text-center px-4 py-3 font-semibold text-primary-700 w-[10%]">Activo</th>
+                    <th className="text-right px-4 py-3 font-semibold text-primary-700 w-[15%]">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {zonas.length === 0 && !adding && (
+                    <tr>
+                      <td colSpan={6} className="text-center py-10 text-primary-400">
+                        <MapPin size={32} className="mx-auto mb-2 opacity-30" />
+                        <p className="font-medium">No hay zonas configuradas</p>
+                        <p className="text-xs mt-1">Agrega la primera zona con el botón de arriba</p>
+                      </td>
+                    </tr>
+                  )}
+                  {zonas.map(z => (
+                    <tr key={z.id} className={`border-b border-primary-50 last:border-0 transition-colors ${editId === z.id ? 'bg-blue-50/40' : 'hover:bg-primary-50/40'}`}>
+                      {editId === z.id ? (
+                        /* ── Fila en modo edición ── */
+                        <>
+                          <td className="px-3 py-2">
+                            <input
+                              value={editData.nombre}
+                              onChange={e => setEditData(d => ({ ...d, nombre: e.target.value }))}
+                              className="input-field w-full !py-1.5 !text-sm"
+                              placeholder="Ej: Zona 3 — Este Lima"
+                              autoFocus
+                            />
+                          </td>
+                          <td className="px-3 py-2">
+                            <div className="flex items-center gap-1">
+                              <input
+                                type="number" min="0" step="0.5"
+                                value={editData.distancia_min}
+                                onChange={e => setEditData(d => ({ ...d, distancia_min: e.target.value }))}
+                                className="input-field w-full !py-1.5 !text-sm"
+                                placeholder="0"
+                              />
+                              <span className="text-primary-400 text-xs shrink-0">–</span>
+                              <input
+                                type="number" min="0" step="0.5"
+                                value={editData.distancia_max}
+                                onChange={e => setEditData(d => ({ ...d, distancia_max: e.target.value }))}
+                                className="input-field w-full !py-1.5 !text-sm"
+                                placeholder="∞"
+                              />
+                            </div>
+                          </td>
+                          <td className="px-3 py-2">
+                            <input
+                              type="number" min="0" step="0.5"
+                              value={editData.tarifa}
+                              onChange={e => setEditData(d => ({ ...d, tarifa: e.target.value }))}
+                              className="input-field w-full !py-1.5 !text-sm"
+                              placeholder="0.00"
+                            />
+                          </td>
+                          <td className="px-3 py-2">
+                            <input
+                              value={editData.tiempo_estimado}
+                              onChange={e => setEditData(d => ({ ...d, tiempo_estimado: e.target.value }))}
+                              className="input-field w-full !py-1.5 !text-sm"
+                              placeholder="Ej: 1-2 días hábiles"
+                            />
+                          </td>
+                          <td className="px-3 py-2 text-center text-primary-400 text-xs italic">—</td>
+                          <td className="px-3 py-2">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                onClick={() => saveEdit(z.id)}
+                                disabled={savingId === z.id}
+                                className="p-1.5 rounded-lg bg-green-100 text-green-700 hover:bg-green-200 disabled:opacity-50 transition-colors"
+                                title="Guardar"
+                              >
+                                {savingId === z.id ? <RefreshCw size={14} className="animate-spin" /> : <Check size={14} />}
+                              </button>
+                              <button onClick={cancelEdit} className="p-1.5 rounded-lg bg-primary-100 text-primary-500 hover:bg-primary-200 transition-colors" title="Cancelar">
+                                <X size={14} />
+                              </button>
+                            </div>
+                          </td>
+                        </>
+                      ) : (
+                        /* ── Fila en modo lectura ── */
+                        <>
+                          <td className="px-4 py-3 font-medium text-primary-800">{z.nombre}</td>
+                          <td className="px-4 py-3 text-xs text-primary-600">
+                            {z.distancia_min} – {z.distancia_max !== null ? `${z.distancia_max} km` : '∞'}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="font-bold text-blue-700">S/ {z.tarifa.toFixed(2)}</span>
+                          </td>
+                          <td className="px-4 py-3 text-primary-600 text-xs">{z.tiempo_estimado}</td>
+                          <td className="px-4 py-3 text-center">
+                            <button onClick={() => toggleActivo(z)} title={z.activo ? 'Desactivar' : 'Activar'}>
+                              {z.activo
+                                ? <ToggleRight size={22} className="text-green-500 hover:text-green-700 transition-colors" />
+                                : <ToggleLeft size={22} className="text-primary-300 hover:text-primary-500 transition-colors" />
+                              }
+                            </button>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button onClick={() => startEdit(z)} className="p-1.5 rounded-lg text-primary-400 hover:bg-blue-50 hover:text-blue-600 transition-colors" title="Editar">
+                                <Pencil size={14} />
+                              </button>
+                              <button onClick={() => deleteZona(z.id)} className="p-1.5 rounded-lg text-primary-300 hover:bg-red-50 hover:text-red-500 transition-colors" title="Eliminar">
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          </td>
+                        </>
+                      )}
+                    </tr>
+                  ))}
+
+                  {/* ── Fila de nueva zona ── */}
+                  {adding && (
+                    <tr className="bg-green-50/40 border-b border-green-100">
+                      <td className="px-3 py-2">
+                        <input
+                          value={newZona.nombre}
+                          onChange={e => setNewZona(n => ({ ...n, nombre: e.target.value }))}
+                          className="input-field w-full !py-1.5 !text-sm"
+                          placeholder="Ej: Zona 3 — Este Lima"
+                          autoFocus
+                        />
+                      </td>
+                      <td className="px-3 py-2">
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="number" min="0" step="0.5"
+                            value={newZona.distancia_min}
+                            onChange={e => setNewZona(n => ({ ...n, distancia_min: e.target.value }))}
+                            className="input-field w-full !py-1.5 !text-sm"
+                            placeholder="0"
+                          />
+                          <span className="text-primary-400 text-xs shrink-0">–</span>
+                          <input
+                            type="number" min="0" step="0.5"
+                            value={newZona.distancia_max}
+                            onChange={e => setNewZona(n => ({ ...n, distancia_max: e.target.value }))}
+                            className="input-field w-full !py-1.5 !text-sm"
+                            placeholder="∞"
+                          />
+                        </div>
+                      </td>
+                      <td className="px-3 py-2">
+                        <input
+                          type="number" min="0" step="0.5"
+                          value={newZona.tarifa}
+                          onChange={e => setNewZona(n => ({ ...n, tarifa: e.target.value }))}
+                          className="input-field w-full !py-1.5 !text-sm"
+                          placeholder="0.00"
+                        />
+                      </td>
+                      <td className="px-3 py-2">
+                        <input
+                          value={newZona.tiempo_estimado}
+                          onChange={e => setNewZona(n => ({ ...n, tiempo_estimado: e.target.value }))}
+                          className="input-field w-full !py-1.5 !text-sm"
+                          placeholder="Ej: 1-2 días hábiles"
+                        />
+                      </td>
+                      <td className="px-3 py-2 text-center text-green-600 text-xs font-medium">Activo</td>
+                      <td className="px-3 py-2">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={handleAddZona}
+                            disabled={addingSaving}
+                            className="p-1.5 rounded-lg bg-green-100 text-green-700 hover:bg-green-200 disabled:opacity-50 transition-colors"
+                            title="Guardar nueva zona"
+                          >
+                            {addingSaving ? <RefreshCw size={14} className="animate-spin" /> : <Check size={14} />}
+                          </button>
+                          <button onClick={() => setAdding(false)} className="p-1.5 rounded-lg bg-primary-100 text-primary-500 hover:bg-primary-200 transition-colors" title="Cancelar">
+                            <X size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Resumen */}
+            <div className="flex items-center gap-4 mt-3 text-xs text-primary-400">
+              <span>{zonas.filter(z => z.activo).length} zonas activas</span>
+              <span>·</span>
+              <span>{zonas.filter(z => !z.activo).length} inactivas</span>
+              {zonas.length > 0 && (
+                <>
+                  <span>·</span>
+                  <span>Tarifas: S/ {Math.min(...zonas.map(z => z.tarifa)).toFixed(2)} – S/ {Math.max(...zonas.map(z => z.tarifa)).toFixed(2)}</span>
+                  <span>·</span>
+                  <span>Hasta {zonas.reduce((max, z) => z.distancia_max !== null && z.distancia_max > max ? z.distancia_max : max, 0)} km</span>
+                </>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* ═══════════════════════════════════════════ */}
+      {/* SECCIÓN ESTILO VISUAL DE LA WEB           */}
+      {/* ═══════════════════════════════════════════ */}
+      <div className="card mb-8">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center text-lg">
+            🎨
+          </div>
+          <div>
+            <h2 className="font-heading font-bold text-primary-800 text-lg">Estilo Visual de la Web</h2>
+            <p className="text-primary-500 text-sm">Elige la paleta de colores de tu tienda — se aplica al instante para tus clientes</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+          {([
+            {
+              id: 'terracota',
+              nombre: 'Terracota',
+              desc: 'Cálido y natural · Default',
+              primario: '#C96B4E',
+              secundario: '#C89F5C',
+              fondo: '#FBF7F2',
+              emoji: '🧡',
+            },
+            {
+              id: 'esmeralda',
+              nombre: 'Esmeralda',
+              desc: 'Verde · Fresco y orgánico',
+              primario: '#22875A',
+              secundario: '#50B482',
+              fondo: '#F0FAF4',
+              emoji: '💚',
+            },
+            {
+              id: 'oceano',
+              nombre: 'Océano',
+              desc: 'Azul · Confianza y limpieza',
+              primario: '#1E64B4',
+              secundario: '#48A8D2',
+              fondo: '#F0F7FF',
+              emoji: '💙',
+            },
+            {
+              id: 'morado',
+              nombre: 'Morado Maqui',
+              desc: 'Morado · Elegante y premium',
+              primario: '#6B21A8',
+              secundario: '#9B59D0',
+              fondo: '#F8F3FF',
+              emoji: '💜',
+            },
+            {
+              id: 'noche',
+              nombre: 'Noche Peruana',
+              desc: 'Azul acero · Sofisticado',
+              primario: '#37899A',
+              secundario: '#5AAFC8',
+              fondo: '#EEF4FA',
+              emoji: '🩵',
+            },
+          ] as const).map(tema => {
+            const selected = temaActivo === tema.id
+            return (
+              <button
+                key={tema.id}
+                onClick={() => handleSaveTema(tema.id)}
+                disabled={temaSaving}
+                className={`relative p-4 rounded-2xl border-2 text-left transition-all hover:shadow-md active:scale-[0.97] disabled:opacity-60 ${
+                  selected
+                    ? 'border-primary-500 shadow-md ring-2 ring-primary-200'
+                    : 'border-primary-100 hover:border-primary-300 bg-white'
+                }`}
+                style={selected ? { backgroundColor: tema.fondo } : {}}
+              >
+                {selected && (
+                  <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-primary-500 flex items-center justify-center">
+                    <Check size={11} className="text-white" />
+                  </div>
+                )}
+
+                {/* Preview mini */}
+                <div className="mb-3 rounded-xl overflow-hidden border border-primary-100 h-16" style={{ backgroundColor: tema.fondo }}>
+                  <div className="h-5 w-full" style={{ backgroundColor: tema.primario, opacity: 0.9 }} />
+                  <div className="px-2 pt-1.5 flex gap-1.5">
+                    <div className="h-2 rounded-full flex-1" style={{ backgroundColor: tema.primario, opacity: 0.3 }} />
+                    <div className="h-2 rounded-full w-6" style={{ backgroundColor: tema.secundario, opacity: 0.5 }} />
+                  </div>
+                  <div className="px-2 pt-1.5">
+                    <div className="h-4 rounded-lg w-14 flex items-center justify-center text-white text-[8px] font-bold" style={{ backgroundColor: tema.primario }}>
+                      Comprar
+                    </div>
+                  </div>
+                </div>
+
+                {/* Info */}
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <span className="text-base">{tema.emoji}</span>
+                  <span className="font-heading font-bold text-sm text-primary-800">{tema.nombre}</span>
+                </div>
+                <p className="text-[11px] text-primary-400 leading-tight">{tema.desc}</p>
+
+                {/* Swatches */}
+                <div className="flex gap-1 mt-2">
+                  <div className="w-5 h-5 rounded-full border-2 border-white shadow-sm" style={{ backgroundColor: tema.primario }} />
+                  <div className="w-5 h-5 rounded-full border-2 border-white shadow-sm" style={{ backgroundColor: tema.secundario }} />
+                  <div className="w-5 h-5 rounded-full border-2 border-white shadow-sm" style={{ backgroundColor: tema.fondo }} />
+                </div>
+              </button>
+            )
+          })}
+        </div>
+
+        <p className="text-xs text-primary-400 mt-4 flex items-center gap-1.5">
+          <span>💡</span>
+          El tema se aplica a la tienda web pública. El panel CRM mantiene siempre su diseño propio.
+        </p>
       </div>
 
       {/* Onboarding CX */}

@@ -248,18 +248,27 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         .order('apellidos')
       if (error) { console.error('Error cargando transportistas:', error); return; }
       if (data) {
-        setTransportistasState(data.map((row: any): Transportista => ({
-          id: String(row.id),
-          nombres: row.nombres,
-          apellidos: row.apellidos,
-          nombreCompleto: row.nombre_completo || `${row.apellidos}, ${row.nombres}`,
-          dni: row.dni,
-          licenciaConducir: row.licencia_conducir || '',
-          numeroPlaca: row.numero_placa || '',
-          activo: row.activo,
-          createdAt: new Date(row.created_at),
-          updatedAt: new Date(row.updated_at || row.created_at),
-        })))
+        setTransportistasState(data.map((row: any): Transportista => {
+          const modalidad: 'privado' | 'publico' = row.modalidad === 'publico' ? 'publico' : 'privado';
+          const nombreCompleto = modalidad === 'publico'
+            ? row.nombres  // empresa externa — solo el nombre/razón social
+            : row.nombre_completo || `${row.apellidos}, ${row.nombres}`;
+          return {
+            id: String(row.id),
+            modalidad,
+            nombres: row.nombres,
+            apellidos: row.apellidos || '',
+            nombreCompleto,
+            dni: row.dni || undefined,
+            licenciaConducir: row.licencia_conducir || undefined,
+            numeroPlaca: row.numero_placa || undefined,
+            ruc: row.ruc || undefined,
+            numeroRegistroMTC: row.numero_registro_mtc || undefined,
+            activo: row.activo,
+            createdAt: new Date(row.created_at),
+            updatedAt: new Date(row.updated_at || row.created_at),
+          };
+        }))
       }
     } catch (err) {
       console.error('Error cargando transportistas:', err)

@@ -40,8 +40,11 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     const supabase = await getAdminClient()
+    // Merge con settings existentes para no perder campos de otras secciones
+    const { data: actual } = await supabase.from('app_config').select('settings').eq('id', 1).single()
+    const settings = { ...(actual?.settings || {}), ...body }
     const { error } = await supabase.from('app_config').upsert(
-      { id: 1, settings: body, updated_at: new Date().toISOString() },
+      { id: 1, settings, updated_at: new Date().toISOString() },
       { onConflict: 'id' }
     )
     if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 })

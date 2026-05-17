@@ -78,8 +78,6 @@ export default function UsuariosPage() {
           full_name: u.full_name || '',
           role: u.role || 'editor',
         })))
-      } else {
-        toast.error('No tienes permisos de administrador')
       }
     } catch {
       toast.error('Error al cargar usuarios')
@@ -215,8 +213,8 @@ export default function UsuariosPage() {
               <p className="font-heading font-semibold text-primary-800 truncate">{u.full_name || u.alias}</p>
               <p className="text-primary-500 text-xs">{u.alias}</p>
               <div className="flex items-center gap-3 mt-1">
-                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${u.role === 'admin' ? 'bg-amber-100 text-amber-700' : u.role === 'viewer' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
-                  {u.role === 'admin' ? 'Admin' : u.role === 'viewer' ? 'Visor' : 'Editor'}
+                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${u.role === 'admin' ? 'bg-amber-100 text-amber-700' : u.role === 'visor' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
+                  {u.role === 'admin' ? 'Admin' : u.role === 'visor' ? 'Visor' : 'Editor'}
                 </span>
                 <span className="text-xs text-primary-400">
                   Creado: {new Date(u.created_at).toLocaleDateString('es-PE')}
@@ -273,7 +271,7 @@ export default function UsuariosPage() {
                     <select value={form.role} onChange={e => setForm({ ...form, role: e.target.value })} className="input-field">
                       <option value="admin">Admin — Acceso total</option>
                       <option value="editor">Editor — Productos, pedidos, facturas</option>
-                      <option value="viewer">Visor — Solo lectura</option>
+                      <option value="visor">Visor — Solo lectura</option>
                     </select>
                   </div>
                 </>
@@ -299,7 +297,7 @@ export default function UsuariosPage() {
                         <select value={form.role} onChange={e => setForm({ ...form, role: e.target.value })} className="input-field">
                           <option value="admin">Admin — Acceso total</option>
                           <option value="editor">Editor — Productos, pedidos, facturas</option>
-                          <option value="viewer">Visor — Solo lectura</option>
+                          <option value="visor">Visor — Solo lectura</option>
                         </select>
                       </div>
                     </>

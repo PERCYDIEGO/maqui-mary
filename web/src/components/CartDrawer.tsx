@@ -1,13 +1,17 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { X, ChevronRight, Plus, Minus, Trash2, ShoppingCart, Check, MessageCircle, Heart } from 'lucide-react'
+import { X, ChevronRight, Plus, Minus, Trash2, ShoppingCart, Check, MessageCircle, Heart, MapPin } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 
+const DeliveryMapSelector = dynamic(() => import('./DeliveryMapSelector'), { ssr: false })
+
 type CartItem = { id: number; name: string; price: number; quantity: number }
+type Step = 'cart' | 'address' | 'form' | 'payment' | 'done'
 
 export default function CartDrawer({
   open, onClose, cart, setCart, productosLanding, total, itemsCount, waNumero,
@@ -21,7 +25,7 @@ export default function CartDrawer({
   itemsCount: number
   waNumero?: string
 }) {
-  const [checkoutStep, setCheckoutStep] = useState<'cart' | 'form' | 'payment' | 'done'>('cart')
+  const [checkoutStep, setCheckoutStep] = useState<Step>('cart')
   const [customerName, setCustomerName] = useState('')
   const [customerPhone, setCustomerPhone] = useState('')
   const [paymentMethod, setPaymentMethod] = useState<'yape' | 'plin'>('yape')
@@ -29,16 +33,23 @@ export default function CartDrawer({
   const [lastOrderId, setLastOrderId] = useState<number | null>(null)
   const [paymentEvidenceUrl, setPaymentEvidenceUrl] = useState('')
   const [uploading, setUploading] = useState(false)
-  const [bgMusic, setBgMusic] = useState(true)
-  const [landingTrack, setLandingTrack] = useState('')
-  const audioRef = useRef<any>(null)
 
+  // Delivery
+  const [deliveryAddress, setDeliveryAddress] = useState('')
+  const [deliveryDistrito, setDeliveryDistrito] = useState('')
+  const [deliveryFee, setDeliveryFee] = useState(0)
+  const [deliveryDistanciaKm, setDeliveryDistanciaKm] = useState(0)
+
+  const audioRef = useRef<any>(null)
   useEffect(() => {
     import('@/lib/audio').then(mod => { audioRef.current = mod.audio })
   }, [])
 
-  const checkoutProgress = checkoutStep === 'cart' ? 1 : checkoutStep === 'form' ? 2 : checkoutStep === 'payment' ? 3 : 4
-  const totalSteps = 4
+  const STEP_ORDER: Step[] = ['cart', 'address', 'form', 'payment', 'done']
+  const stepNumber = STEP_ORDER.indexOf(checkoutStep) + 1
+  const totalSteps = STEP_ORDER.length
+
+  const totalConDelivery = total + deliveryFee
 
   function addToCart(id: number, name: string, price: number) {
     audioRef.current?.addToCart?.()
@@ -63,6 +74,14 @@ export default function CartDrawer({
     setCart(prev => prev.filter(i => i.id !== id))
   }
 
+  function handleDeliveryConfirm(address: string, distrito: string, tarifa: number, distanciaKm: number) {
+    setDeliveryAddress(address)
+    setDeliveryDistrito(distrito)
+    setDeliveryFee(tarifa)
+    setDeliveryDistanciaKm(distanciaKm)
+    setCheckoutStep('form')
+  }
+
   async function handleCheckout() {
     if (!customerName.trim() || !customerPhone.trim()) {
       toast.error('Completa tus datos')
@@ -75,18 +94,24 @@ export default function CartDrawer({
         cliente_nombre: customerName.trim(),
         customer_phone: customerPhone.trim(),
         subtotal: total,
-        igv: total * 0.18,
-        total: total * 1.18,
+        igv: totalConDelivery * 0.18,
+        total: totalConDelivery,
+        delivery_fee: deliveryFee,
+        delivery_address: deliveryAddress,
+        delivery_distrito: deliveryDistrito,
+        delivery_distancia_km: deliveryDistanciaKm > 0 ? deliveryDistanciaKm : null,
         status: 'pending',
         payment_method: paymentMethod,
         origen: 'web',
-        notes: cart.map(i => `${i.name} x${i.quantity} = S/ ${(i.price * i.quantity).toFixed(2)}`).join('\n'),
+        notes: [
+          ...cart.map(i => `${i.name} x${i.quantity} = S/ ${(i.price * i.quantity).toFixed(2)}`),
+          deliveryFee > 0 ? `Delivery (${deliveryDistrito}): S/ ${deliveryFee.toFixed(2)} — ${deliveryDistanciaKm.toFixed(1)} km` : '',
+        ].filter(Boolean).join('\n'),
       }).select('id').single()
       if (error) throw error
       setLastOrderId(data.id)
       setCheckoutStep('payment')
       audioRef.current?.checkout?.()
-      // Notificar al negocio por WhatsApp
       fetch('/api/notify/whatsapp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -95,9 +120,10 @@ export default function CartDrawer({
           datos: {
             cliente: customerName.trim(),
             telefono: customerPhone.trim(),
-            total: total * 1.18,
+            total: totalConDelivery,
             items: cart,
             metodo: paymentMethod,
+            delivery: deliveryFee > 0 ? { distrito: deliveryDistrito, tarifa: deliveryFee, address: deliveryAddress } : null,
           },
         }),
       }).catch(() => {})
@@ -133,8 +159,12 @@ export default function CartDrawer({
   }
 
   function resetCart() {
-    setCart([]); setCustomerName(''); setCustomerPhone(''); setPaymentMethod('yape')
-    setLastOrderId(null); setPaymentEvidenceUrl(''); setCheckoutStep('cart'); onClose()
+    setCart([])
+    setCustomerName(''); setCustomerPhone(''); setPaymentMethod('yape')
+    setLastOrderId(null); setPaymentEvidenceUrl('')
+    setDeliveryAddress(''); setDeliveryDistrito(''); setDeliveryFee(0); setDeliveryDistanciaKm(0)
+    setCheckoutStep('cart')
+    onClose()
   }
 
   if (!open) return null
@@ -143,23 +173,29 @@ export default function CartDrawer({
     <div className="fixed inset-0 z-50 flex justify-end">
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div className="relative w-full max-w-md bg-accent-cream shadow-2xl h-full overflow-y-auto animate-fade-up">
+
+        {/* Header */}
         <div className="sticky top-0 bg-white/95 backdrop-blur-sm z-10 border-b border-ink-200 p-3 sm:p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <h2 className="font-display font-bold text-lg text-ink-800">
-              {checkoutStep === 'payment' ? 'Pagar' : checkoutStep === 'done' ? '¡Pedido listo!' : 'Carrito'}
+              {checkoutStep === 'address' ? 'Dirección de entrega'
+               : checkoutStep === 'payment' ? 'Pagar'
+               : checkoutStep === 'done' ? '¡Pedido listo!'
+               : 'Carrito'}
             </h2>
             {checkoutStep !== 'done' && (
               <div className="flex items-center gap-1 text-xs text-ink-400">
-                {[1, 2, 3, 4].map(s => (
-                  <div key={s} className={`w-2 h-2 rounded-full ${s <= checkoutProgress ? 'bg-accent-terracotta' : 'bg-ink-200'}`} />
+                {STEP_ORDER.slice(0, -1).map((_, i) => (
+                  <div key={i} className={`w-2 h-2 rounded-full ${i + 1 <= stepNumber ? 'bg-accent-terracotta' : 'bg-ink-200'}`} />
                 ))}
-                <span className="ml-1">Paso {checkoutProgress}/{totalSteps}</span>
+                <span className="ml-1">Paso {stepNumber}/{totalSteps - 1}</span>
               </div>
             )}
           </div>
           <button onClick={onClose}><X size={20} className="text-ink-500 hover:text-ink-700 transition-colors" /></button>
         </div>
 
+        {/* ── PASO 1: Carrito ── */}
         {checkoutStep === 'cart' && (
           <div className="p-4">
             {cart.length === 0 ? (
@@ -189,21 +225,52 @@ export default function CartDrawer({
 
                 <div className="bg-white rounded-2xl p-4 border border-ink-100">
                   <div className="flex justify-between items-center mb-4">
-                    <span className="font-heading font-bold text-lg text-ink-800">Total</span>
+                    <span className="font-heading font-bold text-lg text-ink-800">Subtotal</span>
                     <span className="font-display font-bold text-2xl text-accent-terracotta">S/ {total.toFixed(2)}</span>
                   </div>
-                  <button onClick={() => setCheckoutStep('form')} className="w-full btn-primary py-3 flex items-center justify-center gap-2">
-                    Continuar <ChevronRight size={18} />
+                  <div className="flex items-center gap-2 p-2.5 bg-ink-50 rounded-xl mb-4 text-xs text-ink-500">
+                    <MapPin size={13} className="text-accent-terracotta shrink-0" />
+                    <span>El costo de delivery se calcula en el siguiente paso según tu dirección</span>
+                  </div>
+                  <button onClick={() => setCheckoutStep('address')} className="w-full btn-primary py-3 flex items-center justify-center gap-2">
+                    Elegir dirección de entrega <ChevronRight size={18} />
                   </button>
-                  <p className="text-xs text-ink-400 text-center mt-2">➕ IGV incluido</p>
+                  <p className="text-xs text-ink-400 text-center mt-2">➕ IGV incluido en precios</p>
                 </div>
               </>
             )}
           </div>
         )}
 
+        {/* ── PASO 2: Dirección de entrega (mapa) ── */}
+        {checkoutStep === 'address' && (
+          <DeliveryMapSelector
+            onConfirm={handleDeliveryConfirm}
+            onCancel={() => setCheckoutStep('cart')}
+          />
+        )}
+
+        {/* ── PASO 3: Datos del cliente ── */}
         {checkoutStep === 'form' && (
           <div className="p-4 space-y-4">
+
+            {/* Info de delivery confirmada */}
+            {deliveryAddress && (
+              <div className="bg-green-50 border border-green-200 rounded-2xl p-3 flex items-start gap-2">
+                <MapPin size={14} className="text-green-600 shrink-0 mt-0.5" />
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-green-800">{deliveryDistrito} — S/ {deliveryFee.toFixed(2)} delivery</p>
+                  <p className="text-[10px] text-green-700 truncate">{deliveryAddress}</p>
+                  <button
+                    onClick={() => setCheckoutStep('address')}
+                    className="text-[10px] text-green-600 hover:underline mt-0.5"
+                  >
+                    Cambiar dirección
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className="bg-white rounded-2xl p-4 border border-ink-100 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-ink-700 mb-1">Nombre completo</label>
@@ -228,26 +295,43 @@ export default function CartDrawer({
               </div>
             </div>
 
+            {/* Resumen con delivery */}
             <div className="bg-ink-100 rounded-2xl p-4 text-sm text-ink-700">
               <p className="font-heading font-bold mb-2">📋 Resumen del pedido:</p>
               {cart.map(i => (
-                <p key={i.id} className="flex justify-between py-0.5"><span>{i.name} x{i.quantity}</span><span>S/ {(i.price * i.quantity).toFixed(2)}</span></p>
+                <p key={i.id} className="flex justify-between py-0.5 text-xs">
+                  <span>{i.name} x{i.quantity}</span>
+                  <span>S/ {(i.price * i.quantity).toFixed(2)}</span>
+                </p>
               ))}
-              <div className="border-t border-ink-300 mt-2 pt-2 font-heading font-bold flex justify-between text-base">
-                <span>Total</span>
-                <span className="text-accent-terracotta">S/ {total.toFixed(2)}</span>
+              <div className="border-t border-ink-300 mt-2 pt-2 space-y-1">
+                <p className="flex justify-between text-xs">
+                  <span>Subtotal</span>
+                  <span>S/ {total.toFixed(2)}</span>
+                </p>
+                {deliveryFee > 0 && (
+                  <p className="flex justify-between text-xs text-accent-terracotta">
+                    <span>Delivery ({deliveryDistrito})</span>
+                    <span>+S/ {deliveryFee.toFixed(2)}</span>
+                  </p>
+                )}
+                <p className="flex justify-between font-heading font-bold text-base border-t border-ink-300 pt-1 mt-1">
+                  <span>Total</span>
+                  <span className="text-accent-terracotta">S/ {totalConDelivery.toFixed(2)}</span>
+                </p>
               </div>
             </div>
 
             <button onClick={handleCheckout} disabled={submitting} className="w-full btn-primary py-3 disabled:opacity-50 flex items-center justify-center gap-2">
               {submitting ? 'Procesando...' : 'Confirmar pedido'} <Heart size={18} />
             </button>
-            <button onClick={() => setCheckoutStep('cart')} className="w-full text-sm text-ink-500 hover:text-ink-700 transition-colors">
-              ← Volver al carrito
+            <button onClick={() => setCheckoutStep('address')} className="w-full text-sm text-ink-500 hover:text-ink-700 transition-colors">
+              ← Cambiar dirección de entrega
             </button>
           </div>
         )}
 
+        {/* ── PASO 4: Pago ── */}
         {checkoutStep === 'payment' && (
           <div className="p-4 text-center">
             <div className="flex items-center justify-center gap-1 mb-6">
@@ -279,12 +363,20 @@ export default function CartDrawer({
               initial={{ y: 10, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.15 }}
-              className="text-ink-500 text-sm mb-6"
+              className="text-ink-500 text-sm mb-2"
             >
               {paymentEvidenceUrl
                 ? 'Hemos recibido tu comprobante. Te confirmaremos por WhatsApp.'
-                : `Monto: S/ ${(total * 1.18).toFixed(2)} — Sigue estos pasos:`}
+                : `Monto total: S/ ${totalConDelivery.toFixed(2)}`}
             </motion.p>
+
+            {/* Resumen delivery en pago */}
+            {deliveryFee > 0 && !paymentEvidenceUrl && (
+              <div className="inline-flex items-center gap-1.5 bg-green-50 border border-green-200 rounded-full px-3 py-1 mb-4 text-xs text-green-700">
+                <MapPin size={11} />
+                Delivery {deliveryDistrito}: +S/ {deliveryFee.toFixed(2)}
+              </div>
+            )}
 
             {!paymentEvidenceUrl && (
               <motion.div
@@ -299,8 +391,16 @@ export default function CartDrawer({
                   </div>
                 </div>
                 <p className="font-heading font-bold text-xl text-ink-800 mb-1">{paymentMethod === 'yape' ? 'Yape' : 'Plin'}</p>
+                <p className="text-sm text-ink-500 mb-1">
+                  Productos: <strong className="text-ink-800">S/ {total.toFixed(2)}</strong>
+                </p>
+                {deliveryFee > 0 && (
+                  <p className="text-sm text-ink-500 mb-1">
+                    Delivery: <strong className="text-ink-800">S/ {deliveryFee.toFixed(2)}</strong>
+                  </p>
+                )}
                 <p className="text-sm text-ink-500 mb-4">
-                  Paga <strong className="text-accent-terracotta text-lg">S/ {(total * 1.18).toFixed(2)}</strong> (IGV incluido)
+                  Total: <strong className="text-accent-terracotta text-lg">S/ {totalConDelivery.toFixed(2)}</strong>
                 </p>
                 <div className="bg-ink-50 rounded-xl p-4 border-2 border-dashed border-ink-300">
                   {paymentMethod === 'yape' ? (
@@ -318,11 +418,7 @@ export default function CartDrawer({
               </motion.div>
             )}
 
-            <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.35 }}
-            >
+            <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.35 }}>
               <div className="border-t border-ink-200 pt-4 mt-4">
                 <p className="text-xs text-ink-500 mb-3 font-medium">
                   {paymentEvidenceUrl ? '📸 Comprobante subido:' : '📸 3. Sube la captura de tu pago:'}
@@ -339,7 +435,7 @@ export default function CartDrawer({
                       </div>
                     ) : (
                       <>
-                        <div className="w-12 h-12 rounded-full bg-accent-gold/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                        <div className="w-12 h-12 rounded-full bg-accent-gold/10 flex items-center justify-center mb-3">
                           <svg className="w-6 h-6 text-accent-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" /></svg>
                         </div>
                         <span className="text-sm text-ink-600 font-medium">Toca para subir tu captura</span>
@@ -348,11 +444,7 @@ export default function CartDrawer({
                     )}
                   </label>
                 ) : (
-                  <motion.div
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="text-center animate-scale-in"
-                  >
+                  <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center">
                     <div className="relative inline-block">
                       <Image src={paymentEvidenceUrl} alt="Comprobante" width={400} height={400} className="w-full max-w-[200px] mx-auto rounded-2xl border-2 border-accent-sage shadow-md h-auto" unoptimized />
                       <div className="absolute -top-2 -right-2 w-8 h-8 bg-accent-sage rounded-full flex items-center justify-center">
@@ -370,15 +462,10 @@ export default function CartDrawer({
               </div>
             </motion.div>
 
-            <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="space-y-3 mt-6"
-            >
+            <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }} className="space-y-3 mt-6">
               {!paymentEvidenceUrl && (
                 <a
-                  href={`https://wa.me/${waNumero || '51949324254'}?text=${encodeURIComponent(`¡Hola! Soy ${customerName}. Acabo de pagar S/ ${(total * 1.18).toFixed(2)} por ${paymentMethod}.`)}`}
+                  href={`https://wa.me/${waNumero || '51949324254'}?text=${encodeURIComponent(`¡Hola! Soy ${customerName}. Acabo de pagar S/ ${totalConDelivery.toFixed(2)} por ${paymentMethod}. Dirección de entrega: ${deliveryAddress || 'por definir'}.`)}`}
                   target="_blank"
                   className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-green-500 text-white font-medium text-sm hover:bg-green-600 transition-all hover:shadow-lg active:scale-[0.98]"
                 >

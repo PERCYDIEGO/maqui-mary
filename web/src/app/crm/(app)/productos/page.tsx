@@ -43,6 +43,7 @@ export default function ProductosPage() {
   const [editing, setEditing] = useState<Producto | null>(null)
   const [saving, setSaving] = useState(false)
   const [showImagePicker, setShowImagePicker] = useState(false)
+  const [rawPrecio, setRawPrecio] = useState<{ original: string | null; venta: string | null }>({ original: null, venta: null })
 
   useEffect(() => {
     if (!productosLoaded) refreshProductos()
@@ -131,12 +132,14 @@ export default function ProductosPage() {
       imagen: p.imagen || '',
       activo: p.activo,
     })
+    setRawPrecio({ original: null, venta: null })
     setShowModal(true)
   }
 
   async function openCreate() {
     setEditing(null)
     setForm({ ...emptyForm, codigo: await getNextCodigo() })
+    setRawPrecio({ original: null, venta: null })
     setShowModal(true)
   }
 
@@ -289,19 +292,37 @@ export default function ProductosPage() {
                 <div>
                   <label className="block text-sm font-medium text-ink-700 mb-1">Precio Original (S/)</label>
                   <input
-                    type="number" step="0.01" min="0"
-                    value={form.precioOriginal}
-                    onChange={e => setForm({ ...form, precioOriginal: parseFloat(e.target.value) || 0 })}
+                    type="text"
+                    inputMode="decimal"
+                    value={rawPrecio.original !== null ? rawPrecio.original : (form.precioOriginal === 0 ? '' : String(form.precioOriginal))}
+                    onChange={e => {
+                      const raw = e.target.value.replace(',', '.');
+                      if (raw !== '' && !/^\d*\.?\d*$/.test(raw)) return;
+                      setRawPrecio(r => ({ ...r, original: raw }));
+                      const val = parseFloat(raw);
+                      setForm(f => ({ ...f, precioOriginal: isNaN(val) ? 0 : val }));
+                    }}
+                    onBlur={() => setRawPrecio(r => ({ ...r, original: null }))}
+                    placeholder="0.00"
                     className="w-full px-4 py-3 border border-ink-200 rounded-xl focus:ring-2 focus:ring-accent-terracotta focus:border-transparent outline-none bg-white"
-                    placeholder="Precio tachado"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-ink-700 mb-1">Precio Venta (S/) *</label>
                   <input
-                    type="number" step="0.01" min="0" required
-                    value={form.precioUnitario}
-                    onChange={e => setForm({ ...form, precioUnitario: parseFloat(e.target.value) || 0 })}
+                    type="text"
+                    inputMode="decimal"
+                    required
+                    value={rawPrecio.venta !== null ? rawPrecio.venta : (form.precioUnitario === 0 ? '' : String(form.precioUnitario))}
+                    onChange={e => {
+                      const raw = e.target.value.replace(',', '.');
+                      if (raw !== '' && !/^\d*\.?\d*$/.test(raw)) return;
+                      setRawPrecio(r => ({ ...r, venta: raw }));
+                      const val = parseFloat(raw);
+                      setForm(f => ({ ...f, precioUnitario: isNaN(val) ? 0 : val }));
+                    }}
+                    onBlur={() => setRawPrecio(r => ({ ...r, venta: null }))}
+                    placeholder="0.00"
                     className="w-full px-4 py-3 border border-ink-200 rounded-xl focus:ring-2 focus:ring-accent-terracotta focus:border-transparent outline-none bg-white"
                   />
                 </div>

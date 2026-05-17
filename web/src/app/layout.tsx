@@ -3,6 +3,7 @@ import { DM_Serif_Display, Lora, Nunito } from 'next/font/google'
 import './globals.css'
 import { Toaster } from 'react-hot-toast'
 import { AppProvider } from '@/context/AppContext'
+import ThemeApplier from '@/components/ThemeApplier'
 
 const dmSerifDisplay = DM_Serif_Display({
   subsets: ['latin'],
@@ -44,6 +45,7 @@ export default function RootLayout({
     <html lang="es-PE" className={`${dmSerifDisplay.variable} ${lora.variable} ${nunito.variable}`}>
       <body className="font-body antialiased">
         <AppProvider>
+          <ThemeApplier />
           {children}
           <Toaster 
             position="top-right" 

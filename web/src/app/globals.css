@@ -2,6 +2,63 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Temas de color (CSS variables) ─────────────────────────────── */
+:root {
+  /* Terracota — default */
+  --color-gold:       200 159 92;
+  --color-goldlight:  224 195 146;
+  --color-terracotta: 201 107 78;
+  --color-sage:       127 159 122;
+  --color-sagewash:   232 240 229;
+  --color-navy:       30 45 61;
+  --color-cream:      251 247 242;
+  --color-sand:       237 228 214;
+}
+
+[data-theme="esmeralda"] {
+  --color-gold:       80 180 130;
+  --color-goldlight:  155 215 185;
+  --color-terracotta: 34 139 87;
+  --color-sage:       90 155 115;
+  --color-sagewash:   218 242 228;
+  --color-navy:       15 50 35;
+  --color-cream:      240 250 244;
+  --color-sand:       208 235 218;
+}
+
+[data-theme="oceano"] {
+  --color-gold:       72 168 210;
+  --color-goldlight:  145 210 232;
+  --color-terracotta: 30 100 180;
+  --color-sage:       90 140 175;
+  --color-sagewash:   218 235 248;
+  --color-navy:       15 35 65;
+  --color-cream:      240 247 255;
+  --color-sand:       208 228 245;
+}
+
+[data-theme="morado"] {
+  --color-gold:       155 89 208;
+  --color-goldlight:  192 155 228;
+  --color-terracotta: 107 33 168;
+  --color-sage:       138 100 172;
+  --color-sagewash:   235 225 248;
+  --color-navy:       40 15 70;
+  --color-cream:      248 243 255;
+  --color-sand:       228 215 242;
+}
+
+[data-theme="noche"] {
+  --color-gold:       90 175 200;
+  --color-goldlight:  148 208 224;
+  --color-terracotta: 55 140 165;
+  --color-sage:       88 135 158;
+  --color-sagewash:   215 232 240;
+  --color-navy:       15 28 42;
+  --color-cream:      238 244 250;
+  --color-sand:       208 222 232;
+}
+
 @layer base {
   html {
     scroll-behavior: smooth;
@@ -66,19 +123,15 @@
   }
 
   .badge-gold {
-    @apply badge text-ink-700 border border-accent-gold/20;
-    background-color: rgba(200, 159, 92, 0.12);
+    @apply badge text-ink-700 border border-accent-gold/20 bg-accent-gold/10;
   }
 
   .badge-terracotta {
-    @apply badge border border-accent-terracotta/20;
-    color: rgb(201, 107, 78);
-    background-color: rgb(201 107 78 / 0.12);
+    @apply badge text-accent-terracotta border border-accent-terracotta/20 bg-accent-terracotta/10;
   }
 
   .badge-sage {
-    @apply badge text-ink-700 border border-accent-sage/20;
-    background-color: rgb(127 159 122 / 0.15);
+    @apply badge text-ink-700 border border-accent-sage/20 bg-accent-sage/15;
   }
 
   .section-padding {

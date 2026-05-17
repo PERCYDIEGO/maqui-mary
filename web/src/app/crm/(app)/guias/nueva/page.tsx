@@ -7,10 +7,10 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Plus, Trash2, Save, X, Search, Truck, Package, User } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Save, X, Search, Truck, Package, User, FileText, Link2, Link2Off, Building2 } from 'lucide-react';
 import Link from 'next/link';
 import { useApp } from '@/context/AppContext';
-import { GuiaRemision, ItemDocumento, Transportista, Cliente, EMPRESA_DATA } from '@/types/documentos';
+import { GuiaRemision, DocRelacionado, ItemDocumento, Transportista, Cliente, Boleta, Factura, EMPRESA_DATA } from '@/types/documentos';
 import { formatearNumeroDocumento, generarHashCPE, calcularItem, generarDatosQR } from '@/lib/calculos';
 import toast from 'react-hot-toast';
 
@@ -47,6 +47,22 @@ export default function NuevaGuiaPage() {
   const [mostrarDestinatarios, setMostrarDestinatarios] = useState(false);
   const destinatarioRef = useRef<HTMLDivElement>(null);
 
+  // Detectar precarga desde boleta o factura vía ?boleta=ID o ?factura=ID
+  const preloadedRef = useRef(false);
+  useEffect(() => {
+    if (preloadedRef.current) return;
+    const params = new URLSearchParams(window.location.search);
+    const boletaId = params.get('boleta');
+    const facturaId = params.get('factura');
+    if (boletaId && boletas.length > 0) {
+      const doc = boletas.find(b => b.id === boletaId);
+      if (doc) { handleVincularDoc(doc, 'Boleta'); preloadedRef.current = true; }
+    } else if (facturaId && facturas.length > 0) {
+      const doc = facturas.find(f => f.id === facturaId);
+      if (doc) { handleVincularDoc(doc, 'Factura'); preloadedRef.current = true; }
+    }
+  }, [boletas, facturas]);
+
   // Detectar modo edición vía ?edit=ID
   useEffect(() => {
     if (editLoaded) return;
@@ -65,7 +81,27 @@ export default function NuevaGuiaPage() {
     setMotivoTraslado(guia.motivoTraslado);
     setPuntoLlegada(guia.puntoLlegada);
     setFechaInicioTraslado(new Date(guia.fechaInicioTraslado).toISOString().split('T')[0]);
+    setModalidadTraslado(guia.modalidadTraslado || 'privado');
     setItems(guia.bienes);
+    // Restaurar documentos relacionados
+    if (guia.documentosRelacionados?.length) {
+      setDocsRelacionados(guia.documentosRelacionados);
+    } else if (guia.documentoRelacionadoId) {
+      // Backward compat: single doc
+      const docF = facturas.find(f => f.id === guia.documentoRelacionadoId);
+      const docB = boletas.find(b => b.id === guia.documentoRelacionadoId);
+      const doc = docF || docB;
+      if (doc) {
+        setDocsRelacionados([{
+          id: doc.id,
+          tipo: doc.tipo === 'factura' ? 'factura' : 'boleta',
+          numero: doc.numeroCompleto,
+          serie: doc.serie,
+          clienteNombre: doc.cliente.nombre,
+        }]);
+      }
+    }
+    if (guia.pesoTotal) setPesoTotal(guia.pesoTotal);
     setEditLoaded(true);
   }, [guias, clientes, editLoaded]);
 
@@ -78,27 +114,53 @@ export default function NuevaGuiaPage() {
       if (destinatarioRef.current && !destinatarioRef.current.contains(event.target as Node)) {
         setMostrarDestinatarios(false);
       }
+      if (docRef.current && !docRef.current.contains(event.target as Node)) {
+        setShowDocSearch(false);
+      }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-  
+
+  const [modalidadTraslado, setModalidadTraslado] = useState<'privado' | 'publico'>('privado');
   const [motivoTraslado, setMotivoTraslado] = useState<string>('venta');
   const [puntoLlegada, setPuntoLlegada] = useState('');
   const [fechaInicioTraslado, setFechaInicioTraslado] = useState(new Date().toISOString().split('T')[0]);
-  const [documentoRelacionadoId, setDocumentoRelacionadoId] = useState('');
-  
+
+  // Documentos relacionados — múltiples boletas y/o facturas
+  const [docsRelacionados, setDocsRelacionados] = useState<DocRelacionado[]>([]);
+  const [searchDoc, setSearchDoc] = useState('');
+  const [showDocSearch, setShowDocSearch] = useState(false);
+  const docRef = useRef<HTMLDivElement>(null);
+
+  // Peso bruto total
+  const [pesoTotal, setPesoTotal] = useState<number>(0);
+  const [rawPeso, setRawPeso] = useState<string | null>(null);
+
   const [items, setItems] = useState<ItemDocumento[]>([]);
-  
-  const puntoPartida = process.env.NEXT_PUBLIC_PUNTO_PARTIDA || 'PRO. QUINTA AVENIDA MZ. J LOTE. 17-B ASC. GANADEROS PORCINOS SARACO';
-  
-  // Filtrar transportistas activos
-  const transportistasActivos = transportistas.filter(t => 
-    t.activo && (
-      t.nombreCompleto.toLowerCase().includes(transportistaBusqueda.toLowerCase()) ||
-      t.numeroPlaca.toLowerCase().includes(transportistaBusqueda.toLowerCase())
-    )
+
+  // Lista combinada boletas + facturas para vincular
+  const documentosDisponibles = [
+    ...facturas.map(f => ({ doc: f as Boleta | Factura, tipo: 'Factura' as const, label: `Factura ${f.numeroCompleto}`, cliente: f.cliente.nombre })),
+    ...boletas.map(b => ({ doc: b as Boleta | Factura, tipo: 'Boleta' as const, label: `Boleta ${b.numeroCompleto}`, cliente: b.cliente.nombre })),
+  ].filter(d =>
+    d.label.toLowerCase().includes(searchDoc.toLowerCase()) ||
+    d.cliente.toLowerCase().includes(searchDoc.toLowerCase())
   );
+  
+  const puntoPartida = 'PRO. QUINTA AVENIDA MZ. J LOTE. 17-B ASC. GANADEROS PORCINOS SARACOTO ALTO - LURIGANCHO - LIMA - LIMA';
+  
+  // Filtrar transportistas activos según modalidad seleccionada
+  const transportistasActivos = transportistas.filter(t => {
+    if (!t.activo) return false;
+    if (t.modalidad !== modalidadTraslado) return false;
+    const q = transportistaBusqueda.toLowerCase();
+    return (
+      t.nombreCompleto.toLowerCase().includes(q) ||
+      (t.numeroPlaca || '').toLowerCase().includes(q) ||
+      (t.ruc || '').includes(transportistaBusqueda)
+    );
+  });
   
   const clientesFiltrados = clientes.filter(c =>
     c.nombre.toLowerCase().includes(destinatarioBusqueda.toLowerCase()) ||
@@ -110,9 +172,62 @@ export default function NuevaGuiaPage() {
   const siguienteNumero = 1; // Simulado
   const numeroCompleto = formatearNumeroDocumento('EG07', siguienteNumero);
   
+  function handleVincularDoc(doc: Boleta | Factura, tipo: 'Boleta' | 'Factura') {
+    // Evitar duplicados
+    if (docsRelacionados.some(d => d.id === doc.id)) {
+      toast.error('Este documento ya está vinculado');
+      return;
+    }
+
+    const nuevo: DocRelacionado = {
+      id: doc.id,
+      tipo: doc.tipo === 'factura' ? 'factura' : 'boleta',
+      numero: doc.numeroCompleto,
+      serie: doc.serie,
+      clienteNombre: doc.cliente.nombre,
+    };
+    setDocsRelacionados(prev => [...prev, nuevo]);
+    setShowDocSearch(false);
+    setSearchDoc('');
+
+    // Si es el primer doc vinculado, auto-llenar destinatario e items
+    if (docsRelacionados.length === 0) {
+      setDestinatario(doc.cliente);
+      setDestinatarioBusqueda(doc.cliente.nombre);
+      if (doc.cliente.direccion) setPuntoLlegada(doc.cliente.direccion);
+      setItems(doc.items.map((it, idx) => ({
+        ...it,
+        id: Math.random().toString(36).substr(2, 9),
+        numeroOrden: idx + 1,
+      })));
+    } else {
+      // Agregar items adicionales del nuevo documento
+      setItems(prev => {
+        const nuevosItems = doc.items
+          .filter(it => !prev.some(p => p.productoId === it.productoId))
+          .map((it, idx) => ({
+            ...it,
+            id: Math.random().toString(36).substr(2, 9),
+            numeroOrden: prev.length + idx + 1,
+          }));
+        return [...prev, ...nuevosItems];
+      });
+    }
+
+    toast.success(`${tipo} ${doc.numeroCompleto} vinculada`);
+  }
+
+  function handleDesvincularDoc(id: string) {
+    setDocsRelacionados(prev => prev.filter(d => d.id !== id));
+  }
+
   const handleSelectTransportista = (t: Transportista) => {
     setTransportista(t);
-    setTransportistaBusqueda(`${t.nombreCompleto} - Placa: ${t.numeroPlaca}`);
+    setTransportistaBusqueda(
+      t.modalidad === 'publico'
+        ? `${t.nombreCompleto} — RUC: ${t.ruc || '—'}`
+        : `${t.nombreCompleto} — Placa: ${t.numeroPlaca || '—'}`
+    );
     setMostrarTransportistas(false);
   };
   
@@ -171,7 +286,21 @@ export default function NuevaGuiaPage() {
     if (isEditing && editingId) {
       const original = guias.find(g => g.id === editingId);
       if (original) {
-        updateGuia({ ...original, transportistaId: transportista?.id, transportista: transportista ?? undefined, destinatarioId: destinatario!.id, destinatarioNombre: destinatario!.nombre, destinatarioDniRuc: destinatario!.dni || destinatario!.ruc || '', motivoTraslado: motivoTraslado as any, puntoLlegada, fechaInicioTraslado: new Date(fechaInicioTraslado), bienes: items, updatedAt: new Date() });
+        updateGuia({
+          ...original,
+          transportistaId: transportista?.id,
+          transportista: transportista ?? undefined,
+          destinatarioId: destinatario!.id,
+          destinatarioNombre: destinatario!.nombre,
+          destinatarioDniRuc: destinatario!.dni || destinatario!.ruc || '',
+          motivoTraslado: motivoTraslado as any,
+          puntoLlegada,
+          fechaInicioTraslado: new Date(fechaInicioTraslado),
+          bienes: items,
+          documentosRelacionados: docsRelacionados,
+          pesoTotal: pesoTotal || 1,
+          updatedAt: new Date(),
+        });
         toast.success('Guía actualizada correctamente');
         router.push('/crm/guias');
       }
@@ -215,11 +344,11 @@ export default function NuevaGuiaPage() {
         destinatarioDniRuc: destinatario.dni || destinatario.ruc || '',
         transportistaId: transportista?.id,
         transportista,
-        documentoRelacionadoId: documentoRelacionadoId || undefined,
+        documentosRelacionados: docsRelacionados,
         bienes: items,
-        pesoTotal: 1,
+        pesoTotal: pesoTotal || 1,
         unidadMedidaPeso: 'KGM',
-        modalidadTraslado: 'publico',
+        modalidadTraslado,
         transbordoProgramado: false,
         retornoEnvasesVacios: false,
         trasladoVehiculoM1L: false,
@@ -283,6 +412,51 @@ export default function NuevaGuiaPage() {
             <h2 className="text-lg font-semibold text-slate-800">Datos del Traslado</h2>
             
             <div className="space-y-4">
+
+              {/* Selector Modalidad de Traslado */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Modalidad de Traslado *
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => { setModalidadTraslado('privado'); setTransportista(null); setTransportistaBusqueda(''); }}
+                    className={`flex items-center gap-2 p-3 rounded-xl border-2 font-medium text-sm transition-all ${
+                      modalidadTraslado === 'privado'
+                        ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                        : 'border-slate-200 text-slate-600 hover:border-slate-300'
+                    }`}
+                  >
+                    <Truck className="w-4 h-4 shrink-0" />
+                    <div className="text-left">
+                      <p className="font-semibold">Privado</p>
+                      <p className="text-xs font-normal opacity-75">Vehículo propio</p>
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setModalidadTraslado('publico'); setTransportista(null); setTransportistaBusqueda(''); }}
+                    className={`flex items-center gap-2 p-3 rounded-xl border-2 font-medium text-sm transition-all ${
+                      modalidadTraslado === 'publico'
+                        ? 'border-amber-500 bg-amber-50 text-amber-700'
+                        : 'border-slate-200 text-slate-600 hover:border-slate-300'
+                    }`}
+                  >
+                    <Building2 className="w-4 h-4 shrink-0" />
+                    <div className="text-left">
+                      <p className="font-semibold">Público</p>
+                      <p className="text-xs font-normal opacity-75">Empresa contratada</p>
+                    </div>
+                  </button>
+                </div>
+                <p className="text-xs text-slate-500 mt-1">
+                  {modalidadTraslado === 'privado'
+                    ? 'Selecciona el conductor y vehículo propio. SUNAT registra placa + licencia.'
+                    : 'Selecciona la empresa de transporte contratada. SUNAT registra RUC + N° MTC.'}
+                </p>
+              </div>
+
               {/* Transportista */}
               <div className="relative" ref={transportistaRef}>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Transportista *</label>
@@ -300,12 +474,15 @@ export default function NuevaGuiaPage() {
 
                 {mostrarTransportistas && (
                   <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-60 overflow-auto">
-                    <div className="p-2 bg-slate-50 text-xs text-slate-500 border-b border-slate-200">
-                      {transportistasActivos.length} transportistas activos
+                    <div className={`p-2 text-xs border-b border-slate-200 ${
+                      modalidadTraslado === 'privado' ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'
+                    }`}>
+                      {transportistasActivos.length} {modalidadTraslado === 'privado' ? 'conductores' : 'empresas'} disponibles
                     </div>
                     {transportistasActivos.length === 0 ? (
                       <div className="p-4 text-slate-500 text-sm">
-                        No hay transportistas activos. <Link href="/crm/transportistas" className="text-indigo-600 hover:underline">Crear transportista</Link>
+                        No hay transportistas {modalidadTraslado === 'privado' ? 'privados' : 'públicos'} activos.{' '}
+                        <Link href="/crm/transportistas" className="text-indigo-600 hover:underline">Crear transportista</Link>
                       </div>
                     ) : (
                       transportistasActivos.map((t) => (
@@ -315,12 +492,20 @@ export default function NuevaGuiaPage() {
                           className="w-full px-4 py-3 text-left hover:bg-slate-50 border-b border-slate-100 last:border-0"
                         >
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
-                              <Truck className="w-5 h-5 text-indigo-600" />
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                              modalidadTraslado === 'privado' ? 'bg-indigo-100' : 'bg-amber-100'
+                            }`}>
+                              {modalidadTraslado === 'privado'
+                                ? <Truck className="w-5 h-5 text-indigo-600" />
+                                : <Building2 className="w-5 h-5 text-amber-600" />}
                             </div>
                             <div>
                               <p className="font-medium text-slate-800">{t.nombreCompleto}</p>
-                              <p className="text-sm text-slate-500">DNI: {t.dni} | Placa: {t.numeroPlaca}</p>
+                              <p className="text-sm text-slate-500">
+                                {modalidadTraslado === 'privado'
+                                  ? `DNI: ${t.dni || '—'} | Placa: ${t.numeroPlaca || '—'} | Lic: ${t.licenciaConducir || '—'}`
+                                  : `RUC: ${t.ruc || '—'} | MTC: ${t.numeroRegistroMTC || '—'}`}
+                              </p>
                             </div>
                           </div>
                         </button>
@@ -379,6 +564,78 @@ export default function NuevaGuiaPage() {
                 )}
               </div>
               
+              {/* Documentos relacionados — múltiples boletas/facturas */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Documentos relacionados <span className="text-slate-400 font-normal">(boletas y/o facturas — puede ser más de uno)</span>
+                </label>
+
+                {/* Lista de docs vinculados */}
+                {docsRelacionados.length > 0 && (
+                  <div className="space-y-2 mb-2">
+                    {docsRelacionados.map(d => (
+                      <div key={d.id} className="flex items-center gap-3 p-3 bg-indigo-50 border border-indigo-200 rounded-xl">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${d.tipo === 'factura' ? 'bg-purple-100 text-purple-700' : 'bg-amber-100 text-amber-700'}`}>
+                          {d.tipo === 'factura' ? 'F' : 'B'}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-indigo-800 text-sm">
+                            {d.tipo === 'factura' ? 'Factura' : 'Boleta de Venta'} N° {d.numero} — RUC 20606218801
+                          </p>
+                          <p className="text-xs text-slate-500 truncate">{d.clienteNombre}</p>
+                        </div>
+                        <button type="button" onClick={() => handleDesvincularDoc(d.id)}
+                          className="p-1.5 rounded-lg hover:bg-red-100 text-slate-400 hover:text-red-500 transition-colors">
+                          <Link2Off className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Buscador para agregar más documentos */}
+                <div className="relative" ref={docRef}>
+                  <div className="relative">
+                    <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      type="text"
+                      value={searchDoc}
+                      onChange={e => { setSearchDoc(e.target.value); setShowDocSearch(true); }}
+                      onFocus={() => setShowDocSearch(true)}
+                      placeholder={docsRelacionados.length === 0 ? 'Buscar boleta o factura...' : 'Agregar otro documento...'}
+                      className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
+                    />
+                  </div>
+
+                  {showDocSearch && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-60 overflow-auto">
+                      {documentosDisponibles.length === 0 ? (
+                        <div className="p-4 text-sm text-slate-500">No se encontraron boletas ni facturas.</div>
+                      ) : (
+                        documentosDisponibles.map(({ doc, tipo, label, cliente }) => {
+                          const yaVinculado = docsRelacionados.some(d => d.id === doc.id);
+                          return (
+                            <button key={doc.id} onClick={() => handleVincularDoc(doc, tipo)} disabled={yaVinculado}
+                              className={`w-full px-4 py-3 text-left border-b border-slate-100 last:border-0 ${yaVinculado ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-50'}`}>
+                              <div className="flex items-center gap-3">
+                                <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${tipo === 'Factura' ? 'bg-purple-100 text-purple-700' : 'bg-amber-100 text-amber-700'}`}>
+                                  {tipo === 'Factura' ? 'F' : 'B'}
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="font-medium text-slate-800 text-sm">{label}</p>
+                                  <p className="text-xs text-slate-500 truncate">{cliente}</p>
+                                </div>
+                                {yaVinculado && <span className="text-xs text-slate-400 shrink-0">Ya vinculado</span>}
+                              </div>
+                            </button>
+                          );
+                        })
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/* Motivo y fechas */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -413,6 +670,29 @@ export default function NuevaGuiaPage() {
                   rows={3}
                   className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none resize-none"
                   placeholder="Dirección completa de destino"
+                />
+              </div>
+
+              {/* Peso bruto total */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Peso Bruto Total <span className="text-slate-400 font-normal">(KGM)</span>
+                </label>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={rawPeso !== null ? rawPeso : pesoTotal > 0 ? String(pesoTotal) : ''}
+                  onChange={e => {
+                    const v = e.target.value;
+                    if (v === '' || v === '.' || /^\d*\.?\d*$/.test(v)) {
+                      setRawPeso(v);
+                      const n = parseFloat(v);
+                      setPesoTotal(isNaN(n) ? 0 : n);
+                    }
+                  }}
+                  onBlur={() => setRawPeso(null)}
+                  placeholder="Ej: 25.5"
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
                 />
               </div>
             </div>
@@ -587,13 +867,30 @@ export default function NuevaGuiaPage() {
             
             <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 rounded-xl">
               <div>
-                <p className="text-sm text-slate-600">Transportista</p>
+                <div className="flex items-center gap-1.5 mb-1">
+                  {modalidadTraslado === 'privado'
+                    ? <Truck className="w-4 h-4 text-indigo-500" />
+                    : <Building2 className="w-4 h-4 text-amber-500" />}
+                  <p className="text-sm text-slate-600">
+                    {modalidadTraslado === 'privado' ? 'Conductor (Privado)' : 'Transportista Público'}
+                  </p>
+                </div>
                 <p className="font-medium">{transportista?.nombreCompleto}</p>
-                <p className="text-sm text-slate-500">DNI: {transportista?.dni}</p>
-                <p className="text-sm text-slate-500">Placa: {transportista?.numeroPlaca}</p>
+                {modalidadTraslado === 'privado' ? (
+                  <>
+                    <p className="text-sm text-slate-500">DNI: {transportista?.dni || '—'}</p>
+                    <p className="text-sm text-slate-500">Placa: {transportista?.numeroPlaca || '—'}</p>
+                    <p className="text-sm text-slate-500">Licencia: {transportista?.licenciaConducir || '—'}</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm text-slate-500">RUC: {transportista?.ruc || '—'}</p>
+                    <p className="text-sm text-slate-500">N° MTC: {transportista?.numeroRegistroMTC || '—'}</p>
+                  </>
+                )}
               </div>
               <div>
-                <p className="text-sm text-slate-600">Destinatario</p>
+                <p className="text-sm text-slate-600 mb-1">Destinatario</p>
                 <p className="font-medium">{destinatario?.nombre}</p>
                 <p className="text-sm text-slate-500">{destinatario?.dni ? `DNI: ${destinatario.dni}` : destinatario?.ruc ? `RUC: ${destinatario.ruc}` : ''}</p>
               </div>
@@ -616,6 +913,31 @@ export default function NuevaGuiaPage() {
               </ul>
             </div>
             
+            {docsRelacionados.length > 0 && (
+              <div className="p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+                <div className="flex items-center gap-2 mb-2">
+                  <FileText className="w-4 h-4 text-indigo-600" />
+                  <p className="font-medium text-indigo-800 text-sm">
+                    Documentos relacionados ({docsRelacionados.length})
+                  </p>
+                </div>
+                <ul className="space-y-1">
+                  {docsRelacionados.map(d => (
+                    <li key={d.id} className="text-sm text-slate-700">
+                      {d.tipo === 'factura' ? 'Factura' : 'Boleta de Venta'} N° {d.numero} — RUC {EMPRESA_DATA.ruc}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {pesoTotal > 0 && (
+              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200 text-sm">
+                <span className="text-slate-600">Peso bruto total</span>
+                <span className="font-semibold">{pesoTotal} KGM</span>
+              </div>
+            )}
+
             <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 text-sm">
               <p className="font-medium text-blue-800 mb-1">Guía de Remisión Electrónica</p>
               <p>Consulte su documento en www.sunat.gob.pe</p>

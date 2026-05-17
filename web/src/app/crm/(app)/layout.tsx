@@ -414,50 +414,98 @@ export default function CRMLayout({
     mountedRef.current = true;
     let dataLoaded = false;
 
+    // Promise que rechaza tras N ms — evita queries colgadas indefinidamente
+    const withTimeout = <T,>(p: PromiseLike<T>, ms: number): Promise<T> =>
+      Promise.race([Promise.resolve(p), new Promise<T>((_, r) => setTimeout(() => r(new Error('timeout')), ms))]);
+
     const loadUserData = async (userId: string) => {
       if (!mountedRef.current || dataLoaded) return;
       dataLoaded = true;
       startCrmAudio();
       loadCrmData();
 
-      const [profileResult, countResult] = await Promise.allSettled([
-        supabase.from('profiles').select('role, full_name, alias').eq('id', userId).single(),
-        supabase.from('facturas').select('id', { count: 'exact', head: true }).eq('status', 'pending').or('origen.eq.web,payment_method.in.(yape,plin)'),
-      ]);
+      const cacheKey = `maqui_profile_${userId}`;
+      let loadingResolved = false;
 
-      if (!mountedRef.current) return;
-
-      if (profileResult.status === 'fulfilled') {
-        const profile = profileResult.value.data;
+      const applyProfile = (profile: any) => {
+        if (!mountedRef.current) return;
         setUserName(profile?.full_name || profile?.alias || '');
         const rol = (profile?.role as string) || '';
         if (rol === 'admin' || rol === 'superusuario') setUserRole('admin');
         else if (rol === 'almacen' || rol === 'visor') setUserRole('almacen');
         else setUserRole('vendedor');
-      } else {
-        setUserRole('vendedor');
-      }
+      };
 
-      if (countResult.status === 'fulfilled') {
-        setPendingOrders(countResult.value.count || 0);
-      }
+      // 1. Caché localStorage → pantalla instantánea en F5
+      try {
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) {
+          applyProfile(JSON.parse(cached));
+          if (mountedRef.current) setLoading(false);
+          loadingResolved = true;
+        }
+      } catch {}
 
-      if (mountedRef.current) setLoading(false);
+      // 2. Siempre refrescar perfil desde Supabase en segundo plano
+      withTimeout(
+        supabase.from('profiles').select('role, full_name, alias').eq('id', userId).single(),
+        6000
+      ).then((result: any) => {
+        const profile = result?.data;
+        if (profile) {
+          try { localStorage.setItem(cacheKey, JSON.stringify(profile)); } catch {}
+          applyProfile(profile);
+        } else if (!loadingResolved && mountedRef.current) {
+          setUserRole('vendedor');
+        }
+        if (!loadingResolved && mountedRef.current) setLoading(false);
+        loadingResolved = true;
+      }).catch(() => {
+        if (!loadingResolved && mountedRef.current) {
+          setUserRole('vendedor');
+          setLoading(false);
+        }
+        loadingResolved = true;
+      });
+
+      // 3. Conteo de pedidos pendientes — segundo plano
+      withTimeout(
+        supabase.from('facturas').select('id', { count: 'exact', head: true }).eq('status', 'pending').or('origen.eq.web,payment_method.in.(yape,plin)'),
+        6000
+      ).then((result: any) => {
+        if (mountedRef.current) setPendingOrders(result?.count || 0);
+      }).catch(() => {});
     };
 
+    // Verificar sesión directamente al montar (más rápido que esperar INITIAL_SESSION)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mountedRef.current) return;
+      if (session) {
+        setIsAuthenticated(true);
+        setUserId(session.user.id);
+        loadUserData(session.user.id);
+      } else {
+        setLoading(false);
+        router.push('/crm/login');
+      }
+    }).catch(() => {
+      if (mountedRef.current) { setAuthError(true); setLoading(false); }
+    });
+
+    // onAuthStateChange como respaldo y para eventos posteriores
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mountedRef.current) return;
 
       try {
-        if (session) {
+        if (session && (event === 'INITIAL_SESSION' || event === 'SIGNED_IN')) {
+          // INITIAL_SESSION cubre F5 si getSession() fue lento; SIGNED_IN cubre login fresco
           setIsAuthenticated(true);
           setUserId(session.user.id);
-          // INITIAL_SESSION = F5/primera carga | SIGNED_IN = post-login
-          if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
-            await loadUserData(session.user.id);
-          }
-        } else if (event === 'SIGNED_OUT' || event === 'INITIAL_SESSION') {
-          // Sin sesión → login
+          await loadUserData(session.user.id); // dataLoaded impide doble ejecución
+        } else if (event === 'TOKEN_REFRESHED' && session) {
+          setIsAuthenticated(true);
+          setUserId(session.user.id);
+        } else if (event === 'SIGNED_OUT' || (event === 'INITIAL_SESSION' && !session)) {
           setIsAuthenticated(false);
           if (mountedRef.current) {
             setLoading(false);
@@ -480,9 +528,11 @@ export default function CRMLayout({
   const handleLogout = async () => {
     try {
       audio.stopTrack();
+      if (userId) {
+        try { localStorage.removeItem(`maqui_profile_${userId}`); } catch {}
+      }
       await supabase.auth.signOut();
     } catch {}
-    // Forzar recarga completa para limpiar estado React y cookies
     window.location.href = '/crm/login';
   };
 
