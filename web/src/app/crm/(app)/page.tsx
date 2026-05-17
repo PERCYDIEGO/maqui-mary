@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
@@ -25,52 +25,168 @@ interface TopProducto { descripcion: string; cantidad: number; total: number }
 interface PedidoReciente { id: number; cliente_nombre: string; total: number; payment_method: string; created_at: string; status: string }
 interface DocReciente { id: number; series: string; number: number; cliente_nombre: string; total: number; tipo_comprobante: string; created_at: string; estado_sunat: string }
 
-// ─── Mini bar chart SVG ───
-function BarChart({ data }: { data: VentaDia[] }) {
+type Rango = '7d' | '30d' | 'mes'
+
+// ─── Helpers de fecha (hora Perú UTC-5) ───
+function toPeruDateStr(date: Date): string {
+  const peru = new Date(date.getTime() - 5 * 60 * 60 * 1000)
+  return peru.toISOString().split('T')[0]
+}
+
+function buildDias(rango: Rango): { fecha: string; label: string }[] {
+  const DIAS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
+  const today = new Date()
+  const todayStr = toPeruDateStr(today)
+
+  if (rango === '7d') {
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - (6 - i))
+      const fecha = toPeruDateStr(d)
+      return { fecha, label: fecha === todayStr ? 'Hoy' : DIAS[d.getDay()] }
+    })
+  }
+  if (rango === '30d') {
+    return Array.from({ length: 30 }, (_, i) => {
+      const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - (29 - i))
+      const fecha = toPeruDateStr(d)
+      return { fecha, label: fecha === todayStr ? 'Hoy' : String(d.getDate()) }
+    })
+  }
+  // mes: desde día 1 del mes actual
+  const daysInMonth = today.getDate()
+  return Array.from({ length: daysInMonth }, (_, i) => {
+    const d = new Date(today.getFullYear(), today.getMonth(), i + 1)
+    const fecha = toPeruDateStr(d)
+    return { fecha, label: fecha === todayStr ? 'Hoy' : String(d.getDate()) }
+  })
+}
+
+// ─── Formatea un valor para el eje Y ───
+function fmtY(val: number, max: number): string {
+  if (val === 0) return ''
+  if (max < 200)  return `${val.toFixed(0)}`
+  if (max < 2000) return `S/${val.toFixed(0)}`
+  return `S/${(val / 1000).toFixed(1)}k`
+}
+
+// ─── Line Chart SVG ───
+function LineChart({ data }: { data: VentaDia[] }) {
+  const W = 520; const H = 150; const padX = 48; const padTop = 22; const padBot = 26
+  const innerW = W - padX * 2
+  const innerH = H - padTop - padBot
+
+  const nonZero = data.filter(d => d.total > 0)
   const max = Math.max(...data.map(d => d.total), 1)
-  const W = 480; const H = 120; const pad = 36; const barW = 36; const gap = (W - pad * 2 - barW * data.length) / (data.length - 1 || 1)
+  const singlePoint = nonZero.length === 1
+
+  const yTicks = [0, 0.25, 0.5, 0.75, 1]
+
+  const pts = data.map((d, i) => ({
+    x: padX + (data.length === 1 ? innerW / 2 : (i / (data.length - 1)) * innerW),
+    y: padTop + innerH - (d.total / max) * innerH,
+    ...d,
+  }))
+
+  // smooth bezier path
+  const buildPath = (points: typeof pts) =>
+    points.reduce((acc, p, i) => {
+      if (i === 0) return `M ${p.x.toFixed(1)} ${p.y.toFixed(1)}`
+      const prev = points[i - 1]
+      const cpX = ((prev.x + p.x) / 2).toFixed(1)
+      return `${acc} C ${cpX} ${prev.y.toFixed(1)}, ${cpX} ${p.y.toFixed(1)}, ${p.x.toFixed(1)} ${p.y.toFixed(1)}`
+    }, '')
+
+  const pathD = pts.length > 1 ? buildPath(pts) : ''
+  const areaD = pts.length > 1
+    ? `${pathD} L ${pts[pts.length - 1].x.toFixed(1)} ${(padTop + innerH).toFixed(1)} L ${pts[0].x.toFixed(1)} ${(padTop + innerH).toFixed(1)} Z`
+    : ''
+
+  // X labels: don't show all if > 14 days
+  const showLabel = (i: number) => {
+    if (data.length <= 14) return true
+    if (i === data.length - 1) return true
+    if (data.length <= 30) return i % 5 === 0
+    return i % 7 === 0
+  }
 
   return (
-    <svg viewBox={`0 0 ${W} ${H + 30}`} className="w-full h-auto">
-      {/* Grid lines */}
-      {[0, 0.25, 0.5, 0.75, 1].map((t) => {
-        const y = pad + (1 - t) * H
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto select-none">
+      <defs>
+        <linearGradient id="lgArea" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#D97060" stopOpacity="0.22" />
+          <stop offset="100%" stopColor="#D97060" stopOpacity="0.01" />
+        </linearGradient>
+      </defs>
+
+      {/* Grid horizontales */}
+      {yTicks.map(t => {
+        const y = padTop + (1 - t) * innerH
         return (
           <g key={t}>
-            <line x1={pad} y1={y} x2={W - pad} y2={y} stroke="#e5e0d8" strokeWidth="1" strokeDasharray="4 4" />
-            {t > 0 && (
-              <text x={pad - 6} y={y + 4} textAnchor="end" fontSize="10" fill="#9c8b7a">
-                S/{(max * t / 1000).toFixed(0)}k
+            <line x1={padX} y1={y} x2={W - padX} y2={y}
+              stroke={t === 0 ? '#d0c8be' : '#e8e2db'}
+              strokeWidth={t === 0 ? 1.5 : 1}
+              strokeDasharray={t > 0 ? '3 5' : '0'} />
+            <text x={padX - 6} y={y + 4} textAnchor="end" fontSize="10" fill="#b0a090">
+              {fmtY(max * t, max)}
+            </text>
+          </g>
+        )
+      })}
+
+      {/* Área degradada */}
+      {areaD && <path d={areaD} fill="url(#lgArea)" />}
+
+      {/* Línea principal */}
+      {pathD && (
+        <motion.path d={pathD} fill="none" stroke="#D97060" strokeWidth="2.5"
+          strokeLinecap="round" strokeLinejoin="round"
+          initial={{ pathLength: 0, opacity: 0 }}
+          animate={{ pathLength: 1, opacity: 1 }}
+          transition={{ duration: 0.9, ease: 'easeOut' }} />
+      )}
+
+      {/* Puntos */}
+      {pts.map((p, i) => {
+        const isLast = i === pts.length - 1
+        const hasVal = p.total > 0
+        if (!hasVal && !singlePoint) return null
+
+        // solo el primero con valor si hay 1 punto
+        if (singlePoint && p.total === 0) return null
+
+        return (
+          <motion.g key={i} initial={{ opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.7 + i * 0.03 }}>
+            {/* Halo pulsante para el punto más reciente o único */}
+            {(isLast || singlePoint) && (
+              <motion.circle cx={p.x} cy={p.y} r={10} fill="#D97060" opacity={0}
+                animate={{ opacity: [0.15, 0, 0.15], r: [8, 14, 8] }}
+                transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }} />
+            )}
+            {/* Círculo blanco exterior */}
+            <circle cx={p.x} cy={p.y} r={isLast || singlePoint ? 5.5 : 3.5}
+              fill="white" stroke="#D97060" strokeWidth={2} />
+            {/* Label valor */}
+            {(hasVal && (isLast || singlePoint || data.length <= 10)) && (
+              <text x={p.x} y={p.y - 11} textAnchor="middle" fontSize="10"
+                fill="#D97060" fontWeight="700">
+                {p.total >= 1000 ? `${(p.total / 1000).toFixed(1)}k` : p.total.toFixed(0)}
               </text>
             )}
-          </g>
+          </motion.g>
         )
       })}
-      {/* Bars */}
-      {data.map((d, i) => {
-        const x = pad + i * (barW + gap)
-        const barH = Math.max(4, (d.total / max) * H)
-        const y = pad + H - barH
-        const isToday = i === data.length - 1
-        return (
-          <g key={i}>
-            <motion.rect
-              x={x} y={H + pad} width={barW} height={0} rx="6"
-              fill={isToday ? '#D97060' : '#C8A97E'} opacity={isToday ? 1 : 0.7}
-              animate={{ y, height: barH }} transition={{ delay: i * 0.06, duration: 0.5, ease: 'easeOut' }}
-            />
-            {d.total > 0 && (
-              <motion.text
-                x={x + barW / 2} y={y - 4} textAnchor="middle" fontSize="10" fill={isToday ? '#D97060' : '#9c8b7a'} fontWeight="bold"
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.06 + 0.4 }}
-              >
-                {d.total >= 1000 ? `${(d.total / 1000).toFixed(1)}k` : d.total.toFixed(0)}
-              </motion.text>
-            )}
-            <text x={x + barW / 2} y={H + pad + 16} textAnchor="middle" fontSize="10" fill="#9c8b7a">{d.label}</text>
-          </g>
-        )
-      })}
+
+      {/* Eje X */}
+      {pts.map((p, i) =>
+        showLabel(i) ? (
+          <text key={i} x={p.x} y={H - 4} textAnchor="middle"
+            fontSize={data.length > 20 ? 9 : 10} fill="#b0a090">
+            {p.label}
+          </text>
+        ) : null
+      )}
     </svg>
   )
 }
@@ -112,24 +228,62 @@ function StatCard({ titulo, valor, sub, icon: Icon, href, color, trend }: {
   )
 }
 
+// ─── Tabs de rango ───
+function RangoTabs({ value, onChange }: { value: Rango; onChange: (r: Rango) => void }) {
+  const tabs: { key: Rango; label: string }[] = [
+    { key: '7d', label: '7 días' },
+    { key: '30d', label: '30 días' },
+    { key: 'mes', label: 'Este mes' },
+  ]
+  return (
+    <div className="flex gap-1 bg-ink-100 rounded-xl p-1">
+      {tabs.map(t => (
+        <button key={t.key} onClick={() => onChange(t.key)}
+          className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${value === t.key
+            ? 'bg-white text-accent-terracotta shadow-sm'
+            : 'text-ink-500 hover:text-ink-700'}`}>
+          {t.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 // ─── Página principal ───
 export default function DashboardPage() {
-  const [stats, setStats] = useState<DashStats>({ ingresosMes: 0, ingresosMesAnterior: 0, documentosMes: 0, pedidosPendientes: 0, stockAlertas: 0, clientesTotal: 0 })
-  const [ventas7d, setVentas7d] = useState<VentaDia[]>([])
+  const [stats, setStats] = useState<DashStats>({
+    ingresosMes: 0, ingresosMesAnterior: 0, documentosMes: 0,
+    pedidosPendientes: 0, stockAlertas: 0, clientesTotal: 0,
+  })
+  const [rango, setRango] = useState<Rango>('7d')
+  const [ventas, setVentas] = useState<VentaDia[]>([])
+  const [loadingChart, setLoadingChart] = useState(true)
   const [topProductos, setTopProductos] = useState<TopProducto[]>([])
   const [pedidosRecientes, setPedidosRecientes] = useState<PedidoReciente[]>([])
   const [docsRecientes, setDocsRecientes] = useState<DocReciente[]>([])
   const [loading, setLoading] = useState(true)
   const [lastUpdate, setLastUpdate] = useState(new Date())
 
-  useEffect(() => { loadAll() }, [])
+  const loadVentasGrafico = useCallback(async (r: Rango) => {
+    setLoadingChart(true)
+    const dias = buildDias(r)
+    const startDate = new Date(dias[0].fecha + 'T05:00:00Z') // 00:00 hora Perú = 05:00 UTC
 
-  async function loadAll() {
-    setLoading(true)
-    await Promise.all([loadStats(), loadVentas7d(), loadTopProductos(), loadPedidosRecientes(), loadDocsRecientes()])
-    setLastUpdate(new Date())
-    setLoading(false)
-  }
+    const { data } = await supabase.from('facturas')
+      .select('total, created_at')
+      .gte('created_at', startDate.toISOString())
+      .or('origen.neq.web,origen.is.null')
+
+    const byDate: Record<string, number> = {}
+    ;(data || []).forEach(f => {
+      const d = new Date(f.created_at)
+      const key = toPeruDateStr(d)
+      byDate[key] = (byDate[key] || 0) + Number(f.total || 0)
+    })
+
+    setVentas(dias.map(d => ({ fecha: d.fecha, label: d.label, total: byDate[d.fecha] || 0 })))
+    setLoadingChart(false)
+  }, [])
 
   async function loadStats() {
     const peruOffset = -5 * 60
@@ -139,82 +293,84 @@ export default function DashboardPage() {
     const finMesAnterior = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 0, 23, 59, 59)).toISOString()
 
     const resultados = await Promise.allSettled([
-      supabase.from('facturas').select('total, tipo_comprobante').gte('created_at', inicioMes).or('origen.neq.web,origen.is.null'),
+      supabase.from('facturas').select('total').gte('created_at', inicioMes).or('origen.neq.web,origen.is.null'),
       supabase.from('facturas').select('total').gte('created_at', inicioMesAnterior).lte('created_at', finMesAnterior).or('origen.neq.web,origen.is.null'),
       supabase.from('facturas').select('id', { count: 'exact' }).eq('origen', 'web').eq('status', 'pending'),
-      supabase.from('productos').select('id', { count: 'exact' }).lt('stock', 50),
+      supabase.from('productos').select('id', { count: 'exact' }).lt('stock', 20),
       supabase.from('clientes').select('id', { count: 'exact' }),
     ])
 
-    const resMes = resultados[0].status === 'fulfilled' ? resultados[0].value : { data: [] }
+    const resMes    = resultados[0].status === 'fulfilled' ? resultados[0].value : { data: [] }
     const resMesAnt = resultados[1].status === 'fulfilled' ? resultados[1].value : { data: [] }
-    const resPendientes = resultados[2].status === 'fulfilled' ? resultados[2].value : { count: 0 }
-    const resStock = resultados[3].status === 'fulfilled' ? resultados[3].value : { count: 0 }
-    const resClientes = resultados[4].status === 'fulfilled' ? resultados[4].value : { count: 0 }
+    const resPend   = resultados[2].status === 'fulfilled' ? resultados[2].value : { count: 0 }
+    const resStock  = resultados[3].status === 'fulfilled' ? resultados[3].value : { count: 0 }
+    const resCli    = resultados[4].status === 'fulfilled' ? resultados[4].value : { count: 0 }
 
-    const ingresosMes = (resMes.data || []).reduce((s: number, f: any) => s + Number(f.total || 0), 0)
-    const ingresosMesAntVal = (resMesAnt.data || []).reduce((s: number, f: any) => s + Number(f.total || 0), 0)
+    const ingresosMes    = (resMes.data    || []).reduce((s: number, f: any) => s + Number(f.total || 0), 0)
+    const ingresosMesAnt = (resMesAnt.data || []).reduce((s: number, f: any) => s + Number(f.total || 0), 0)
 
     setStats({
-      ingresosMes,
-      ingresosMesAnterior: ingresosMesAntVal,
+      ingresosMes, ingresosMesAnterior: ingresosMesAnt,
       documentosMes: resMes.data?.length || 0,
-      pedidosPendientes: resPendientes.count || 0,
+      pedidosPendientes: resPend.count || 0,
       stockAlertas: resStock.count || 0,
-      clientesTotal: resClientes.count || 0,
+      clientesTotal: resCli.count || 0,
     })
   }
 
-  async function loadVentas7d() {
-    const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
-    const today = new Date()
-    const dias = await Promise.all(
-      Array.from({ length: 7 }, (_, idx) => {
-        const daysAgo = 6 - idx
-        const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - daysAgo)
-        const inicio = d.toISOString()
-        const fin = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59).toISOString()
-        const label = daysAgo === 0 ? 'Hoy' : diasSemana[d.getDay()]
-        return supabase.from('facturas')
-          .select('total')
-          .gte('created_at', inicio)
-          .lte('created_at', fin)
-          .or('origen.neq.web,origen.is.null')
-          .then(({ data }) => ({
-            fecha: inicio,
-            total: (data || []).reduce((s, f) => s + Number(f.total || 0), 0),
-            label
-          }))
-      })
-    )
-    setVentas7d(dias)
-  }
-
   async function loadTopProductos() {
-    const { data } = await supabase.from('factura_items').select('description, quantity, total').order('quantity', { ascending: false }).limit(200)
+    const { data } = await supabase.from('factura_items')
+      .select('description, quantity, total')
+      .order('quantity', { ascending: false })
+      .limit(200)
     if (!data) return
     const map: Record<string, { cantidad: number; total: number }> = {}
     data.forEach(it => {
       const k = it.description
       if (!map[k]) map[k] = { cantidad: 0, total: 0 }
       map[k].cantidad += Number(it.quantity || 0)
-      map[k].total += Number(it.total || 0)
+      map[k].total    += Number(it.total    || 0)
     })
-    const sorted = Object.entries(map).sort((a, b) => b[1].cantidad - a[1].cantidad).slice(0, 5)
-    setTopProductos(sorted.map(([descripcion, v]) => ({ descripcion, ...v })))
+    setTopProductos(
+      Object.entries(map)
+        .sort((a, b) => b[1].cantidad - a[1].cantidad)
+        .slice(0, 5)
+        .map(([descripcion, v]) => ({ descripcion, ...v }))
+    )
   }
 
   async function loadPedidosRecientes() {
-    const { data } = await supabase.from('facturas').select('id, cliente_nombre, total, payment_method, created_at, status')
-      .eq('origen', 'web').eq('status', 'pending').order('created_at', { ascending: false }).limit(4)
+    const { data } = await supabase.from('facturas')
+      .select('id, cliente_nombre, total, payment_method, created_at, status')
+      .eq('origen', 'web').eq('status', 'pending')
+      .order('created_at', { ascending: false }).limit(4)
     if (data) setPedidosRecientes(data)
   }
 
   async function loadDocsRecientes() {
-    const { data } = await supabase.from('facturas').select('id, series, number, cliente_nombre, total, tipo_comprobante, created_at, estado_sunat')
-      .or('origen.neq.web,origen.is.null').order('created_at', { ascending: false }).limit(6)
+    const { data } = await supabase.from('facturas')
+      .select('id, series, number, cliente_nombre, total, tipo_comprobante, created_at, estado_sunat')
+      .or('origen.neq.web,origen.is.null')
+      .order('created_at', { ascending: false }).limit(6)
     if (data) setDocsRecientes(data)
   }
+
+  async function loadAll() {
+    setLoading(true)
+    await Promise.all([
+      loadStats(), loadVentasGrafico(rango),
+      loadTopProductos(), loadPedidosRecientes(), loadDocsRecientes(),
+    ])
+    setLastUpdate(new Date())
+    setLoading(false)
+  }
+
+  useEffect(() => { loadAll() }, [])
+
+  // Cambio de rango solo recarga el gráfico
+  useEffect(() => {
+    loadVentasGrafico(rango)
+  }, [rango, loadVentasGrafico])
 
   const ingresosTrend = stats.ingresosMesAnterior > 0
     ? Math.round(((stats.ingresosMes - stats.ingresosMesAnterior) / stats.ingresosMesAnterior) * 100)
@@ -224,11 +380,15 @@ export default function DashboardPage() {
   const hora = new Date().getHours()
   const saludo = hora < 12 ? 'Buenos días' : hora < 18 ? 'Buenas tardes' : 'Buenas noches'
 
+  const totalGrafico = ventas.reduce((s, d) => s + d.total, 0)
+  const rangoLabel = rango === '7d' ? 'últimos 7 días' : rango === '30d' ? 'últimos 30 días' : 'este mes'
+
   return (
     <div className="space-y-6">
       {/* Greeting banner */}
       <div className="bg-gradient-to-r from-accent-terracotta via-accent-gold to-amber-400 rounded-2xl p-6 text-white shadow-warm relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 80% 50%, white 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+        <div className="absolute inset-0 opacity-10"
+          style={{ backgroundImage: 'radial-gradient(circle at 80% 50%, white 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
         <div className="relative flex items-center justify-between">
           <div>
             <p className="text-white/80 text-sm mb-1">{saludo} 👋</p>
@@ -242,58 +402,70 @@ export default function DashboardPage() {
               className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-xl text-sm transition-all">
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Actualizar
             </button>
-            <p className="text-white/60 text-xs">Actualizado: {lastUpdate.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}</p>
+            <p className="text-white/60 text-xs">
+              {lastUpdate.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}
+            </p>
           </div>
         </div>
       </div>
 
       {/* Stat cards */}
-      <div data-crm-section="stats" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <StatCard titulo="Ingresos del mes" valor={`S/ ${stats.ingresosMes.toLocaleString('es-PE', { minimumFractionDigits: 0 })}`}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <StatCard
+          titulo="Ingresos del mes" href="/crm/documentos"
+          valor={`S/ ${stats.ingresosMes.toLocaleString('es-PE', { minimumFractionDigits: 0 })}`}
           sub={`vs S/ ${stats.ingresosMesAnterior.toLocaleString('es-PE', { minimumFractionDigits: 0 })} mes anterior`}
-          icon={TrendingUp} href="/crm/documentos" color="bg-accent-terracotta/15 text-accent-terracotta" trend={ingresosTrend} />
-        <StatCard titulo="Documentos emitidos" valor={String(stats.documentosMes)}
-          sub="Este mes (boletas + facturas)"
-          icon={FileText} href="/crm/documentos" color="bg-purple-100 text-purple-600" />
-        <StatCard titulo="Pedidos pendientes" valor={String(stats.pedidosPendientes)}
-          sub="Yape / Plin sin confirmar"
-          icon={Smartphone} href="/crm/pedidos" color={stats.pedidosPendientes > 0 ? 'bg-amber-100 text-amber-600' : 'bg-green-100 text-green-600'}
-          trend={undefined} />
-        <StatCard titulo="Stock bajo alerta" valor={String(stats.stockAlertas)}
-          sub="Productos con menos de 20 uds"
-          icon={AlertTriangle} href="/crm/inventario" color={stats.stockAlertas > 3 ? 'bg-red-100 text-red-600' : 'bg-orange-100 text-orange-600'} />
+          icon={TrendingUp} color="bg-accent-terracotta/15 text-accent-terracotta" trend={ingresosTrend} />
+        <StatCard
+          titulo="Documentos emitidos" href="/crm/documentos"
+          valor={String(stats.documentosMes)} sub="Este mes (boletas + facturas)"
+          icon={FileText} color="bg-purple-100 text-purple-600" />
+        <StatCard
+          titulo="Pedidos pendientes" href="/crm/pedidos"
+          valor={String(stats.pedidosPendientes)} sub="Yape / Plin sin confirmar"
+          icon={Smartphone}
+          color={stats.pedidosPendientes > 0 ? 'bg-amber-100 text-amber-600' : 'bg-green-100 text-green-600'} />
+        <StatCard
+          titulo="Stock bajo alerta" href="/crm/inventario"
+          valor={String(stats.stockAlertas)} sub="Productos con menos de 20 uds"
+          icon={AlertTriangle}
+          color={stats.stockAlertas > 3 ? 'bg-red-100 text-red-600' : 'bg-orange-100 text-orange-600'} />
       </div>
 
-      {/* Fila central: gráfico + pedidos pendientes */}
+      {/* Fila central: gráfico + pedidos */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        {/* Ventas 7 días */}
-        <div data-crm-section="chart" className="lg:col-span-2 bg-accent-cream rounded-2xl border border-ink-200 p-5">
-          <div className="flex items-center justify-between mb-4">
+        {/* Gráfico de ventas */}
+        <div className="lg:col-span-2 bg-accent-cream rounded-2xl border border-ink-200 p-5">
+          <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
             <div>
-              <h2 className="font-heading font-semibold text-ink-800">Ventas últimos 7 días</h2>
+              <h2 className="font-heading font-semibold text-ink-800">Ventas — {rangoLabel}</h2>
               <p className="text-xs text-ink-400 mt-0.5">Solo documentos SUNAT (boletas y facturas)</p>
             </div>
-            <span className="text-2xl font-heading font-bold text-accent-terracotta">
-              S/ {ventas7d.reduce((s, d) => s + d.total, 0).toLocaleString('es-PE', { minimumFractionDigits: 0 })}
-            </span>
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-2xl font-heading font-bold text-accent-terracotta">
+                S/ {totalGrafico.toLocaleString('es-PE', { minimumFractionDigits: 0 })}
+              </span>
+              <RangoTabs value={rango} onChange={setRango} />
+            </div>
           </div>
-          {loading ? (
-            <div className="h-36 flex items-center justify-center">
+
+          {loadingChart ? (
+            <div className="h-40 flex items-center justify-center">
               <div className="w-8 h-8 rounded-full border-2 border-accent-terracotta border-t-transparent animate-spin" />
             </div>
-          ) : ventas7d.every(d => d.total === 0) ? (
-            <div className="h-36 flex flex-col items-center justify-center text-ink-400">
+          ) : ventas.every(d => d.total === 0) ? (
+            <div className="h-40 flex flex-col items-center justify-center text-ink-400">
               <TrendingUp className="w-8 h-8 mb-2 opacity-30" />
-              <p className="text-sm">Sin ventas registradas esta semana</p>
+              <p className="text-sm">Sin ventas registradas en este período</p>
             </div>
           ) : (
-            <BarChart data={ventas7d} />
+            <LineChart data={ventas} />
           )}
         </div>
 
-        {/* Pedidos Yape/Plin pendientes */}
-        <div data-crm-section="pedidos-web" className="bg-accent-cream rounded-2xl border border-ink-200 p-5">
+        {/* Pedidos Yape/Plin */}
+        <div className="bg-accent-cream rounded-2xl border border-ink-200 p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-heading font-semibold text-ink-800">Pedidos web</h2>
             {stats.pedidosPendientes > 0 && (
@@ -323,12 +495,15 @@ export default function DashboardPage() {
                       </span>
                     </div>
                   </div>
-                  <span className="font-heading font-bold text-accent-terracotta text-sm ml-2">S/ {Number(p.total).toFixed(2)}</span>
+                  <span className="font-heading font-bold text-accent-terracotta text-sm ml-2">
+                    S/ {Number(p.total).toFixed(2)}
+                  </span>
                 </div>
               ))}
             </div>
           )}
-          <Link href="/crm/pedidos" className="flex items-center justify-center gap-2 mt-4 text-sm text-accent-terracotta hover:text-accent-terracotta/80 font-medium transition-colors">
+          <Link href="/crm/pedidos"
+            className="flex items-center justify-center gap-2 mt-4 text-sm text-accent-terracotta hover:text-accent-terracotta/80 font-medium transition-colors">
             Ver todos los pedidos <ChevronRight className="w-4 h-4" />
           </Link>
         </div>
@@ -338,7 +513,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         {/* Top productos */}
-        <div data-crm-section="top-productos" className="bg-accent-cream rounded-2xl border border-ink-200 p-5">
+        <div className="bg-accent-cream rounded-2xl border border-ink-200 p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-heading font-semibold text-ink-800">Productos más vendidos</h2>
             <Star className="w-4 h-4 text-accent-gold" />
@@ -358,7 +533,9 @@ export default function DashboardPage() {
                 <div key={p.descripcion}>
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className={`text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${i === 0 ? 'bg-accent-gold text-ink-900' : 'bg-ink-200 text-ink-600'}`}>{i + 1}</span>
+                      <span className={`text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${i === 0 ? 'bg-accent-gold text-ink-900' : 'bg-ink-200 text-ink-600'}`}>
+                        {i + 1}
+                      </span>
                       <span className="text-sm text-ink-700 truncate">{p.descripcion}</span>
                     </div>
                     <div className="text-right shrink-0 ml-2">
@@ -371,13 +548,14 @@ export default function DashboardPage() {
               ))}
             </div>
           )}
-          <Link href="/crm/inventario" className="flex items-center justify-center gap-2 mt-4 text-sm text-accent-terracotta hover:text-accent-terracotta/80 font-medium transition-colors">
+          <Link href="/crm/inventario"
+            className="flex items-center justify-center gap-2 mt-4 text-sm text-accent-terracotta hover:text-accent-terracotta/80 font-medium transition-colors">
             Ver inventario completo <ChevronRight className="w-4 h-4" />
           </Link>
         </div>
 
         {/* Documentos recientes */}
-        <div data-crm-section="docs-recientes" className="bg-accent-cream rounded-2xl border border-ink-200 p-5">
+        <div className="bg-accent-cream rounded-2xl border border-ink-200 p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-heading font-semibold text-ink-800">Documentos recientes</h2>
             <Send className="w-4 h-4 text-ink-400" />
@@ -408,37 +586,42 @@ export default function DashboardPage() {
                     </div>
                     <div className="text-right shrink-0 ml-2">
                       <p className="text-sm font-bold text-ink-800">S/ {Number(d.total).toFixed(2)}</p>
-                      <p className="text-xs text-ink-400">{new Date(d.created_at).toLocaleDateString('es-PE', { day: '2-digit', month: 'short' })}</p>
+                      <p className="text-xs text-ink-400">
+                        {new Date(d.created_at).toLocaleDateString('es-PE', { day: '2-digit', month: 'short' })}
+                      </p>
                     </div>
                   </div>
                 )
               })}
             </div>
           )}
-          <Link href="/crm/documentos" className="flex items-center justify-center gap-2 mt-4 text-sm text-accent-terracotta hover:text-accent-terracotta/80 font-medium transition-colors">
+          <Link href="/crm/documentos"
+            className="flex items-center justify-center gap-2 mt-4 text-sm text-accent-terracotta hover:text-accent-terracotta/80 font-medium transition-colors">
             Ver todos los documentos <ChevronRight className="w-4 h-4" />
           </Link>
         </div>
       </div>
 
       {/* Accesos rápidos */}
-      <div data-crm-section="accesos-rapidos" className="bg-accent-cream rounded-2xl border border-ink-200 p-5">
+      <div className="bg-accent-cream rounded-2xl border border-ink-200 p-5">
         <h2 className="font-heading font-semibold text-ink-800 mb-4">Accesos rápidos</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {[
-            { href: '/crm/boletas/nueva', icon: FileText, label: 'Nueva Boleta', color: 'bg-amber-100 text-amber-700' },
-            { href: '/crm/facturas/nueva', icon: FileText, label: 'Nueva Factura', color: 'bg-purple-100 text-purple-700' },
-            { href: '/crm/guias/nueva', icon: Send, label: 'Nueva Guía', color: 'bg-blue-100 text-blue-700' },
-            { href: '/crm/pedidos', icon: Smartphone, label: 'Pedidos web', color: 'bg-amber-100 text-amber-700' },
-            { href: '/crm/inventario', icon: Boxes, label: 'Inventario', color: 'bg-orange-100 text-orange-700' },
-            { href: '/crm/sunat', icon: Send, label: 'Envío SUNAT', color: 'bg-green-100 text-green-700' },
+            { href: '/crm/boletas/nueva',  icon: FileText,  label: 'Nueva Boleta',  color: 'bg-amber-100 text-amber-700' },
+            { href: '/crm/facturas/nueva', icon: FileText,  label: 'Nueva Factura', color: 'bg-purple-100 text-purple-700' },
+            { href: '/crm/guias/nueva',    icon: Send,      label: 'Nueva Guía',    color: 'bg-blue-100 text-blue-700' },
+            { href: '/crm/pedidos',        icon: Smartphone,label: 'Pedidos web',   color: 'bg-amber-100 text-amber-700' },
+            { href: '/crm/inventario',     icon: Boxes,     label: 'Inventario',    color: 'bg-orange-100 text-orange-700' },
+            { href: '/crm/sunat',          icon: Send,      label: 'Envío SUNAT',   color: 'bg-green-100 text-green-700' },
           ].map(item => (
             <Link key={item.href} href={item.href}
               className="flex flex-col items-center gap-2 p-4 rounded-xl border border-ink-200 hover:border-accent-terracotta/30 hover:shadow-warm transition-all group text-center">
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${item.color} group-hover:scale-110 transition-transform`}>
                 <item.icon className="w-5 h-5" />
               </div>
-              <span className="text-xs font-medium text-ink-700 group-hover:text-accent-terracotta transition-colors">{item.label}</span>
+              <span className="text-xs font-medium text-ink-700 group-hover:text-accent-terracotta transition-colors">
+                {item.label}
+              </span>
             </Link>
           ))}
         </div>
