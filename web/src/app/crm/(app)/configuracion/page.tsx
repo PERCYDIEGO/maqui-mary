@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { Play, Pause, Lock, Unlock, Trash2, Volume2, Save, RotateCcw, Settings, Search, Music, Undo2, Headphones, Sparkles, Eye, EyeOff, RefreshCw, Shield, FileText, Upload, AlertCircle, CheckCircle, Globe, CreditCard, Building2, Hash } from 'lucide-react'
+import { Play, Pause, Lock, Unlock, Trash2, Volume2, Save, RotateCcw, Settings, Search, Music, Undo2, Headphones, Sparkles, Eye, EyeOff, RefreshCw, Shield, FileText, Upload, AlertCircle, CheckCircle, Globe, CreditCard, Building2, Hash, MessageCircle, MapPin, Clock } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { audio, TRACK_PRESETS } from '@/lib/audio'
 import toast from 'react-hot-toast'
@@ -55,7 +55,16 @@ export default function MusicPlayerPage() {
   const [sunatLoading, setSunatLoading] = useState(true)
   const [sunatSaving, setSunatSaving] = useState(false)
   const [certFile, setCertFile] = useState<File | null>(null)
-  const [activeTab, setActiveTab] = useState<'emisor' | 'certificado' | 'ose'>('emisor')
+  const [activeTab, setActiveTab] = useState<'emisor' | 'certificado' | 'ose' | 'contacto'>('emisor')
+
+  // ─── Empresa / Contacto State ───
+  const [empresaConfig, setEmpresaConfig] = useState({
+    whatsapp_clientes: '',
+    whatsapp_negocio: '',
+    direccion_display: '',
+    horario: '',
+  })
+  const [empresaSaving, setEmpresaSaving] = useState(false)
 
   useEffect(() => {
     const seen = localStorage.getItem('mm-music-seen')
@@ -73,6 +82,20 @@ export default function MusicPlayerPage() {
     }).finally(() => setLoading(false))
   }, [])
 
+  // Cargar configuración de empresa / contacto
+  useEffect(() => {
+    fetch('/api/empresa').then(r => r.json()).then(data => {
+      if (data.ok) {
+        setEmpresaConfig({
+          whatsapp_clientes: data.whatsapp_clientes || '',
+          whatsapp_negocio:  data.whatsapp_negocio  || '',
+          direccion_display: data.direccion_display  || '',
+          horario:           data.horario            || '',
+        })
+      }
+    }).catch(() => {})
+  }, [])
+
   // Cargar configuración SUNAT
   useEffect(() => {
     async function loadSunatConfig() {
@@ -88,6 +111,21 @@ export default function MusicPlayerPage() {
     }
     loadSunatConfig()
   }, [])
+
+  async function handleSaveEmpresa() {
+    setEmpresaSaving(true)
+    try {
+      const r = await fetch('/api/empresa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(empresaConfig),
+      })
+      const data = await r.json()
+      if (data.ok) toast.success('Configuración de contacto guardada ✅')
+      else toast.error(data.error || 'Error al guardar')
+    } catch { toast.error('Error al guardar') }
+    finally { setEmpresaSaving(false) }
+  }
 
   async function handleSaveSunat() {
     setSunatSaving(true)
@@ -265,11 +303,12 @@ export default function MusicPlayerPage() {
         ) : (
           <>
             {/* Tabs */}
-            <div className="flex gap-2 mb-6 border-b border-primary-200 pb-1">
+            <div className="flex flex-wrap gap-2 mb-6 border-b border-primary-200 pb-1">
               {[
                 { key: 'emisor', label: '🏢 Datos del Emisor', icon: Building2 },
                 { key: 'certificado', label: '🔐 Certificado Digital', icon: Shield },
                 { key: 'ose', label: '🔗 OSE (Nubefact)', icon: Globe },
+                { key: 'contacto', label: '📞 Contacto & Web', icon: MessageCircle },
               ].map(tab => (
                 <button
                   key={tab.key}
@@ -568,7 +607,86 @@ export default function MusicPlayerPage() {
               </div>
             )}
 
-            {/* Botón guardar */}
+            {/* Tab: Contacto & Web */}
+            {activeTab === 'contacto' && (
+              <div className="space-y-5">
+                <div className="bg-green-50 rounded-xl p-4 border border-green-100">
+                  <div className="flex items-start gap-3">
+                    <MessageCircle size={18} className="text-green-600 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-green-800">Datos de contacto del landing</p>
+                      <p className="text-xs text-green-600 mt-1">
+                        Estos valores se muestran en la web pública y en los botones de WhatsApp. El negocio también recibe notificaciones en el número configurado aquí.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-primary-700 mb-1 flex items-center gap-1.5">
+                      <MessageCircle size={14} className="text-green-500" /> WhatsApp Clientes
+                    </label>
+                    <input
+                      value={empresaConfig.whatsapp_clientes}
+                      onChange={e => setEmpresaConfig(p => ({ ...p, whatsapp_clientes: e.target.value }))}
+                      className="input-field w-full"
+                      placeholder="51949324254"
+                    />
+                    <p className="text-xs text-primary-400 mt-1">Número que ven los clientes en la web (con código de país)</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-primary-700 mb-1 flex items-center gap-1.5">
+                      <MessageCircle size={14} className="text-green-500" /> WhatsApp Negocio
+                    </label>
+                    <input
+                      value={empresaConfig.whatsapp_negocio}
+                      onChange={e => setEmpresaConfig(p => ({ ...p, whatsapp_negocio: e.target.value }))}
+                      className="input-field w-full"
+                      placeholder="51916165543"
+                    />
+                    <p className="text-xs text-primary-400 mt-1">Número que recibe notificaciones de pedidos nuevos</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-primary-700 mb-1 flex items-center gap-1.5">
+                      <MapPin size={14} className="text-accent-gold" /> Dirección para mostrar
+                    </label>
+                    <input
+                      value={empresaConfig.direccion_display}
+                      onChange={e => setEmpresaConfig(p => ({ ...p, direccion_display: e.target.value }))}
+                      className="input-field w-full"
+                      placeholder="Ate Vitarte, Lima"
+                    />
+                    <p className="text-xs text-primary-400 mt-1">Dirección corta que aparece en el footer del landing</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-primary-700 mb-1 flex items-center gap-1.5">
+                      <Clock size={14} className="text-accent-gold" /> Horario de atención
+                    </label>
+                    <input
+                      value={empresaConfig.horario}
+                      onChange={e => setEmpresaConfig(p => ({ ...p, horario: e.target.value }))}
+                      className="input-field w-full"
+                      placeholder="Lun–Sáb: 8:00 am – 6:00 pm"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-4 border-t border-primary-200">
+                  <button
+                    onClick={handleSaveEmpresa}
+                    disabled={empresaSaving}
+                    className="btn-primary flex items-center gap-2 !px-6 !py-3 disabled:opacity-50"
+                  >
+                    <Save size={18} />
+                    {empresaSaving ? 'Guardando...' : 'Guardar Contacto & Web'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Botón guardar SUNAT (solo para las otras tabs) */}
+            {activeTab !== 'contacto' && (
             <div className="flex justify-end pt-4 border-t border-primary-200 mt-6">
               <button
                 onClick={handleSaveSunat}
@@ -579,6 +697,7 @@ export default function MusicPlayerPage() {
                 {sunatSaving ? 'Guardando...' : 'Guardar Configuración SUNAT'}
               </button>
             </div>
+            )}
           </>
         )}
       </div>

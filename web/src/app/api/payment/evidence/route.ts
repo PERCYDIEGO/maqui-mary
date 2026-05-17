@@ -55,6 +55,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: updateError.message }, { status: 500 })
     }
 
+    // Obtener datos del pedido para la notificación
+    const { data: factura } = await adminSb
+      .from('facturas')
+      .select('cliente_nombre, customer_phone, total')
+      .eq('id', facturaId)
+      .single()
+
+    if (factura) {
+      fetch(`${req.nextUrl.origin}/api/notify/whatsapp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tipo: 'comprobante_subido',
+          datos: {
+            cliente: factura.cliente_nombre,
+            telefono: factura.customer_phone || '—',
+            total: factura.total,
+            facturaId,
+          },
+        }),
+      }).catch(() => {})
+    }
+
     return NextResponse.json({ ok: true, publicUrl })
   } catch (e: any) {
     return NextResponse.json({ ok: false, error: e.message || 'Error interno' }, { status: 500 })

@@ -73,11 +73,12 @@ interface GuiaAnimadaProps {
   mode: 'landing' | 'crm'
   crmSteps?: CrmStep[]
   userId?: string
+  hideMinimized?: boolean
 }
 
 let particleId = 0
 
-export default function GuiaAnimada({ mode, crmSteps, userId }: GuiaAnimadaProps) {
+export default function GuiaAnimada({ mode, crmSteps, userId, hideMinimized }: GuiaAnimadaProps) {
   const isLanding = mode === 'landing'
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
@@ -239,6 +240,14 @@ export default function GuiaAnimada({ mode, crmSteps, userId }: GuiaAnimadaProps
     }
   }, [isLanding, pathname]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Escuchar evento toggle-guide desde el header del CRM
+  useEffect(() => {
+    if (isLanding) return
+    const handler = () => setOpen(prev => !prev)
+    window.addEventListener('toggle-guide', handler)
+    return () => window.removeEventListener('toggle-guide', handler)
+  }, [isLanding])
+
   // Auto-close after 25s on same section (landing)
   useEffect(() => {
     if (!isLanding || !open || minimized || seen) return
@@ -369,7 +378,10 @@ export default function GuiaAnimada({ mode, crmSteps, userId }: GuiaAnimadaProps
                       ✕
                     </button>
                   )}
-                  <button onClick={() => { setMinimized(true); setOpen(false); setSeen(true) }}
+                  <button onClick={() => {
+                    if (isLanding) try { localStorage.setItem(storageKey + '_perm', '1') } catch {}
+                    setMinimized(true); setOpen(false); setSeen(true)
+                  }}
                     className="flex items-center gap-1 px-2 py-1.5 rounded-xl hover:bg-ink-100/70 text-ink-500 hover:text-ink-700 transition-all text-xs font-medium"
                     title="Minimizar guía">
                     <ChevronDown size={14} /> Ocultar
@@ -485,6 +497,7 @@ export default function GuiaAnimada({ mode, crmSteps, userId }: GuiaAnimadaProps
   }
 
   // ─── Minimized floating sponge (static, sin movimiento) ───
+  if (hideMinimized) return null
   return (
     <div
       className="fixed z-[60]"
@@ -562,6 +575,8 @@ function EsponjaSVG({ mood = 'wave', size = 64 }: { mood?: Mood; size?: number }
   const [squeeze, setSqueeze] = useState(0)
   const [blink, setBlink] = useState(false)
   const squeezeRef = useRef(0)
+  const blinkTimerRef = useRef<ReturnType<typeof setTimeout>>()
+  const blinkCloseRef = useRef<ReturnType<typeof setTimeout>>()
 
   useEffect(() => {
     if (mood !== 'point' && mood !== 'warn') return
@@ -572,19 +587,22 @@ function EsponjaSVG({ mood = 'wave', size = 64 }: { mood?: Mood; size?: number }
     return () => clearInterval(interval)
   }, [mood])
 
-  // Ojos que parpadean cada 4-6 segundos
   useEffect(() => {
     const blinkLoop = () => {
       const delay = 4000 + Math.random() * 3000
-      const timer = setTimeout(() => {
+      blinkTimerRef.current = setTimeout(() => {
         setBlink(true)
-        setTimeout(() => setBlink(false), 150)
-        blinkLoop()
+        blinkCloseRef.current = setTimeout(() => {
+          setBlink(false)
+          blinkLoop()
+        }, 150)
       }, delay)
-      return () => clearTimeout(timer)
     }
-    const cleanup = blinkLoop()
-    return cleanup
+    blinkLoop()
+    return () => {
+      clearTimeout(blinkTimerRef.current)
+      clearTimeout(blinkCloseRef.current)
+    }
   }, [])
 
   return (

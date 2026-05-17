@@ -69,38 +69,41 @@ export async function POST(req: NextRequest) {
   const email = alias.includes('@') ? alias : `${alias}@maquimary.local`
 
   try {
-    const r = await fetch(`${supabaseUrl}/rest/v1/_create_user`, {
+    const r = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
       method: 'POST',
       headers: {
         apikey: serviceRoleKey,
         Authorization: `Bearer ${serviceRoleKey}`,
         'Content-Type': 'application/json',
-        Prefer: 'return=representation',
       },
       body: JSON.stringify({
         email,
         password,
-        full_name: full_name || '',
-        role: role || 'editor',
-        alias,
+        email_confirm: true,
       }),
     })
 
     if (!r.ok) {
       const d = await r.json()
-      throw new Error(d.message || d.error || 'Error al crear usuario')
+      throw new Error(d.msg || d.message || d.error || 'Error al crear usuario')
     }
 
-    const data = await r.json()
-    const row = Array.isArray(data) ? data[0] : data
+    const authUser = await r.json()
+    const userId = authUser.id
 
-    if (row.status === 'error') {
-      throw new Error(row.result?.error || 'Error en el trigger de creación')
-    }
+    const { error: profileErr } = await adminSb.from('profiles').upsert({
+      id: userId,
+      full_name: full_name || '',
+      alias,
+      role: role || 'editor',
+      force_password_change: true,
+    })
+
+    if (profileErr) throw new Error(profileErr.message)
 
     return NextResponse.json({
       ok: true,
-      user: row.result,
+      user: { id: userId },
     })
   } catch (e: any) {
     return NextResponse.json({ ok: false, error: e.message }, { status: 500 })
@@ -150,7 +153,7 @@ export async function PUT(req: NextRequest) {
         })
         if (!r.ok) { const d = await r.json(); throw new Error(d.msg || 'Error al actualizar contraseña') }
       }
-      const { error: updErr } = await adminSb.from('profiles').update(allowedFields).eq('id', user_id)
+      const { error: updErr } = await adminSb.from('profiles').upsert({ id: user_id, ...allowedFields })
       if (updErr) throw new Error(updErr.message)
       return NextResponse.json({ ok: true })
     } catch (e: any) {
@@ -184,7 +187,7 @@ export async function PUT(req: NextRequest) {
     if (alias !== undefined) updateData.alias = alias
 
     if (Object.keys(updateData).length > 0) {
-      const { error: updErr } = await adminSb.from('profiles').update(updateData).eq('id', user_id)
+      const { error: updErr } = await adminSb.from('profiles').upsert({ id: user_id, ...updateData })
       if (updErr) throw new Error(updErr.message)
     }
 

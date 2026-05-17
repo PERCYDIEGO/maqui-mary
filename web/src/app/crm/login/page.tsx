@@ -18,7 +18,7 @@ export default function LoginPage() {
   const mountedRef = useRef(true)
 
   useEffect(() => {
-    setLoading(false) // Resetea si viene del caché del navegador (bfcache / Next.js Router Cache)
+    setLoading(false)
     mountedRef.current = true
     return () => { mountedRef.current = false }
   }, [])
@@ -53,27 +53,18 @@ export default function LoginPage() {
         return
       }
 
-      setErrorMsg('')
-
-      if (!data.session) {
-        setErrorMsg('No se pudo obtener la sesión. Intenta de nuevo.')
-        toast.error('Error al iniciar sesión')
-        setLoading(false)
-        return
+      if (mountedRef.current) {
+        try {
+          if (recordar) {
+            sessionStorage.setItem('maqui_remember_email', email.trim())
+          } else {
+            sessionStorage.removeItem('maqui_remember_email')
+          }
+          sessionStorage.removeItem('maqui_remember_pass')
+        } catch {}
+        toast.success('Bienvenido')
+        router.replace('/crm')
       }
-
-      try {
-        if (recordar) {
-          sessionStorage.setItem('maqui_remember_email', email.trim())
-        } else {
-          sessionStorage.removeItem('maqui_remember_email')
-        }
-        sessionStorage.removeItem('maqui_remember_pass')
-      } catch {}
-
-      toast.success('Bienvenido')
-      router.push('/crm')
-      router.refresh()
     } catch (err: any) {
       if (!window.navigator.onLine) {
         setErrorMsg('Sin conexión a internet')
@@ -84,7 +75,7 @@ export default function LoginPage() {
         toast.error(msg)
       }
     } finally {
-      setLoading(false)
+      if (mountedRef.current) setLoading(false)
     }
   }
 

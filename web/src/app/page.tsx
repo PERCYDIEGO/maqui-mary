@@ -118,13 +118,22 @@ export default function LandingPage() {
   const [heroLoaded, setHeroLoaded] = useState(false)
   const [landingTrack, setLandingTrack] = useState('')
   const audioRef = useRef<any>(null)
+  const [empresaData, setEmpresaData] = useState<{
+    whatsapp_clientes: string
+    direccion_display: string
+    horario: string
+  }>({
+    whatsapp_clientes: '51949324254',
+    direccion_display: 'Ate Vitarte, Lima',
+    horario: 'Lun–Sáb: 8:00 am – 6:00 pm',
+  })
 
   // Cargar productos actualizados desde Supabase al montar
   useEffect(() => {
     refreshProductos()
   }, [refreshProductos])
 
-  // Cargar configuración y animación del hero
+  // Cargar configuración, empresa y animación del hero
   useEffect(() => {
     fetch('/api/config').then(r => r.json()).then(data => {
       if (data.ok) {
@@ -133,6 +142,16 @@ export default function LandingPage() {
         if (!dt.landing) setBgMusic(false)
       }
     })
+    fetch('/api/empresa').then(r => r.json()).then(data => {
+      if (data.ok) {
+        setEmpresaData(prev => ({
+          ...prev,
+          whatsapp_clientes: data.whatsapp_clientes || prev.whatsapp_clientes,
+          direccion_display: data.direccion_display || prev.direccion_display,
+          horario: data.horario || prev.horario,
+        }))
+      }
+    }).catch(() => {})
     setTimeout(() => setHeroLoaded(true), 100)
   }, [])
 
@@ -162,9 +181,9 @@ export default function LandingPage() {
   const featuredCandidates = ['Paquetes', 'Doble Uso', 'Paños', 'Acero']
   const featuredItemMap: Record<string, { img: string; desc: string }> = {
     Paquetes: { img: '/img/esponjas-colores.png', desc: 'Pack x10 unidades variadas' },
-    'Doble Uso': { img: '/img/doble-uso.png', desc: 'Cara suave + cara abrasiva' },
-    Paños: { img: '/img/panos-amarillos.png', desc: 'Paños absorbentes multiuso x10 y x20' },
-    Acero: { img: '', desc: 'Fibra de acero para limpieza profunda' },
+    'Doble Uso': { img: '/img/esponja_doble_uso_cuadrada.png', desc: 'Cara suave + cara abrasiva' },
+    Paños: { img: '/img/paño_amarillo.png', desc: 'Paños absorbentes multiuso x10 y x20' },
+    Acero: { img: '/img/lana_de_acero.png', desc: 'Fibra de acero para limpieza profunda' },
   }
 
   // Mapear productos del contexto al formato del landing
@@ -205,8 +224,10 @@ export default function LandingPage() {
 
   const productImageMap: Record<string, string> = {
     'Mix x10 Esponjas Colores': '/img/esponjas-colores.png',
-    'Esponja Doble Uso': '/img/doble-uso.png',
-    'Paños Amarillos x10': '/img/panos-amarillos.png',
+    'Esponja Doble Uso': '/img/esponja_doble_uso_cuadrada.png',
+    'Paños Amarillos x10': '/img/paño_amarillo.png',
+    'Lana de Acero': '/img/lana_de_acero.png',
+    'Paño Absorbente Amarillo': '/img/paño_amarillo.png',
   }
 
   const bestseller = featuredItems[0] || null
@@ -311,7 +332,7 @@ export default function LandingPage() {
               Calidad que tu hogar merece, precio justo para tu bolsillo.
             </p>
             <div className={`flex flex-wrap gap-4 transition-all duration-700 delay-600 ${heroLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-              <a href="https://wa.me/51949324254?text=¡Hola!%20Quiero%20hacer%20un%20pedido" target="_blank" rel="noopener noreferrer" className="btn-secondary text-lg flex items-center gap-2 group">
+              <a href={`https://wa.me/${empresaData.whatsapp_clientes}?text=¡Hola!%20Quiero%20hacer%20un%20pedido`} target="_blank" rel="noopener noreferrer" className="btn-secondary text-lg flex items-center gap-2 group">
                 <MessageCircle size={20} /> Cotizar por WhatsApp{' '}
                 <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
               </a>
@@ -497,7 +518,7 @@ export default function LandingPage() {
               <p className="text-ink-300 max-w-2xl mx-auto mb-6 text-lg">
                 Tenemos precios especiales para compras por mayor. Contáctanos directo y te armamos una cotización personalizada.
               </p>
-              <a href="https://wa.me/51949324254?text=¡Hola!%20Quiero%20una%20cotización%20por%20mayor" target="_blank" rel="noopener noreferrer" className="btn-secondary text-lg inline-flex items-center gap-2">
+              <a href={`https://wa.me/${empresaData.whatsapp_clientes}?text=¡Hola!%20Quiero%20una%20cotización%20por%20mayor`} target="_blank" rel="noopener noreferrer" className="btn-secondary text-lg inline-flex items-center gap-2">
                 <MessageCircle size={20} /> Cotizar por mayor <ChevronRight size={20} />
               </a>
             </div>
@@ -514,6 +535,7 @@ export default function LandingPage() {
         productosLanding={productosLanding}
         total={total}
         itemsCount={itemsCount}
+        waNumero={empresaData.whatsapp_clientes}
       />
 
       {/* ===== NOSOTROS ===== */}
@@ -637,7 +659,7 @@ export default function LandingPage() {
             <a href="#productos" className="btn-secondary text-lg inline-flex items-center gap-2">
               <ShoppingCart size={22} /> Comprar ahora
             </a>
-            <a href="https://wa.me/51949324254?text=¡Hola!%20Quiero%20consultar%20por%20un%20pedido" target="_blank" rel="noopener noreferrer" className="btn-outline !border-ink-300 !text-ink-200 hover:!bg-accent-cream hover:!text-ink-900 inline-flex items-center gap-2">
+            <a href={`https://wa.me/${empresaData.whatsapp_clientes}?text=¡Hola!%20Quiero%20consultar%20por%20un%20pedido`} target="_blank" rel="noopener noreferrer" className="btn-outline !border-ink-300 !text-ink-200 hover:!bg-accent-cream hover:!text-ink-900 inline-flex items-center gap-2">
               <MessageCircle size={20} /> WhatsApp
             </a>
           </div>
@@ -683,9 +705,9 @@ export default function LandingPage() {
             <div>
               <h4 className="font-heading font-semibold text-accent-cream mb-4">Contacto</h4>
               <ul className="space-y-2 text-sm">
-                <li className="flex items-center gap-1.5"><MapPin size={14} className="text-accent-gold" /> Ate Vitarte, Lima</li>
-                <li><a href="https://wa.me/51949324254" target="_blank" rel="noopener noreferrer" className="hover:text-accent-gold transition-colors flex items-center gap-1.5"><MessageCircle size={14} className="text-green-500" /> WhatsApp: 949 324 254</a></li>
-                <li className="flex items-center gap-1.5"><Clock size={14} className="text-accent-gold" /> Lun–Sáb: 8:00 am – 6:00 pm</li>
+                <li className="flex items-center gap-1.5"><MapPin size={14} className="text-accent-gold" /> {empresaData.direccion_display}</li>
+                <li><a href={`https://wa.me/${empresaData.whatsapp_clientes}`} target="_blank" rel="noopener noreferrer" className="hover:text-accent-gold transition-colors flex items-center gap-1.5"><MessageCircle size={14} className="text-green-500" /> WhatsApp</a></li>
+                <li className="flex items-center gap-1.5"><Clock size={14} className="text-accent-gold" /> {empresaData.horario}</li>
               </ul>
             </div>
             <div>
@@ -719,7 +741,7 @@ export default function LandingPage() {
       
       {/* Botón flotante de WhatsApp */}
       <a
-        href="https://wa.me/51949324254?text=¡Hola!%20Quiero%20hacer%20un%20pedido"
+        href={`https://wa.me/${empresaData.whatsapp_clientes}?text=¡Hola!%20Quiero%20hacer%20un%20pedido`}
         target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-green-500 hover:bg-green-600 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-110 hover:shadow-xl"

@@ -26,7 +26,9 @@ import {
   ShoppingCart,
   Boxes,
   Settings,
-  Send
+  Send,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { audio } from '@/lib/audio';
@@ -196,9 +198,8 @@ function Sidebar({
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-ink-200">
           <Link href="/" className="flex items-center gap-3">
-            {/* Logo */}
-            <div className="w-10 h-10 bg-gradient-to-br from-accent-terracotta to-accent-gold rounded-lg flex items-center justify-center shadow-warm">
-              <Store className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0">
+              <img src="/img/logo_oficial.png" alt="Maqui Mary" className="w-full h-full object-contain" />
             </div>
             <div>
               <h1 className="font-heading font-bold text-ink-800 text-sm">Maqui Mary</h1>
@@ -316,10 +317,14 @@ function Sidebar({
 
 function Header({ 
   onMenuClick,
-  titulo
+  titulo,
+  crmMusic,
+  onToggleMusic,
 }: { 
   onMenuClick: () => void;
   titulo: string;
+  crmMusic: boolean;
+  onToggleMusic: () => void;
 }) {
   return (
     <header className="sticky top-0 z-30 bg-accent-cream border-b border-ink-200 shadow-soft">
@@ -337,6 +342,20 @@ function Header({
 
         {/* Derecha */}
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent('toggle-guide'))}
+            className="p-2 rounded-xl hover:bg-ink-100 text-ink-500 hover:text-ink-700 transition-all"
+            title="Guía interactiva"
+          >
+            🧽
+          </button>
+          <button
+            onClick={onToggleMusic}
+            className="p-2 rounded-xl hover:bg-ink-100 text-ink-500 hover:text-ink-700 transition-all"
+            title={crmMusic ? 'Silenciar música' : 'Activar música'}
+          >
+            {crmMusic ? <Volume2 size={18} /> : <VolumeX size={18} />}
+          </button>
           <Link
             href="/"
             className="hidden sm:flex items-center gap-2 px-4 py-2 bg-accent-gold hover:bg-accent-goldlight 
@@ -368,6 +387,7 @@ export default function CRMLayout({
   const [userName, setUserName] = useState('');
   const [pendingOrders, setPendingOrders] = useState(0);
   const [authError, setAuthError] = useState(false);
+  const [crmMusic, setCrmMusic] = useState(true);
   const pathname = usePathname();
   const router = useRouter();
   const mountedRef = useRef(true);
@@ -409,12 +429,10 @@ export default function CRMLayout({
 
         setIsAuthenticated(true);
         setUserId(session.user.id);
-        // Liberar loading apenas confirmamos sesión — no esperar queries de perfil
-        if (mountedRef.current) setLoading(false);
         startCrmAudio();
         loadCrmData();
 
-        // Perfil y conteo de pedidos en paralelo, sin bloquear
+        // Perfil y conteo de pedidos en paralelo
         const [profileResult, countResult] = await Promise.allSettled([
           supabase.from('profiles').select('role, full_name, alias').eq('id', session.user.id).single(),
           supabase.from('facturas').select('id', { count: 'exact', head: true }).eq('status', 'pending').or('origen.eq.web,payment_method.in.(yape,plin)'),
@@ -436,6 +454,8 @@ export default function CRMLayout({
         if (countResult.status === 'fulfilled') {
           setPendingOrders(countResult.value.count || 0);
         }
+        // Liberar loading después de tener rol — evita render con userRole=null
+        if (mountedRef.current) setLoading(false);
       } catch (error) {
         console.error('Error verificando auth:', error);
         setAuthError(true);
@@ -452,7 +472,6 @@ export default function CRMLayout({
       if (event === 'SIGNED_IN' && session) {
         setIsAuthenticated(true);
         setUserId(session.user.id);
-        if (mountedRef.current) setLoading(false);
 
         const [profileResult, countResult] = await Promise.allSettled([
           supabase.from('profiles').select('role, full_name, alias').eq('id', session.user.id).single(),
@@ -473,6 +492,7 @@ export default function CRMLayout({
         if (countResult.status === 'fulfilled') {
           setPendingOrders(countResult.value.count || 0);
         }
+        if (mountedRef.current) setLoading(false);
       } else if (event === 'SIGNED_OUT' || !session) {
         setIsAuthenticated(false);
         if (mountedRef.current) router.push('/crm/login');
@@ -490,11 +510,9 @@ export default function CRMLayout({
     try {
       audio.stopTrack();
       await supabase.auth.signOut();
-      toast.success('Sesión cerrada');
-      router.push('/crm/login');
-    } catch (error) {
-      toast.error('Error al cerrar sesión');
-    }
+    } catch {}
+    // Forzar recarga completa para limpiar estado React y cookies
+    window.location.href = '/crm/login';
   };
 
   // Steps dinámicos según página actual y rol del usuario
@@ -567,6 +585,11 @@ export default function CRMLayout({
         <Header
           onMenuClick={() => setSidebarOpen(true)}
           titulo={getTitulo()}
+          crmMusic={crmMusic}
+          onToggleMusic={() => {
+            if (crmMusic) { audio.stopTrack(); setCrmMusic(false) }
+            else { startCrmAudio(); setCrmMusic(true) }
+          }}
         />
         <main className="flex-1 p-4 lg:p-6">
           {children}
@@ -579,6 +602,7 @@ export default function CRMLayout({
           mode="crm"
           userId={userId}
           crmSteps={currentSteps}
+          hideMinimized
         />
       )}
     </div>

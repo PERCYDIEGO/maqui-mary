@@ -139,7 +139,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       precioUnitario: 2.50,
       stock: 350,
       categoria: 'Esponjas',
-      imagen: '/img/doble-uso.png',
+      imagen: '/img/esponja_doble_uso_cuadrada.png',
       activo: true,
       usosFrecuentes: 98,
     },
@@ -153,7 +153,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       precioUnitario: 3.50,
       stock: 200,
       categoria: 'Limpieza',
-      imagen: '/img/panos-amarillos.png',
+      imagen: '/img/paño_amarillo.png',
       activo: true,
       usosFrecuentes: 67,
     },
@@ -351,8 +351,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       loadClientes(),
       loadTransportistas(),
       loadDocuments(),
+      loadProductos(),
     ])
-  }, [loadClientes, loadTransportistas, loadDocuments])
+  }, [loadClientes, loadTransportistas, loadDocuments, loadProductos])
 
   // ============================================
   // ACTIONS - BOLETAS

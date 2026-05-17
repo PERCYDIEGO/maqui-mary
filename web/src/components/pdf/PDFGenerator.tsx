@@ -9,6 +9,7 @@ import React, { useState, useEffect } from 'react';
 import { Download, Printer, FileText } from 'lucide-react';
 import { Boleta, Factura, GuiaRemision, DocumentoBase, EMPRESA_DATA } from '@/types/documentos';
 import { formatearMoneda, formatearNumeroDocumento } from '@/lib/calculos';
+import { supabase } from '@/lib/supabase';
 import QRCode from 'qrcode';
 import toast from 'react-hot-toast';
 
@@ -20,6 +21,12 @@ interface PDFGeneratorProps {
 export default function PDFGenerator({ documento, tipo }: PDFGeneratorProps) {
   const [generando, setGenerando] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
+  const [empresaConfig, setEmpresaConfig] = useState<any>(null);
+
+  useEffect(() => {
+    supabase.from('sunat_config').select('*').eq('id', 1).single()
+      .then(({ data }) => { if (data) setEmpresaConfig(data) })
+  }, []);
 
   // Generar QR cuando cambie el documento
   useEffect(() => {
@@ -47,9 +54,20 @@ export default function PDFGenerator({ documento, tipo }: PDFGeneratorProps) {
     const esBoleta = tipo === 'boleta';
     const esFactura = tipo === 'factura';
     const esGuia = tipo === 'guia';
-    
+
     const doc = documento as any;
     const items = doc.items || [];
+    const logoUrl = `${window.location.origin}/img/logo_oficial.png`;
+
+    // Datos de empresa: prioriza sunat_config (editado en Configuración) sobre el fallback hardcodeado
+    const empresa = {
+      razonSocial: empresaConfig?.razon_social || EMPRESA_DATA.razonSocial,
+      ruc:         empresaConfig?.ruc          || EMPRESA_DATA.ruc,
+      direccion:   empresaConfig?.address      || EMPRESA_DATA.direccion,
+      distrito:    empresaConfig?.distrito     || EMPRESA_DATA.distrito,
+      provincia:   empresaConfig?.provincia    || EMPRESA_DATA.provincia,
+      departamento:empresaConfig?.departamento || EMPRESA_DATA.departamento,
+    };
     
     let html = `
     <!DOCTYPE html>
@@ -81,13 +99,15 @@ export default function PDFGenerator({ documento, tipo }: PDFGeneratorProps) {
           margin-bottom: 15px;
         }
         .empresa-info { flex: 1; }
-        .empresa-info h1 { 
-          font-size: 16px; 
-          font-weight: bold; 
+        .empresa-info h1 {
+          font-size: 16px;
+          font-weight: bold;
           margin: 0 0 5px 0;
           color: #000;
         }
         .empresa-info p { margin: 2px 0; }
+        .empresa-logo { width: 64px; height: 64px; object-fit: contain; margin-right: 12px; }
+        .empresa-header { display: flex; align-items: center; }
         .documento-info {
           border: 1px solid #333;
           padding: 10px;
@@ -176,10 +196,15 @@ export default function PDFGenerator({ documento, tipo }: PDFGeneratorProps) {
       <div class="documento">
         <div class="header">
           <div class="empresa-info">
-            <h1>${EMPRESA_DATA.razonSocial}</h1>
-            <p><strong>RUC:</strong> ${EMPRESA_DATA.ruc}</p>
-            <p>${EMPRESA_DATA.direccion}</p>
-            <p>${EMPRESA_DATA.departamento} - ${EMPRESA_DATA.provincia} - ${EMPRESA_DATA.distrito}</p>
+            <div class="empresa-header">
+              <img src="${logoUrl}" alt="Maqui Mary" class="empresa-logo" />
+              <div>
+                <h1>${empresa.razonSocial}</h1>
+                <p><strong>RUC:</strong> ${empresa.ruc}</p>
+                <p>${empresa.direccion}</p>
+                <p>${empresa.departamento} - ${empresa.provincia} - ${empresa.distrito}</p>
+              </div>
+            </div>
           </div>
           <div class="documento-info">
             <h2>${esBoleta ? 'BOLETA ELECTRÓNICA' : esFactura ? 'FACTURA ELECTRÓNICA' : 'GUÍA DE REMISIÓN'}</h2>
@@ -307,7 +332,8 @@ export default function PDFGenerator({ documento, tipo }: PDFGeneratorProps) {
         </div>
         
         <div class="footer">
-          <p>${EMPRESA_DATA.razonSocial} - RUC ${EMPRESA_DATA.ruc}</p>
+          <img src="${logoUrl}" alt="Maqui Mary" style="width:32px;height:32px;object-fit:contain;margin-bottom:4px;" />
+          <p>${empresa.razonSocial} - RUC ${empresa.ruc}</p>
           <p>Documento generado el ${new Date().toLocaleString('es-PE')}</p>
         </div>
       </div>

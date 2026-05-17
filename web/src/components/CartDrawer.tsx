@@ -10,7 +10,7 @@ import { supabase } from '@/lib/supabase'
 type CartItem = { id: number; name: string; price: number; quantity: number }
 
 export default function CartDrawer({
-  open, onClose, cart, setCart, productosLanding, total, itemsCount,
+  open, onClose, cart, setCart, productosLanding, total, itemsCount, waNumero,
 }: {
   open: boolean
   onClose: () => void
@@ -19,6 +19,7 @@ export default function CartDrawer({
   productosLanding: any[]
   total: number
   itemsCount: number
+  waNumero?: string
 }) {
   const [checkoutStep, setCheckoutStep] = useState<'cart' | 'form' | 'payment' | 'done'>('cart')
   const [customerName, setCustomerName] = useState('')
@@ -85,6 +86,21 @@ export default function CartDrawer({
       setLastOrderId(data.id)
       setCheckoutStep('payment')
       audioRef.current?.checkout?.()
+      // Notificar al negocio por WhatsApp
+      fetch('/api/notify/whatsapp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tipo: 'nuevo_pedido',
+          datos: {
+            cliente: customerName.trim(),
+            telefono: customerPhone.trim(),
+            total: total * 1.18,
+            items: cart,
+            metodo: paymentMethod,
+          },
+        }),
+      }).catch(() => {})
     } catch (e: any) {
       audioRef.current?.error?.()
       toast.error(e.message || 'Error al procesar pedido')
@@ -362,7 +378,7 @@ export default function CartDrawer({
             >
               {!paymentEvidenceUrl && (
                 <a
-                  href={`https://wa.me/51949324254?text=${encodeURIComponent(`¡Hola! Soy ${customerName}. Acabo de pagar S/ ${(total * 1.18).toFixed(2)} por ${paymentMethod}.`)}`}
+                  href={`https://wa.me/${waNumero || '51949324254'}?text=${encodeURIComponent(`¡Hola! Soy ${customerName}. Acabo de pagar S/ ${(total * 1.18).toFixed(2)} por ${paymentMethod}.`)}`}
                   target="_blank"
                   className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-green-500 text-white font-medium text-sm hover:bg-green-600 transition-all hover:shadow-lg active:scale-[0.98]"
                 >
