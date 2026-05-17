@@ -8,7 +8,7 @@
 
 ## Descripción
 
-Ecosistema digital completo para una empresa peruana dedicada a la fabricación y venta de esponjas, estropajos y accesorios de limpieza para el hogar. El sistema abarca una web app con facturación electrónica SUNAT, una app Android nativa, scripts de automatización y assets de marca.
+Plataforma web completa para una empresa peruana dedicada a la fabricación y venta de esponjas, estropajos y accesorios de limpieza para el hogar. Incluye facturación electrónica SUNAT, gestión comercial y diseño responsive para desktop y móvil.
 
 ---
 
@@ -23,8 +23,7 @@ Ecosistema digital completo para una empresa peruana dedicada a la fabricación 
 | **Auth** | Supabase Auth + bcryptjs | — |
 | **Animaciones** | Framer Motion | 12.38 |
 | **Facturación** | xml-crypto + node-forge + jszip | — |
-| **App móvil** | Kotlin + Jetpack Compose + Gradle | — |
-| **Deploy web** | Vercel | — |
+| **Deploy** | Vercel | — |
 
 ---
 
@@ -42,12 +41,6 @@ Ecosistema digital completo para una empresa peruana dedicada a la fabricación 
 | `npm run db:clean` | **PELIGRO:** limpiar base de datos |
 | `npm run db:truncate:dry` | Vista previa de truncado |
 | `npm run db:truncate` | **PELIGRO:** truncar facturas y pedidos |
-
-### Android (desde `FactuMaryApp/`)
-| Comando | Descripción |
-|---|---|
-| `gradlew.bat assembleDebug` | Compilar APK de debug |
-| `gradlew.bat test` | Ejecutar unit tests |
 
 ### General
 | Comando | Descripción |
@@ -96,12 +89,6 @@ Maqui-Mary/
 │   ├── scripts/              ← Scripts Node.js de utilidad
 │   ├── supabase/             ← Migraciones SQL y schemas
 │   ├── package.json
-│   └── ...
-│
-├── FactuMaryApp/             ← App Android (Kotlin + Compose)
-│   ├── app/src/main/java/    ← Código fuente Kotlin
-│   ├── app/src/main/res/     ← Recursos XML, drawables
-│   ├── build.gradle.kts
 │   └── ...
 │
 ├── scripts/                  ← Scripts PowerShell de testing
@@ -157,7 +144,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 - Las rutas API están en `web/src/app/api/` (Route Handlers).
 - La facturación SUNAT genera XML firmado digitalmente con `xml-crypto` + certificado.
 - El onboarding interactivo usa Framer Motion y una mascota esponja animada.
-- La app Android comparte lógica de negocio pero opera offline con Room DB + sync a Supabase.
+- La web es responsive: funciona en desktop y móvil sin app nativa separada.
 - Todo el código debe ser en **español** (comentarios, nombres de funciones cuando aplique, UI).
 
 ---

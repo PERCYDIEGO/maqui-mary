@@ -6,7 +6,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue?logo=typescript)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-06B6D4?logo=tailwindcss)](https://tailwindcss.com/)
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?logo=supabase)](https://supabase.com/)
-[![Android](https://img.shields.io/badge/Android-Kotlin-3DDC84?logo=android)](https://developer.android.com/)
+[![Vercel](https://img.shields.io/badge/Deploy-Vercel-black?logo=vercel)](https://vercel.com/)
 
 ---
 
@@ -18,8 +18,7 @@ El sistema abarca:
 
 | Módulo | Descripción | Tecnología |
 |---|---|---|
-| **Web App** | Facturación electrónica SUNAT, catálogo de productos, gestión de pedidos y panel administrativo | Next.js 14 + TypeScript + Tailwind + Supabase |
-| **App Android** | FactuMaryApp — facturación móvil conectada al sistema central | Kotlin + Gradle |
+| **Web App** | Facturación electrónica SUNAT, catálogo de productos, gestión de pedidos y panel administrativo — responsive desktop y móvil | Next.js 14 + TypeScript + Tailwind + Supabase |
 | **Scripts** | Utilidades de testing, verificación de APIs y mantenimiento de base de datos | PowerShell |
 | **Branding** | Logos, catálogo de productos, medios de pago y assets de marca | PNG / JPG |
 
@@ -35,10 +34,6 @@ Maqui-Mary/
 │   ├── supabase/           # Configuración y migraciones de base de datos
 │   ├── scripts/            # Scripts de utilidad Node.js
 │   ├── package.json
-│   └── ...
-├── FactuMaryApp/           # Aplicación Android nativa
-│   ├── app/                # Código fuente Kotlin
-│   ├── build.gradle.kts
 │   └── ...
 ├── scripts/                # Scripts PowerShell de testing y verificación
 │   ├── check-all-columns.ps1
@@ -64,11 +59,6 @@ Maqui-Mary/
 - 📊 **Dashboard** de ventas y métricas
 - 📱 **Diseño responsive** optimizado para móviles
 
-### App Android (FactuMaryApp)
-- 📷 Escaneo de QR para pagos Yape
-- 🧾 Emisión de comprobantes desde el celular
-- 🔄 Sincronización en tiempo real con la web
-
 ---
 
 ## Cómo Correrlo Localmente
@@ -76,7 +66,6 @@ Maqui-Mary/
 ### Requisitos
 - Node.js 18+
 - PostgreSQL (o cuenta de Supabase)
-- Android Studio (para la app móvil)
 
 ### Web App
 ```bash
@@ -86,13 +75,6 @@ npm install
 npm run dev
 ```
 Abrir [http://localhost:3000](http://localhost:3000)
-
-### App Android
-```bash
-cd FactuMaryApp
-# Abrir en Android Studio y sincronizar Gradle
-# Ejecutar en emulador o dispositivo físico
-```
 
 ---
 
@@ -128,7 +110,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 - ✅ Sistema de facturación SUNAT funcionando
 - ✅ Catálogo de productos con cotizador
 - ✅ Gestión de pedidos con flujo de aprobación
-- 🔄 App Android en desarrollo activo
+- ✅ Diseño responsive — desktop y móvil desde la web
 
 ---
 
