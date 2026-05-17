@@ -52,14 +52,12 @@ export function extractFromPfx(pfxBase64: string, password: string): Certificate
 export function signXml(xmlString: string, certInfo: CertificateInfo): string {
   const { privateKeyPem, certBase64 } = certInfo
 
-  // 1. Generar timestamp ISO
+  // 1. Timestamp ISO para SigningTime
   const signingTime = new Date().toISOString()
 
-  // 2. Crear el nodo xades:QualifyingProperties que se incluirá en ds:Object
-  // SUNAT no estrictamente valida todo XAdES, pero requiere la estructura básica.
-  // El digest de la política es un hash SHA-256 de la URL de la política.
-  const policyIdentifier = 'https://e-factura.sunat.gob.pe/ol-it-wsconscpegem/billService?wsdl'
-  const policyDigest = '3Tl8CoD2Ly3ft9P8w7CqHjsPioXnJZJ8ZY+ED6V6yE=' // SHA-256 base64 del texto de la política SUNAT
+  // 2. URL oficial de la política de firma SUNAT
+  const policyIdentifier = 'https://cpe.sunat.gob.pe/politicaDeSignature'
+  const policyDigest = '3Tl8CoD2Ly3ft9P8w7CqHjsPioXnJZJ8ZY+ED6V6yE='
 
   const qualifyingProps = `<xades:QualifyingProperties xmlns:xades="http://uri.etsi.org/01903/v1.3.2#" Target="#SignatureSP">
     <xades:SignedProperties Id="SignedProperties">
@@ -80,11 +78,10 @@ export function signXml(xmlString: string, certInfo: CertificateInfo): string {
     </xades:SignedProperties>
   </xades:QualifyingProperties>`
 
-  // 3. Firmar con xml-crypto v2.x
+  // 3. Configurar xml-crypto
   const sig = new SignedXml()
   sig.signatureAlgorithm = 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'
 
-  // Referencia al documento completo (URI="")
   sig.addReference(
     "//*[local-name(.)='Invoice']",
     [
@@ -94,57 +91,35 @@ export function signXml(xmlString: string, certInfo: CertificateInfo): string {
     'http://www.w3.org/2001/04/xmlenc#sha256'
   )
 
-  // Referencia a SignedProperties (XAdES)
-  // Nota: xml-crypto v2.x no soporta Type directamente en addReference,
-  // pero podemos agregar la referencia manualmente al XML de firma después.
-  // Para simplificar, SUNAT a veces acepta sin esta referencia si el resto está bien.
-
   sig.signingKey = Buffer.from(privateKeyPem)
 
+  // getKeyInfo devuelve SOLO el contenido de KeyInfo (sin el tag KeyInfo en sí),
+  // porque xml-crypto lo envuelve automáticamente con <ds:KeyInfo>...</ds:KeyInfo>
   sig.keyInfoProvider = {
     getKeyInfo() {
-      return `<ds:KeyInfo><ds:X509Data><ds:X509Certificate>${certBase64}</ds:X509Certificate></ds:X509Data></ds:KeyInfo>`
+      return `<ds:X509Data><ds:X509Certificate>${certBase64}</ds:X509Certificate></ds:X509Data>`
     },
     getKey: () => Buffer.from(''),
   }
 
-  // 4. Calcular firma (computeSignature devuelve el XML completo con la firma insertada al final)
-  sig.computeSignature(xmlString)
-
-  // 5. Obtener solo el nodo Signature
+  // 4. Computar firma con prefijo ds: nativo (xml-crypto v2 soporta { prefix } en runtime)
+  ;(sig as any).computeSignature(xmlString, { prefix: 'ds' })
   let signatureXml = sig.getSignatureXml()
 
-  // 6. Normalizar prefijos: xml-crypto v2.x genera sin prefijo ds:
-  // Agregamos ds: al NOMBRE del tag (no a los atributos) si no tiene prefijo
-  signatureXml = signatureXml.replace(
-    /<([a-zA-Z][a-zA-Z0-9]*)([^>]*)>/g,
-    (match, tagName, attrs) => {
-      if (tagName.includes(':') || tagName === '?xml') return match
-      return `<ds:${tagName}${attrs}>`
-    }
-  )
-  signatureXml = signatureXml.replace(
-    /<\/([a-zA-Z][a-zA-Z0-9]*)>/g,
-    (match, tagName) => {
-      if (tagName.includes(':')) return match
-      return `</ds:${tagName}>`
-    }
-  )
-
-  // 7. Agregar Id="SignatureSP" al nodo raíz de la firma
+  // 5. Agregar Id="SignatureSP" al nodo raíz ds:Signature
   signatureXml = signatureXml.replace(
     /<ds:Signature /,
     '<ds:Signature Id="SignatureSP" '
   )
 
-  // 8. Insertar xades:QualifyingProperties dentro de ds:Object dentro de la firma
+  // 6. Insertar xades:QualifyingProperties dentro de ds:Object
   const objectNode = `<ds:Object>${qualifyingProps}</ds:Object>`
   signatureXml = signatureXml.replace(
     /<\/ds:Signature>/,
     `${objectNode}</ds:Signature>`
   )
 
-  // 8. Insertar la firma completa dentro de <ext:ExtensionContent/>
+  // 7. Insertar la firma completa dentro de <ext:ExtensionContent/>
   const result = xmlString.replace(
     /<ext:ExtensionContent\/>/,
     `<ext:ExtensionContent>${signatureXml}</ext:ExtensionContent>`

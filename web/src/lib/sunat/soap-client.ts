@@ -70,7 +70,7 @@ export async function sendToSunat(
       method: 'POST',
       headers: {
         'Content-Type': 'text/xml; charset=utf-8',
-        'SOAPAction': '',
+        'SOAPAction': '"urn:sendBill"',
       },
       body: soapXml,
     })

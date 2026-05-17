@@ -164,10 +164,15 @@ export async function POST(req: NextRequest) {
           ? 'https://e-gw.sunat.gob.pe/ol-ti-itcpfegem/billService'
           : 'https://e-beta.sunat.gob.pe/ol-ti-itcpfegem-beta/billService'
 
+        // SUNAT requiere que el username sea RUC + usuario SOL (ej. "20606218801MAQUISOL")
+        const solUsername = (config.sol_user || '').startsWith(config.ruc || '')
+          ? config.sol_user
+          : `${config.ruc}${config.sol_user}`
+
         const sunatResult = await sendToSunat(
           filename,
           zipBase64,
-          config.sol_user,
+          solUsername,
           config.sol_password,
           endpoint
         )
@@ -314,21 +319,11 @@ export async function POST(req: NextRequest) {
       sunatError = 'No hay certificado digital ni token OSE configurado. Ve a Configuración > SUNAT.'
     }
 
-    // ─── Generar QR SUNAT (formato pipe oficial) ───
-    // Formato: RUC|TIPO|SERIE|NUMERO|IGV|TOTAL|FECHA|TIPO_DOC_CLIENTE|NUM_DOC_CLIENTE|HASH
-    const tipoDocClienteFinal = isFactura ? '6' : (isBoletaSinId ? '0' : (body.cliente_tipo_doc || '1'))
-    codigoQR = [
-      configRows.ruc || '',
-      tipo_comprobante,
-      serie,
-      String(numero).padStart(8, '0'),
-      igv.toFixed(2),
-      total.toFixed(2),
-      fechaEmision,
-      tipoDocClienteFinal,
-      isBoletaSinId ? '00000000' : (cliente_ruc || '0'),
-      hash,
-    ].join('|')
+    // ─── Generar QR: URL de verificación pública ───
+    // El cliente escanea y ve su comprobante en maquimary.vercel.app/doc/SERIE-NUMERO
+    const numPadded = String(numero).padStart(8, '0')
+    const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://maquimary.vercel.app').replace(/\/$/, '')
+    codigoQR = `${appUrl}/doc/${serie}-${numPadded}`
 
     // ─── Guardar factura en Supabase ───
     // Usamos SOLO columnas que existen en la BD actual

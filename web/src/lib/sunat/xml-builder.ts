@@ -30,14 +30,15 @@ export function generateInvoiceXML(data: SunatInvoiceRequest): string {
   const invoiceId = `${serie}-${String(numero).padStart(8, '0')}`
 
   // ─── Totales de líneas ───
-  const lineExtensionAmount = productos.reduce((s, p) => s + (p.precioUnitario * p.cantidad / 1.18), 0)
-  const taxInclusiveAmount = productos.reduce((s, p) => s + (p.precioUnitario * p.cantidad), 0)
+  // precioUnitario es neto (sin IGV); subtotal y total vienen del caller ya calculados
+  const lineExtensionAmount = subtotal   // suma de (qty × precioUnitario) = base imponible total
+  const taxInclusiveAmount  = total      // total con IGV
 
   // ─── Items XML ───
   const itemsXml = productos.map((p, idx) => {
-    const lineExtension = (p.precioUnitario * p.cantidad) / 1.18
-    const lineIgv = lineExtension * 0.18
-    const lineTotal = p.precioUnitario * p.cantidad
+    const lineExtension = p.precioUnitario * p.cantidad  // valor de venta neto (sin IGV)
+    const lineIgv       = lineExtension * 0.18
+    const precioConIgv  = p.precioUnitario * 1.18        // precio unitario con IGV (catálogo 16 tipo 01)
 
     return `
     <cac:InvoiceLine>
@@ -46,7 +47,7 @@ export function generateInvoiceXML(data: SunatInvoiceRequest): string {
       <cbc:LineExtensionAmount currencyID="${moneda}">${lineExtension.toFixed(2)}</cbc:LineExtensionAmount>
       <cac:PricingReference>
         <cac:AlternativeConditionPrice>
-          <cbc:PriceAmount currencyID="${moneda}">${p.precioUnitario.toFixed(2)}</cbc:PriceAmount>
+          <cbc:PriceAmount currencyID="${moneda}">${precioConIgv.toFixed(2)}</cbc:PriceAmount>
           <cbc:PriceTypeCode listAgencyName="PE:SUNAT" listName="Tipo de Precio" listURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo16">01</cbc:PriceTypeCode>
         </cac:AlternativeConditionPrice>
       </cac:PricingReference>
@@ -74,7 +75,7 @@ export function generateInvoiceXML(data: SunatInvoiceRequest): string {
         </cac:SellersItemIdentification>
       </cac:Item>
       <cac:Price>
-        <cbc:PriceAmount currencyID="${moneda}">${(p.precioUnitario / 1.18).toFixed(4)}</cbc:PriceAmount>
+        <cbc:PriceAmount currencyID="${moneda}">${p.precioUnitario.toFixed(4)}</cbc:PriceAmount>
       </cac:Price>
     </cac:InvoiceLine>`
   }).join('\n')
