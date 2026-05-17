@@ -319,6 +319,13 @@ export default function MusicPlayerPage() {
 
   async function handleSaveTema(tema: string) {
     setTemaActivo(tema)
+    // Aplica al instante en DOM + localStorage para evitar flash al navegar
+    try { localStorage.setItem('maqui-tema', tema) } catch {}
+    if (tema && tema !== 'terracota') {
+      document.documentElement.setAttribute('data-theme', tema)
+    } else {
+      document.documentElement.removeAttribute('data-theme')
+    }
     setTemaSaving(true)
     try {
       const token = await getToken()

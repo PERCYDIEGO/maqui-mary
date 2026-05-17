@@ -7,14 +7,19 @@ export default function ThemeApplier() {
     fetch('/api/config')
       .then(r => r.json())
       .then(data => {
-        const tema = data.settings?.tema
-        if (tema && tema !== 'terracota') {
-          document.documentElement.setAttribute('data-theme', tema)
-        } else {
-          document.documentElement.removeAttribute('data-theme')
-        }
+        const tema = data.settings?.tema ?? 'terracota'
+        applyTheme(tema)
+        try { localStorage.setItem('maqui-tema', tema) } catch {}
       })
       .catch(() => {})
   }, [])
   return null
+}
+
+export function applyTheme(tema: string) {
+  if (tema && tema !== 'terracota') {
+    document.documentElement.setAttribute('data-theme', tema)
+  } else {
+    document.documentElement.removeAttribute('data-theme')
+  }
 }

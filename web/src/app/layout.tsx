@@ -43,6 +43,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es-PE" className={`${dmSerifDisplay.variable} ${lora.variable} ${nunito.variable}`}>
+      {/* Aplica el tema ANTES del primer paint para evitar flash */}
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: `
+          try {
+            var t = localStorage.getItem('maqui-tema');
+            if (t && t !== 'terracota') document.documentElement.setAttribute('data-theme', t);
+          } catch(e) {}
+        ` }} />
+      </head>
       <body className="font-body antialiased">
         <AppProvider>
           <ThemeApplier />
