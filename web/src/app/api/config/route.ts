@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { verifyAuth } from '@/lib/api-auth'
 
 const DEFAULT_SETTINGS = {
   cintillo_timer_minutos: 5,
@@ -32,7 +33,10 @@ export async function GET() {
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  const user = await verifyAuth(req)
+  if (!user) return NextResponse.json({ ok: false, error: 'No autorizado' }, { status: 401 })
+
   try {
     const body = await req.json()
     const supabase = await getAdminClient()

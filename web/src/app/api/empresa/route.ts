@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { verifyAuth } from '@/lib/api-auth'
 
 const DEFAULTS = {
   whatsapp_clientes: '51916165543',
@@ -39,10 +40,12 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const user = await verifyAuth(req)
+  if (!user) return NextResponse.json({ ok: false, error: 'No autorizado' }, { status: 401 })
+
   try {
     const body = await req.json()
     const sb = adminSb()
-    // Leer config actual para no pisar la config de música
     const { data: actual } = await sb.from('app_config').select('settings').eq('id', 1).single()
     const settings = { ...(actual?.settings || {}), empresa: body }
     const { error } = await sb.from('app_config').upsert(

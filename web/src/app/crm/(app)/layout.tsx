@@ -411,91 +411,62 @@ export default function CRMLayout({
 
   // Verificar autenticación al cargar
   useEffect(() => {
-    mountedRef.current = true
+    mountedRef.current = true;
+    let dataLoaded = false;
 
-    const checkAuth = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
+    const loadUserData = async (userId: string) => {
+      if (!mountedRef.current || dataLoaded) return;
+      dataLoaded = true;
+      startCrmAudio();
+      loadCrmData();
 
-        if (!session) {
-          router.push('/crm/login');
-          return;
-        }
+      const [profileResult, countResult] = await Promise.allSettled([
+        supabase.from('profiles').select('role, full_name, alias').eq('id', userId).single(),
+        supabase.from('facturas').select('id', { count: 'exact', head: true }).eq('status', 'pending').or('origen.eq.web,payment_method.in.(yape,plin)'),
+      ]);
 
-        if (!session.user) {
-          setIsAuthenticated(false);
-          return;
-        }
+      if (!mountedRef.current) return;
 
-        setIsAuthenticated(true);
-        setUserId(session.user.id);
-        startCrmAudio();
-        loadCrmData();
-
-        // Perfil y conteo de pedidos en paralelo
-        const [profileResult, countResult] = await Promise.allSettled([
-          supabase.from('profiles').select('role, full_name, alias').eq('id', session.user.id).single(),
-          supabase.from('facturas').select('id', { count: 'exact', head: true }).eq('status', 'pending').or('origen.eq.web,payment_method.in.(yape,plin)'),
-        ]);
-
-        if (!mountedRef.current) return;
-
-        if (profileResult.status === 'fulfilled') {
-          const profile = profileResult.value.data;
-          setUserName(profile?.full_name || profile?.alias || '');
-          const rol = (profile?.role as string) || '';
-          if (rol === 'admin' || rol === 'superusuario') setUserRole('admin');
-          else if (rol === 'almacen' || rol === 'visor') setUserRole('almacen');
-          else setUserRole('vendedor');
-        } else {
-          setUserRole('vendedor');
-        }
-
-        if (countResult.status === 'fulfilled') {
-          setPendingOrders(countResult.value.count || 0);
-        }
-        // Liberar loading después de tener rol — evita render con userRole=null
-        if (mountedRef.current) setLoading(false);
-      } catch (error) {
-        console.error('Error verificando auth:', error);
-        setAuthError(true);
-      } finally {
-        if (mountedRef.current) setLoading(false);
+      if (profileResult.status === 'fulfilled') {
+        const profile = profileResult.value.data;
+        setUserName(profile?.full_name || profile?.alias || '');
+        const rol = (profile?.role as string) || '';
+        if (rol === 'admin' || rol === 'superusuario') setUserRole('admin');
+        else if (rol === 'almacen' || rol === 'visor') setUserRole('almacen');
+        else setUserRole('vendedor');
+      } else {
+        setUserRole('vendedor');
       }
+
+      if (countResult.status === 'fulfilled') {
+        setPendingOrders(countResult.value.count || 0);
+      }
+
+      if (mountedRef.current) setLoading(false);
     };
 
-    checkAuth();
-
-    // Escuchar cambios en la autenticación
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mountedRef.current) return;
-      if (event === 'SIGNED_IN' && session) {
-        setIsAuthenticated(true);
-        setUserId(session.user.id);
 
-        const [profileResult, countResult] = await Promise.allSettled([
-          supabase.from('profiles').select('role, full_name, alias').eq('id', session.user.id).single(),
-          supabase.from('facturas').select('id', { count: 'exact', head: true }).eq('status', 'pending').or('origen.eq.web,payment_method.in.(yape,plin)'),
-        ]);
-        if (!mountedRef.current) return;
-
-        if (profileResult.status === 'fulfilled') {
-          const profile = profileResult.value.data;
-          setUserName(profile?.full_name || profile?.alias || '');
-          const rol = (profile?.role as string) || '';
-          if (rol === 'admin' || rol === 'superusuario') setUserRole('admin');
-          else if (rol === 'almacen' || rol === 'visor') setUserRole('almacen');
-          else setUserRole('vendedor');
-        } else {
-          setUserRole('vendedor');
+      try {
+        if (session) {
+          setIsAuthenticated(true);
+          setUserId(session.user.id);
+          // INITIAL_SESSION = F5/primera carga | SIGNED_IN = post-login
+          if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
+            await loadUserData(session.user.id);
+          }
+        } else if (event === 'SIGNED_OUT' || event === 'INITIAL_SESSION') {
+          // Sin sesión → login
+          setIsAuthenticated(false);
+          if (mountedRef.current) {
+            setLoading(false);
+            router.push('/crm/login');
+          }
         }
-        if (countResult.status === 'fulfilled') {
-          setPendingOrders(countResult.value.count || 0);
-        }
-        if (mountedRef.current) setLoading(false);
-      } else if (event === 'SIGNED_OUT' || !session) {
-        setIsAuthenticated(false);
-        if (mountedRef.current) router.push('/crm/login');
+      } catch (error) {
+        console.error('Error en auth:', error);
+        if (mountedRef.current) { setAuthError(true); setLoading(false); }
       }
     });
 

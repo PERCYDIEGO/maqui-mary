@@ -1,6 +1,6 @@
 'use client'
 
-import { Package, Search, AlertTriangle, Plus, History, X, Pencil } from 'lucide-react'
+import { Package, Search, AlertTriangle, Plus, History, X, Pencil, RotateCcw } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { Producto } from '@/types'
@@ -41,6 +41,13 @@ export default function InventarioPage() {
   const [editMotivo, setEditMotivo] = useState('')
   const [editSaving, setEditSaving] = useState(false)
 
+  // Modal ajuste manual de stock
+  const [showAjuste, setShowAjuste] = useState(false)
+  const [ajusteProducto, setAjusteProducto] = useState<Producto | null>(null)
+  const [ajusteStockReal, setAjusteStockReal] = useState(0)
+  const [ajusteMotivo, setAjusteMotivo] = useState('')
+  const [ajusteSaving, setAjusteSaving] = useState(false)
+
   useEffect(() => { loadData() }, [])
 
   async function loadData() {
@@ -61,13 +68,11 @@ export default function InventarioPage() {
       }).eq('id', movProducto.id)
       if (updErr) throw updErr
 
-      const { data: { user } } = await supabase.auth.getUser()
       const { error: movErr } = await supabase.from('movimientos_stock').insert({
         producto_id: movProducto.id,
         tipo: 'entrada',
         cantidad: movCantidad,
         motivo: movMotivo || 'Lote de producción / compra',
-        created_by: user?.id ?? null,
       })
       if (movErr) throw movErr
 
@@ -77,6 +82,38 @@ export default function InventarioPage() {
     } catch (err: any) {
       toast.error(err.message || 'Error al registrar entrada')
     } finally { setSaving(false) }
+  }
+
+  async function handleAjusteStock(e: React.FormEvent) {
+    e.preventDefault()
+    if (!ajusteProducto || ajusteStockReal < 0) { toast.error('Stock inválido'); return }
+    setAjusteSaving(true)
+    try {
+      const stockActual = ajusteProducto.stock || 0
+      const diferencia = ajusteStockReal - stockActual
+      if (diferencia === 0) {
+        toast.success('El stock ya está en ese valor')
+        setShowAjuste(false); return
+      }
+
+      const { error: updErr } = await supabase
+        .from('productos').update({ stock: ajusteStockReal }).eq('id', ajusteProducto.id)
+      if (updErr) throw updErr
+
+      const { error: movErr } = await supabase.from('movimientos_stock').insert({
+        producto_id: ajusteProducto.id,
+        tipo: diferencia > 0 ? 'entrada' : 'salida',
+        cantidad: Math.abs(diferencia),
+        motivo: ajusteMotivo || `Ajuste manual: stock corregido de ${stockActual} a ${ajusteStockReal}`,
+      })
+      if (movErr) throw movErr
+
+      toast.success(`Stock ajustado: ${stockActual} → ${ajusteStockReal} ✅`)
+      setShowAjuste(false); setAjusteMotivo('')
+      loadData()
+    } catch (err: any) {
+      toast.error(err.message || 'Error al ajustar stock')
+    } finally { setAjusteSaving(false) }
   }
 
   async function handleEditEntrada(e: React.FormEvent) {
@@ -260,6 +297,13 @@ export default function InventarioPage() {
                     <Plus size={15} />
                   </button>
                   <button
+                    onClick={() => { setAjusteProducto(p); setAjusteStockReal(p.stock || 0); setShowAjuste(true) }}
+                    className="p-2 rounded-lg bg-amber-100 text-amber-600 hover:bg-amber-200 transition-colors"
+                    title="Ajustar stock manualmente"
+                  >
+                    <RotateCcw size={15} />
+                  </button>
+                  <button
                     onClick={() => showHistory === p.id ? setShowHistory(null) : loadHistory(p.id)}
                     className="p-2 rounded-lg bg-primary-100 text-primary-600 hover:bg-primary-200 transition-colors"
                     title="Historial de entradas"
@@ -420,6 +464,64 @@ export default function InventarioPage() {
                 className="w-full btn-primary py-3 disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {editSaving ? 'Guardando...' : <><Pencil size={16} /> Guardar corrección</>}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: ajuste manual de stock */}
+      {showAjuste && ajusteProducto && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/50" onClick={() => setShowAjuste(false)} />
+          <div className="relative bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl">
+            <button onClick={() => setShowAjuste(false)} className="absolute top-4 right-4 text-primary-400 hover:text-primary-600">
+              <X size={20} />
+            </button>
+            <h2 className="font-heading text-xl font-bold text-primary-800 mb-2">Ajustar stock manual</h2>
+            <p className="text-sm text-primary-500 mb-1">{ajusteProducto.codigo} — {ajusteProducto.name}</p>
+            <p className="text-sm text-primary-600 mb-1">
+              Stock actual registrado: <strong>{ajusteProducto.stock || 0}</strong> unidades
+            </p>
+            <div className="mb-4 p-3 rounded-xl bg-amber-50 border border-amber-100 text-xs text-amber-800">
+              Ingresa el stock <strong>real/correcto</strong>. El sistema calculará la diferencia automáticamente.
+            </div>
+            <form onSubmit={handleAjusteStock} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-primary-700 mb-1">Stock real (cantidad correcta)</label>
+                <input
+                  type="number"
+                  min="0"
+                  required
+                  value={ajusteStockReal}
+                  onChange={e => setAjusteStockReal(parseInt(e.target.value) || 0)}
+                  className="input-field"
+                  autoFocus
+                />
+                {(ajusteProducto.stock || 0) !== ajusteStockReal && (
+                  <p className={`text-xs mt-1 font-medium ${ajusteStockReal > (ajusteProducto.stock || 0) ? 'text-green-600' : 'text-red-500'}`}>
+                    {ajusteStockReal > (ajusteProducto.stock || 0)
+                      ? `+${ajusteStockReal - (ajusteProducto.stock || 0)} unidades (aumento)`
+                      : `${ajusteStockReal - (ajusteProducto.stock || 0)} unidades (reducción)`}
+                  </p>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-primary-700 mb-1">Motivo del ajuste</label>
+                <input
+                  type="text"
+                  value={ajusteMotivo}
+                  onChange={e => setAjusteMotivo(e.target.value)}
+                  placeholder="Ej: Error de conteo, inventario físico..."
+                  className="input-field"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={ajusteSaving}
+                className="w-full btn-primary py-3 disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {ajusteSaving ? 'Ajustando...' : <><RotateCcw size={16} /> Ajustar stock</>}
               </button>
             </form>
           </div>

@@ -64,17 +64,23 @@ export default function ClientesPage() {
 
   async function loadClientes() {
     setLoading(true)
-    const { data, error } = await supabase
-      .from('clientes')
-      .select('*')
-      .order('name')
-    if (error) {
+    try {
+      const { data, error } = await supabase
+        .from('clientes')
+        .select('*')
+        .order('name')
+      if (error) {
+        toast.error('Error al cargar clientes')
+      } else if (data) {
+        setClientes(data)
+        try { localStorage.setItem('mm_clientes_cache', JSON.stringify(data)) } catch {}
+      }
+    } catch (err) {
+      console.error('Error en loadClientes:', err)
       toast.error('Error al cargar clientes')
-    } else if (data) {
-      setClientes(data)
-      try { localStorage.setItem('mm_clientes_cache', JSON.stringify(data)) } catch {}
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   async function handleSubmit(e: React.FormEvent) {

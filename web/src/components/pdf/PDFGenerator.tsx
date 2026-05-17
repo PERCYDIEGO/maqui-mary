@@ -5,12 +5,14 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Download, Printer, FileText } from 'lucide-react';
 import { Boleta, Factura, GuiaRemision, DocumentoBase, EMPRESA_DATA } from '@/types/documentos';
 import { formatearMoneda, formatearNumeroDocumento } from '@/lib/calculos';
 import { supabase } from '@/lib/supabase';
 import QRCode from 'qrcode';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 import toast from 'react-hot-toast';
 
 interface PDFGeneratorProps {
@@ -22,6 +24,7 @@ export default function PDFGenerator({ documento, tipo }: PDFGeneratorProps) {
   const [generando, setGenerando] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [empresaConfig, setEmpresaConfig] = useState<any>(null);
+  const printRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     supabase.from('sunat_config').select('*').eq('id', 1).single()
@@ -348,16 +351,45 @@ export default function PDFGenerator({ documento, tipo }: PDFGeneratorProps) {
     setGenerando(true);
     try {
       const html = generarContenidoHTML();
-      const ventana = window.open('', '_blank');
-      if (ventana) {
-        ventana.document.write(html);
-        ventana.document.close();
-        ventana.focus();
-        setTimeout(() => {
-          ventana.print();
-        }, 500);
+      const container = document.createElement('div');
+      container.innerHTML = html;
+      container.style.position = 'fixed';
+      container.style.left = '-9999px';
+      container.style.top = '0';
+      container.style.width = '210mm';
+      container.style.background = 'white';
+      document.body.appendChild(container);
+
+      const canvas = await html2canvas(container, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        width: 794,
+        height: container.scrollHeight,
+      });
+      document.body.removeChild(container);
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfW = 210;
+      const pdfH = 297;
+      const imgW = pdfW;
+      const imgH = (canvas.height * pdfW) / canvas.width;
+
+      let heightLeft = imgH;
+      let position = 0;
+      pdf.addImage(imgData, 'PNG', 0, position, imgW, imgH);
+      heightLeft -= pdfH;
+      while (heightLeft > 0) {
+        position -= pdfH;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgW, imgH);
+        heightLeft -= pdfH;
       }
-      toast.success('PDF generado correctamente');
+
+      const nombre = `${documento.numeroCompleto || 'documento'}.pdf`;
+      pdf.save(nombre);
+      toast.success('PDF descargado correctamente');
     } catch (error) {
       toast.error('Error al generar PDF');
     } finally {

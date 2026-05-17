@@ -25,6 +25,7 @@ interface DocumentoPendiente {
   items?: any[];
   igvTotal?: number;
   operacionGravada?: number;
+  createdBy?: string;
   enviadoPor?: string;
   enviadoAt?: Date;
 }
@@ -334,10 +335,10 @@ export default function SunatPage() {
                         {' • '}
                         {new Date(doc.fechaEmision).toLocaleDateString('es-PE')}
                       </p>
-                      {(doc as any).createdBy && userMap[(doc as any).createdBy] && (
+                      {doc.createdBy && userMap[doc.createdBy] && (
                         <p className="text-xs text-ink-400 mt-0.5 flex items-center gap-1">
                           <User className="w-3 h-3" />
-                          Generado por: {userMap[(doc as any).createdBy]}
+                          Generado por: {userMap[doc.createdBy]}
                         </p>
                       )}
                     </div>
@@ -418,10 +419,10 @@ export default function SunatPage() {
                         {getEstadoBadge(doc.estado)}
                       </div>
                       <p className="text-sm text-ink-600 mt-1">{doc.cliente.nombre}</p>
-                      {(doc as any).createdBy && userMap[(doc as any).createdBy] && (
+                      {doc.createdBy && userMap[doc.createdBy] && (
                         <p className="text-xs text-ink-400 mt-0.5 flex items-center gap-1">
                           <User className="w-3 h-3" />
-                          Generado por: {userMap[(doc as any).createdBy]}
+                          Generado por: {userMap[doc.createdBy]}
                         </p>
                       )}
                       {doc.enviadoPor && userMap[doc.enviadoPor] && (
@@ -610,6 +611,15 @@ export default function SunatPage() {
                       <span className="text-ink-500">Ítems:</span>
                       <p className="font-medium text-ink-800">{vistaPrevia.items?.length || 0}</p>
                     </div>
+                    {vistaPrevia.createdBy && userMap[vistaPrevia.createdBy] && (
+                      <div>
+                        <span className="text-ink-500">Generado por:</span>
+                        <p className="font-medium text-ink-800 flex items-center gap-1">
+                          <User className="w-3.5 h-3.5 text-ink-400" />
+                          {userMap[vistaPrevia.createdBy]}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
 

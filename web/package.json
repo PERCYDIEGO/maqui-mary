@@ -12,7 +12,9 @@
     "db:clean:dry": "node scripts/clean-database.mjs",
     "db:truncate": "node scripts/truncate-facturas-pedidos.mjs --confirm",
     "db:truncate:dry": "node scripts/truncate-facturas-pedidos.mjs",
-    "db:status": "node scripts/check-db-status.mjs"
+    "db:status": "node scripts/check-db-status.mjs",
+    "db:reset": "node scripts/reset-database.mjs",
+    "db:reset:confirm": "node scripts/reset-database.mjs --confirm"
   },
   "dependencies": {
     "@supabase/ssr": "^0.1.0",

@@ -203,21 +203,22 @@ export async function POST(req: NextRequest) {
         const issueDate = now.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-')
 
         const oseItems = items.map((it: any) => {
-          const unitValue = it.unit_price / 1.18
-          const itemSubtotal = unitValue * it.quantity
+          const valorSinIgv = it.unit_price
+          const precioConIgv = valorSinIgv * 1.18
+          const itemSubtotal = valorSinIgv * it.quantity
           const itemIgv = itemSubtotal * 0.18
           return {
             unidad_de_medida: 'NIU',
             codigo: it.codigo || '',
             descripcion: it.description,
             cantidad: it.quantity,
-            valor_unitario: parseFloat(unitValue.toFixed(4)),
-            precio_unitario: parseFloat(it.unit_price.toFixed(2)),
+            valor_unitario: parseFloat(valorSinIgv.toFixed(4)),
+            precio_unitario: parseFloat(precioConIgv.toFixed(2)),
             descuento: '',
             subtotal: parseFloat(itemSubtotal.toFixed(2)),
             tipo_de_igv: 1,
             igv: parseFloat(itemIgv.toFixed(2)),
-            total: parseFloat((it.quantity * it.unit_price).toFixed(2)),
+            total: parseFloat((it.quantity * precioConIgv).toFixed(2)),
             anticipo_regularizacion: '',
             anticipo_documento_serie: '',
             anticipo_documento_numero: ''
@@ -230,7 +231,7 @@ export async function POST(req: NextRequest) {
           serie,
           numero,
           sunat_transaction: 1,
-          cliente_tipo_de_documento: isFactura ? '6' : '1',
+          cliente_tipo_de_documento: isFactura ? '6' : (isBoletaSinId ? '0' : (body.cliente_tipo_doc || '1')),
           cliente_numero_de_documento: (cliente_ruc || '').toString(),
           cliente_denominacion: cliente_nombre,
           cliente_direccion: (cliente_direccion || '').toString(),

@@ -132,26 +132,32 @@ export default function DashboardPage() {
   }
 
   async function loadStats() {
-    const now = new Date()
-    const inicioMes = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
-    const inicioMesAnterior = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString()
-    const finMesAnterior = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59).toISOString()
+    const peruOffset = -5 * 60
+    const now = new Date(new Date().getTime() + peruOffset * 60000)
+    const inicioMes = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString()
+    const inicioMesAnterior = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1)).toISOString()
+    const finMesAnterior = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 0, 23, 59, 59)).toISOString()
 
-    const [resMes, resMesAnt, resPendientes, resStock, resClientes] = await Promise.all([
+    const resultados = await Promise.allSettled([
       supabase.from('facturas').select('total, tipo_comprobante').gte('created_at', inicioMes).or('origen.neq.web,origen.is.null'),
       supabase.from('facturas').select('total').gte('created_at', inicioMesAnterior).lte('created_at', finMesAnterior).or('origen.neq.web,origen.is.null'),
-      supabase.from('facturas').select('id', { count: 'exact' }).eq('status', 'pending').or('origen.eq.web,payment_method.in.(yape,plin)'),
-      supabase.from('productos').select('id', { count: 'exact' }).lt('stock', 20),
+      supabase.from('facturas').select('id', { count: 'exact' }).eq('origen', 'web').eq('status', 'pending'),
+      supabase.from('productos').select('id', { count: 'exact' }).lt('stock', 50),
       supabase.from('clientes').select('id', { count: 'exact' }),
     ])
 
-    const ingresosMes = (resMes.data || []).reduce((s, f) => s + Number(f.total || 0), 0)
-    const ingresosMesAnt = (resMesAnt.data || []).reduce((s, f) => s + Number(f.total || 0), 0)
-    const trend = ingresosMesAnt > 0 ? Math.round(((ingresosMes - ingresosMesAnt) / ingresosMesAnt) * 100) : 0
+    const resMes = resultados[0].status === 'fulfilled' ? resultados[0].value : { data: [] }
+    const resMesAnt = resultados[1].status === 'fulfilled' ? resultados[1].value : { data: [] }
+    const resPendientes = resultados[2].status === 'fulfilled' ? resultados[2].value : { count: 0 }
+    const resStock = resultados[3].status === 'fulfilled' ? resultados[3].value : { count: 0 }
+    const resClientes = resultados[4].status === 'fulfilled' ? resultados[4].value : { count: 0 }
+
+    const ingresosMes = (resMes.data || []).reduce((s: number, f: any) => s + Number(f.total || 0), 0)
+    const ingresosMesAntVal = (resMesAnt.data || []).reduce((s: number, f: any) => s + Number(f.total || 0), 0)
 
     setStats({
       ingresosMes,
-      ingresosMesAnterior: ingresosMesAnt,
+      ingresosMesAnterior: ingresosMesAntVal,
       documentosMes: resMes.data?.length || 0,
       pedidosPendientes: resPendientes.count || 0,
       stockAlertas: resStock.count || 0,
@@ -200,7 +206,7 @@ export default function DashboardPage() {
 
   async function loadPedidosRecientes() {
     const { data } = await supabase.from('facturas').select('id, cliente_nombre, total, payment_method, created_at, status')
-      .or('origen.eq.web,payment_method.in.(yape,plin)').eq('status', 'pending').order('created_at', { ascending: false }).limit(4)
+      .eq('origen', 'web').eq('status', 'pending').order('created_at', { ascending: false }).limit(4)
     if (data) setPedidosRecientes(data)
   }
 

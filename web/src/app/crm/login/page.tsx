@@ -64,6 +64,7 @@ export default function LoginPage() {
         } catch {}
         toast.success('Bienvenido')
         router.replace('/crm')
+        router.refresh()
       }
     } catch (err: any) {
       if (!window.navigator.onLine) {

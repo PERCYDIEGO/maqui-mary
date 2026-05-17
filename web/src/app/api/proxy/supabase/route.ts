@@ -2,9 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 
+const ALLOWED_PREFIXES = ['/rest/v1/', '/auth/v1/']
+
 async function handler(req: NextRequest) {
   const path = req.nextUrl.searchParams.get('path')
   if (!path) return NextResponse.json({ error: 'Missing path' }, { status: 400 })
+
+  const allowed = ALLOWED_PREFIXES.some(p => path.startsWith(p))
+  if (!allowed) {
+    return NextResponse.json({ error: 'Access denied' }, { status: 403 })
+  }
 
   const targetUrl = `${supabaseUrl}${path}`
   const body = req.method !== 'GET' && req.method !== 'HEAD' ? await req.text() : undefined
