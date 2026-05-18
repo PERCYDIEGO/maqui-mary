@@ -22,11 +22,13 @@ export default function FacturasPage() {
   const { facturas } = useApp();
   const [busqueda, setBusqueda] = useState('');
 
-  const facturasFiltradas = facturas.filter(factura => 
-    factura.numeroCompleto.toLowerCase().includes(busqueda.toLowerCase()) ||
-    factura.cliente.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-    factura.cliente.ruc?.includes(busqueda)
-  );
+  const facturasFiltradas = facturas
+    .filter(factura =>
+      factura.numeroCompleto.toLowerCase().includes(busqueda.toLowerCase()) ||
+      factura.cliente.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
+      factura.cliente.ruc?.includes(busqueda)
+    )
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   return (
     <div className="space-y-6">
@@ -119,8 +121,9 @@ export default function FacturasPage() {
                         {factura.formaPago === 'contado' ? 'Contado' : 'Crédito'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-slate-600">
-                      {factura.fechaEmision.toLocaleDateString('es-PE')}
+                    <td className="px-6 py-4 text-slate-600 text-sm">
+                      <span className="block">{new Date(factura.createdAt).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                      <span className="text-slate-400 text-xs">{new Date(factura.createdAt).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}</span>
                     </td>
                     <td className="px-6 py-4 text-right font-semibold text-slate-800">
                       {formatearMoneda(factura.importeTotal, factura.moneda)}

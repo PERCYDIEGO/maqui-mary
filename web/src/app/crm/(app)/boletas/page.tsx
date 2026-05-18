@@ -23,11 +23,13 @@ export default function BoletasPage() {
   const [busqueda, setBusqueda] = useState('');
 
   // Filtrar boletas
-  const boletasFiltradas = boletas.filter(boleta => 
-    boleta.numeroCompleto.toLowerCase().includes(busqueda.toLowerCase()) ||
-    boleta.cliente.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-    boleta.cliente.dni?.includes(busqueda)
-  );
+  const boletasFiltradas = boletas
+    .filter(boleta =>
+      boleta.numeroCompleto.toLowerCase().includes(busqueda.toLowerCase()) ||
+      boleta.cliente.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
+      boleta.cliente.dni?.includes(busqueda)
+    )
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   return (
     <div className="space-y-6">
@@ -132,12 +134,9 @@ export default function BoletasPage() {
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-slate-600">
-                      {boleta.fechaEmision.toLocaleDateString('es-PE', {
-                        day: '2-digit',
-                        month: 'short',
-                        year: 'numeric',
-                      })}
+                    <td className="px-6 py-4 text-slate-600 text-sm">
+                      <span className="block">{new Date(boleta.createdAt).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                      <span className="text-slate-400 text-xs">{new Date(boleta.createdAt).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}</span>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <span className="font-semibold text-slate-800">

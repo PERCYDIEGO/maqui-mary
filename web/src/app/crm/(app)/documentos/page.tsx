@@ -39,11 +39,13 @@ export default function DocumentosPage() {
     }
   };
 
-  const documentos = getDocumentos().filter((doc: any) => {
-    const termino = busqueda.toLowerCase();
-    const clienteNombre = doc.cliente?.nombre || doc.destinatarioNombre || '';
-    return doc.numeroCompleto.toLowerCase().includes(termino) || clienteNombre.toLowerCase().includes(termino);
-  });
+  const documentos = getDocumentos()
+    .filter((doc: any) => {
+      const termino = busqueda.toLowerCase();
+      const clienteNombre = doc.cliente?.nombre || doc.destinatarioNombre || '';
+      return doc.numeroCompleto.toLowerCase().includes(termino) || clienteNombre.toLowerCase().includes(termino);
+    })
+    .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   const tabConfig = tabs.find(t => t.id === tabActiva)!;
   const colors = colorClasses[tabConfig.color];
@@ -139,7 +141,10 @@ export default function DocumentosPage() {
                     </td>
                     {tabActiva === 'facturas' && <td className="px-6 py-4"><span className={`px-2 py-1 rounded-lg text-xs font-medium ${doc.formaPago === 'contado' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>{doc.formaPago === 'contado' ? 'Contado' : 'Crédito'}</span></td>}
                     {tabActiva === 'guias' && <td className="px-6 py-4 capitalize text-ink-600">{doc.motivoTraslado?.replace(/_/g, ' ')}</td>}
-                    <td className="px-6 py-4 text-ink-600">{doc.fechaEmision?.toLocaleDateString('es-PE')}</td>
+                    <td className="px-6 py-4 text-ink-600 text-sm">
+                      <span className="block">{new Date(doc.createdAt).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                      <span className="text-ink-400 text-xs">{new Date(doc.createdAt).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}</span>
+                    </td>
                     {tabActiva !== 'guias' && <td className="px-6 py-4 text-right font-semibold text-ink-800">{formatearMoneda(doc.importeTotal, doc.moneda)}</td>}
                     <td className="px-6 py-4"><div className="flex justify-center"><PDFGenerator documento={doc} tipo={tabActiva.slice(0, -1) as any} /></div></td>
                   </tr>
