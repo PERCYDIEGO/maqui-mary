@@ -19,6 +19,7 @@ interface DocumentoPendiente {
   numero: number;
   cliente: { nombre: string; dni?: string; ruc?: string; direccion?: string };
   fechaEmision: Date;
+  createdAt: Date;
   importeTotal: number;
   moneda: 'PEN' | 'USD';
   estado: string;
@@ -189,6 +190,9 @@ export default function SunatPage() {
 </Invoice>`;
   };
 
+  const sortDesc = (a: DocumentoPendiente, b: DocumentoPendiente) =>
+    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+
   // Documentos pendientes de envío (borrador o pendiente_envio)
   const documentosPendientes: DocumentoPendiente[] = [
     ...boletas
@@ -197,7 +201,7 @@ export default function SunatPage() {
     ...facturas
       .filter(f => f.estado === 'borrador' || f.estado === 'pendiente_envio')
       .map(f => ({ ...f, tipo: 'factura' as TipoDocumento })),
-  ];
+  ].sort(sortDesc);
 
   // Documentos enviados a SUNAT
   const documentosEnviados: DocumentoPendiente[] = [
@@ -207,7 +211,7 @@ export default function SunatPage() {
     ...facturas
       .filter(f => f.estado === 'enviado' || f.estado === 'aprobado' || f.estado === 'rechazado')
       .map(f => ({ ...f, tipo: 'factura' as TipoDocumento })),
-  ];
+  ].sort(sortDesc);
 
   const handleEnviar = async (doc: DocumentoPendiente) => {
     setProcesando(doc.id);
@@ -333,7 +337,9 @@ export default function SunatPage() {
                       <p className="text-xs text-ink-400">
                         {doc.cliente.dni ? `DNI: ${doc.cliente.dni}` : doc.cliente.ruc ? `RUC: ${doc.cliente.ruc}` : 'Sin documento'}
                         {' • '}
-                        {new Date(doc.fechaEmision).toLocaleDateString('es-PE')}
+                        {new Date(doc.createdAt).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        {' '}
+                        <span className="font-medium">{new Date(doc.createdAt).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}</span>
                       </p>
                       {doc.createdBy && userMap[doc.createdBy] && (
                         <p className="text-xs text-ink-400 mt-0.5 flex items-center gap-1">
@@ -419,6 +425,11 @@ export default function SunatPage() {
                         {getEstadoBadge(doc.estado)}
                       </div>
                       <p className="text-sm text-ink-600 mt-1">{doc.cliente.nombre}</p>
+                      <p className="text-xs text-ink-400 mt-0.5">
+                        {new Date(doc.createdAt).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        {' '}
+                        <span className="font-medium">{new Date(doc.createdAt).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}</span>
+                      </p>
                       {doc.createdBy && userMap[doc.createdBy] && (
                         <p className="text-xs text-ink-400 mt-0.5 flex items-center gap-1">
                           <User className="w-3 h-3" />
@@ -429,7 +440,7 @@ export default function SunatPage() {
                         <p className="text-xs text-ink-400 mt-0.5 flex items-center gap-1">
                           <User className="w-3 h-3" />
                           Enviado por: {userMap[doc.enviadoPor]}
-                          {doc.enviadoAt && ` • ${new Date(doc.enviadoAt).toLocaleString('es-PE')}`}
+                          {doc.enviadoAt && ` • ${new Date(doc.enviadoAt).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })} ${new Date(doc.enviadoAt).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}`}
                         </p>
                       )}
                     </div>
@@ -597,7 +608,11 @@ export default function SunatPage() {
                     </div>
                     <div>
                       <span className="text-ink-500">Fecha:</span>
-                      <p className="font-medium text-ink-800">{new Date(vistaPrevia.fechaEmision).toLocaleDateString('es-PE')}</p>
+                      <p className="font-medium text-ink-800">
+                        {new Date(vistaPrevia.createdAt).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        {' '}
+                        {new Date(vistaPrevia.createdAt).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}
+                      </p>
                     </div>
                     <div>
                       <span className="text-ink-500">Moneda:</span>
