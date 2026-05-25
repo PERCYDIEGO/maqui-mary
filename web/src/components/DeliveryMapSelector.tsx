@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef, useCallback } from 'react'
-import { MapContainer, TileLayer, Marker, useMapEvents, Circle } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 import { Search, MapPin, Package, Loader2, Navigation, Ruler } from 'lucide-react'
@@ -61,9 +61,11 @@ function MapClicker({ onClick }: { onClick: (lat: number, lng: number) => void }
   return null
 }
 
-function MapMover({ center }: { center: [number, number] }) {
-  const map = useMapEvents({})
-  useEffect(() => { map.flyTo(center, 15, { duration: 0.8 }) }, [center])
+function MapFlyController({ target }: { target: [number, number] | null }) {
+  const map = useMap()
+  useEffect(() => {
+    if (target) map.flyTo(target, 16, { duration: 1 })
+  }, [target])
   return null
 }
 
@@ -81,6 +83,7 @@ export default function DeliveryMapSelector({ onConfirm, onCancel }: Props) {
   const [distanciaKm, setDistanciaKm] = useState<number | null>(null)
   const [zonas, setZonas] = useState<ZonaDelivery[]>([])
   const [gettingLocation, setGettingLocation] = useState(false)
+  const [locationError, setLocationError] = useState('')
   const [geocoding, setGeocoding] = useState(false)
   const searchTimer = useRef<ReturnType<typeof setTimeout>>()
   const zonasRef = useRef<ZonaDelivery[]>([])
@@ -172,9 +175,25 @@ export default function DeliveryMapSelector({ onConfirm, onCancel }: Props) {
     calcAndLookup(lat, lng)
   }
 
-  function useMyLocation() {
-    if (!navigator.geolocation) return
+  async function useMyLocation() {
+    if (!navigator.geolocation) {
+      setLocationError('Tu navegador no soporta GPS. Busca tu dirección en el buscador.')
+      return
+    }
+
+    // Verificar estado del permiso antes de intentar
+    if (navigator.permissions) {
+      try {
+        const perm = await navigator.permissions.query({ name: 'geolocation' as PermissionName })
+        if (perm.state === 'denied') {
+          setLocationError('BLOQUEADO_CHROME')
+          return
+        }
+      } catch {}
+    }
+
     setGettingLocation(true)
+    setLocationError('')
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
         const pos: [number, number] = [coords.latitude, coords.longitude]
@@ -183,8 +202,17 @@ export default function DeliveryMapSelector({ onConfirm, onCancel }: Props) {
         reverseGeocode(coords.latitude, coords.longitude)
         setGettingLocation(false)
       },
-      () => setGettingLocation(false),
-      { timeout: 8000 }
+      (err) => {
+        setGettingLocation(false)
+        if (err.code === 1) {
+          setLocationError('BLOQUEADO_CHROME')
+        } else if (err.code === 2) {
+          setLocationError('GPS no disponible en este momento. Activa el GPS en Ajustes del celular y vuelve a intentar, o busca tu dirección arriba.')
+        } else {
+          setLocationError('Tardó demasiado. Busca tu dirección en el campo de búsqueda de arriba o toca el mapa directamente.')
+        }
+      },
+      { timeout: 15000, maximumAge: 0, enableHighAccuracy: true }
     )
   }
 
@@ -223,6 +251,49 @@ export default function DeliveryMapSelector({ onConfirm, onCancel }: Props) {
           <Navigation size={12} />
           {gettingLocation ? 'Obteniendo ubicación...' : 'Usar mi ubicación actual (GPS)'}
         </button>
+        {locationError && (
+          locationError === 'BLOQUEADO_CHROME' ? (
+            <div className="text-xs bg-red-50 border border-red-200 rounded-xl px-3 py-2.5 leading-snug space-y-2">
+              <p className="font-semibold text-red-700">🔒 Ubicación bloqueada en Chrome</p>
+              <p className="text-red-600">Para activarla, elige una opción:</p>
+              <div className="space-y-1 text-red-700">
+                <p><span className="font-medium">Opción 1 —</span> Escribe esto en la barra de Chrome:</p>
+                <code className="block bg-white border border-red-200 rounded px-2 py-1 font-mono text-[10px] text-red-800 select-all">
+                  chrome://settings/content/location
+                </code>
+                <p className="text-[10px] text-red-600">Busca esta página en la lista "Bloqueado" y toca el ícono 🗑️.</p>
+              </div>
+              <div className="space-y-0.5 text-red-700">
+                <p><span className="font-medium">Opción 2 —</span> Desde Ajustes del celular:</p>
+                <p className="text-[10px] text-red-600">Ajustes → Aplicaciones → Chrome → Permisos → Ubicación → Permitir</p>
+              </div>
+              <div className="flex gap-2 pt-0.5">
+                <button
+                  onClick={() => { setLocationError(''); useMyLocation() }}
+                  className="text-xs font-semibold text-white bg-red-600 rounded-lg px-3 py-1.5 hover:bg-red-700"
+                >
+                  ↺ Reintentar GPS
+                </button>
+                <button
+                  onClick={() => setLocationError('')}
+                  className="text-xs font-medium text-red-600 underline py-1.5"
+                >
+                  Buscar dirección manualmente
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-xl px-3 py-2 leading-snug space-y-1.5">
+              <p>⚠️ {locationError}</p>
+              <button
+                onClick={() => { setLocationError(''); useMyLocation() }}
+                className="text-xs font-medium text-red-700 underline"
+              >
+                Reintentar GPS
+              </button>
+            </div>
+          )
+        )}
       </div>
 
       {/* Mapa */}
@@ -237,7 +308,7 @@ export default function DeliveryMapSelector({ onConfirm, onCancel }: Props) {
           {/* Marker del cliente */}
           <DraggableMarker position={position} onMove={moveMarker} />
           <MapClicker onClick={moveMarker} />
-          {flyTo && <MapMover center={flyTo} />}
+          <MapFlyController target={flyTo} />
         </MapContainer>
       </div>
       <p className="text-[10px] text-ink-400 text-center mt-1.5 px-4">

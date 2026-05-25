@@ -141,7 +141,7 @@ create table if not exists configuracion (
   id int primary key default 1,
   company_name text default 'ES PONJAS MAQUI MARY',
   ruc text default '10456789012',
-  address text default 'Calle Las Quebradas Mz E Lote 10, Ate Vitarte',
+  address text default 'PRO. QUINTA AVENIDA MZA. J LOTE. 17-B ASC. GANADEROS PORCINOS SARACO',
   phone text default '(51) 949 446 676',
   series text default 'F001',
   next_number bigint default 1,
@@ -181,12 +181,12 @@ create table if not exists sunat_config (
 
 -- INSERTAR CONFIG POR DEFECTO
 insert into configuracion (id, company_name, ruc, address, phone, series, next_number)
-values (1, 'ES PONJAS MAQUI MARY', '10456789012', 'Calle Las Quebradas Mz E Lote 10, Ate Vitarte', '(51) 949 446 676', 'F001', 1)
+values (1, 'ES PONJAS MAQUI MARY', '10456789012', 'PRO. QUINTA AVENIDA MZA. J LOTE. 17-B ASC. GANADEROS PORCINOS SARACO', '(51) 949 446 676', 'F001', 1)
 on conflict (id) do nothing;
 
 -- INSERTAR SUNAT CONFIG POR DEFECTO
 insert into sunat_config (id, ruc, razon_social, nombre_comercial, address, provincia, departamento, distrito, ubigeo, series_factura, series_boleta)
-values (1, '10456789012', 'ES PONJAS MAQUI MARY', 'MAQUI MARY', 'Calle Las Quebradas Mz E Lote 10, Ate Vitarte', 'LIMA', 'LIMA', 'ATE', '150103', 'F001', 'B001')
+values (1, '10456789012', 'ES PONJAS MAQUI MARY', 'MAQUI MARY', 'PRO. QUINTA AVENIDA MZA. J LOTE. 17-B ASC. GANADEROS PORCINOS SARACO', 'LIMA', 'LIMA', 'LURIGANCHO', '150103', 'F001', 'B001')
 on conflict (id) do nothing;
 
 -- SEED DE PRODUCTOS

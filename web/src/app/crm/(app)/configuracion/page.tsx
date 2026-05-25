@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { Play, Pause, Lock, Unlock, Trash2, Volume2, Save, RotateCcw, Settings, Search, Music, Undo2, Headphones, Sparkles, Eye, EyeOff, RefreshCw, Shield, FileText, Upload, AlertCircle, CheckCircle, Globe, CreditCard, Building2, Hash, MessageCircle, MapPin, Clock, Truck, Plus, Pencil, X, Check, ToggleLeft, ToggleRight } from 'lucide-react'
+import { Play, Pause, Lock, Unlock, Trash2, Volume2, Save, RotateCcw, Settings, Search, Music, Undo2, Headphones, Sparkles, Eye, EyeOff, RefreshCw, Shield, FileText, Upload, AlertCircle, CheckCircle, CreditCard, Building2, Hash, MessageCircle, MapPin, Clock, Truck, Plus, Pencil, X, Check, ToggleLeft, ToggleRight, ChevronDown, FolderOpen, Zap } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-import { audio, TRACK_PRESETS } from '@/lib/audio'
+import { audio, TRACK_PRESETS, TRACK_GROUPS } from '@/lib/audio'
 import toast from 'react-hot-toast'
 
 type ZonaDelivery = {
@@ -17,14 +17,15 @@ type ZonaDelivery = {
 }
 
 type SceneKey = 'landing' | 'crm' | 'login' | 'menu' | 'success'
-type GameFilter = 'all' | 'top-gear' | 'gunbound'
 
 type TrackMeta = { locked: boolean }
+type CustomGroup = { key: string; label: string; emoji: string; ids: string[] }
 type Config = {
   default_tracks: Partial<Record<SceneKey, string>>
   track_volume: number
   track_meta: Record<string, TrackMeta>
   hidden_tracks: string[]
+  custom_groups: CustomGroup[]
 }
 
 const SCENES: { key: SceneKey; label: string; icon: string; desc: string }[] = [
@@ -48,6 +49,7 @@ const DEFAULT_CONFIG: Config = {
     Object.keys(TRACK_PRESETS).map(id => [id, { locked: true }])
   ),
   hidden_tracks: [],
+  custom_groups: [],
 }
 
 export default function MusicPlayerPage() {
@@ -55,24 +57,30 @@ export default function MusicPlayerPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [editor, setEditor] = useState(false)
-  const [filter, setFilter] = useState<GameFilter>('all')
   const [search, setSearch] = useState('')
   const [showHidden, setShowHidden] = useState(false)
   const [firstTime, setFirstTime] = useState(true)
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({})
+  const [newGroupForm, setNewGroupForm] = useState({ open: false, label: '', emoji: '📁' })
+  const [editGroupKey, setEditGroupKey] = useState<string | null>(null)
+  const [editGroupData, setEditGroupData] = useState({ label: '', emoji: '' })
+  const [moveMenu, setMoveMenu] = useState<string | null>(null)
 
   // ─── SUNAT Config State ───
   const [sunatConfig, setSunatConfig] = useState<any>(null)
   const [sunatLoading, setSunatLoading] = useState(true)
   const [sunatSaving, setSunatSaving] = useState(false)
   const [certFile, setCertFile] = useState<File | null>(null)
-  const [activeTab, setActiveTab] = useState<'emisor' | 'certificado' | 'ose' | 'contacto'>('emisor')
+  const [activeTab, setActiveTab] = useState<'emisor' | 'apisunat' | 'contacto'>('emisor')
 
   // ─── Empresa / Contacto State ───
   const [empresaConfig, setEmpresaConfig] = useState({
-    whatsapp_clientes: '',
-    whatsapp_negocio: '',
-    direccion_display: '',
-    horario: '',
+    whatsapp_clientes:    '',
+    whatsapp_negocio:     '',
+    direccion_display:    '',
+    horario:              '',
+    clientes_satisfechos: '12800',
+    fecha_constitucion:   '',
   })
   const [empresaSaving, setEmpresaSaving] = useState(false)
 
@@ -114,10 +122,12 @@ export default function MusicPlayerPage() {
     fetch('/api/empresa').then(r => r.json()).then(data => {
       if (data.ok) {
         setEmpresaConfig({
-          whatsapp_clientes: data.whatsapp_clientes || '',
-          whatsapp_negocio:  data.whatsapp_negocio  || '',
-          direccion_display: data.direccion_display  || '',
-          horario:           data.horario            || '',
+          whatsapp_clientes:    data.whatsapp_clientes    || '',
+          whatsapp_negocio:     data.whatsapp_negocio     || '',
+          direccion_display:    data.direccion_display     || '',
+          horario:              data.horario               || '',
+          clientes_satisfechos: String(data.clientes_satisfechos || '12800'),
+          fecha_constitucion:   data.fecha_constitucion    || '',
         })
       }
     }).catch(() => {})
@@ -128,10 +138,12 @@ export default function MusicPlayerPage() {
     async function loadSunatConfig() {
       try {
         const { data, error } = await supabase.from('sunat_config').select('*').eq('id', 1).single()
-        if (error) throw error
-        setSunatConfig(data || {})
+        // PGRST116 = no rows → config vacía, no es un error fatal
+        if (error && error.code !== 'PGRST116') throw error
+        setSunatConfig(data || { id: 1 })
       } catch (e: any) {
-        toast.error('Error cargando config SUNAT: ' + e.message)
+        setSunatConfig({ id: 1 })
+        toast.error('No se pudo cargar config SUNAT: ' + e.message)
       } finally {
         setSunatLoading(false)
       }
@@ -263,6 +275,7 @@ export default function MusicPlayerPage() {
 
       const payload = {
         ...sunatConfig,
+        id: 1,  // siempre forzar id=1 para upsert correcto
         cert_base64: certBase64,
         updated_at: new Date().toISOString(),
       }
@@ -291,13 +304,32 @@ export default function MusicPlayerPage() {
   const visibleTracks = useMemo(() => {
     return Object.entries(TRACK_PRESETS).filter(([id]) => {
       if (config.hidden_tracks.includes(id)) return false
-      if (filter === 'top-gear' && !id.startsWith('top-gear')) return false
-      if (filter === 'gunbound' && !id.startsWith('gunbound')) return false
       if (search && !id.toLowerCase().includes(search.toLowerCase()) &&
           !TRACK_PRESETS[id].label.toLowerCase().includes(search.toLowerCase())) return false
       return true
     })
-  }, [config.hidden_tracks, filter, search])
+  }, [config.hidden_tracks, search])
+
+  // Auto-expandir grupos que tengan coincidencias al buscar
+  useEffect(() => {
+    if (!search.trim()) return
+    const newOpen: Record<string, boolean> = {}
+    TRACK_GROUPS.forEach(group => {
+      const hasMatch = group.ids.some(id => {
+        if (config.hidden_tracks.includes(id)) return false
+        const term = search.toLowerCase()
+        return id.toLowerCase().includes(term) || TRACK_PRESETS[id]?.label.toLowerCase().includes(term)
+      })
+      if (hasMatch) newOpen[group.key] = true
+    })
+    setOpenGroups(newOpen)
+  }, [search, config.hidden_tracks])
+
+  const tracksInCustomGroups = useMemo(() => {
+    const s = new Set<string>()
+    ;(config.custom_groups || []).forEach(g => g.ids.forEach(id => s.add(id)))
+    return s
+  }, [config.custom_groups])
 
   const hiddenCount = config.hidden_tracks.length
 
@@ -370,6 +402,43 @@ export default function MusicPlayerPage() {
   function restoreAll() {
     setConfig(c => ({ ...c, hidden_tracks: [] }))
     toast.success('Todas las canciones restauradas 🔄')
+  }
+
+  function createCustomGroup() {
+    if (!newGroupForm.label.trim()) return
+    const key = `custom-${Date.now()}`
+    setConfig(c => ({
+      ...c,
+      custom_groups: [...(c.custom_groups || []), { key, label: newGroupForm.label.trim(), emoji: newGroupForm.emoji || '📁', ids: [] }],
+    }))
+    setNewGroupForm({ open: false, label: '', emoji: '📁' })
+    setOpenGroups(p => ({ ...p, [key]: true }))
+  }
+
+  function deleteCustomGroup(key: string) {
+    setConfig(c => ({ ...c, custom_groups: (c.custom_groups || []).filter(g => g.key !== key) }))
+  }
+
+  function saveEditGroup() {
+    if (!editGroupKey || !editGroupData.label.trim()) return
+    setConfig(c => ({
+      ...c,
+      custom_groups: (c.custom_groups || []).map(g =>
+        g.key === editGroupKey ? { ...g, label: editGroupData.label.trim(), emoji: editGroupData.emoji } : g
+      ),
+    }))
+    setEditGroupKey(null)
+  }
+
+  function moveTrackToCustomGroup(trackId: string, targetKey: string | null) {
+    setConfig(c => ({
+      ...c,
+      custom_groups: (c.custom_groups || []).map(g => {
+        if (g.key === targetKey) return { ...g, ids: g.ids.includes(trackId) ? g.ids : [...g.ids, trackId] }
+        return { ...g, ids: g.ids.filter(id => id !== trackId) }
+      }),
+    }))
+    setMoveMenu(null)
   }
 
   function handleGlobalVolume(v: number) {
@@ -450,8 +519,7 @@ export default function MusicPlayerPage() {
             <div className="flex flex-wrap gap-2 mb-6 border-b border-primary-200 pb-1">
               {[
                 { key: 'emisor', label: '🏢 Datos del Emisor', icon: Building2 },
-                { key: 'certificado', label: '🔐 Certificado Digital', icon: Shield },
-                { key: 'ose', label: '🔗 OSE (Nubefact)', icon: Globe },
+                { key: 'apisunat', label: '⚡ APISUNAT.pe', icon: Zap },
                 { key: 'contacto', label: '📞 Contacto & Web', icon: MessageCircle },
               ].map(tab => (
                 <button
@@ -517,7 +585,7 @@ export default function MusicPlayerPage() {
                     value={sunatConfig?.address || ''}
                     onChange={e => updateSunatField('address', e.target.value)}
                     className="input-field w-full"
-                    placeholder="Calle Las Quebradas Mz E Lote 10, Ate Vitarte"
+                    placeholder="PRO. QUINTA AVENIDA MZA. J LOTE. 17-B ASC. GANADEROS PORCINOS SARACO"
                   />
                 </div>
                 <div>
@@ -526,7 +594,7 @@ export default function MusicPlayerPage() {
                     value={sunatConfig?.urbanizacion || ''}
                     onChange={e => updateSunatField('urbanizacion', e.target.value)}
                     className="input-field w-full"
-                    placeholder="LAS QUEBRADAS"
+                    placeholder="GANADEROS PORCINOS SARACO"
                   />
                 </div>
                 <div>
@@ -604,19 +672,40 @@ export default function MusicPlayerPage() {
                     min={1}
                   />
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-primary-700 mb-1">Serie Guía de Remisión</label>
+                  <input
+                    value={sunatConfig?.series_guia || ''}
+                    onChange={e => updateSunatField('series_guia', e.target.value)}
+                    className="input-field w-full"
+                    placeholder="T001"
+                    maxLength={4}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-primary-700 mb-1">Siguiente N° Guía</label>
+                  <input
+                    type="number"
+                    value={sunatConfig?.next_number_guia || 1}
+                    onChange={e => updateSunatField('next_number_guia', parseInt(e.target.value) || 1)}
+                    className="input-field w-full"
+                    min={1}
+                  />
+                </div>
               </div>
             )}
 
-            {/* Tab: Certificado Digital */}
-            {activeTab === 'certificado' && (
+            {/* Tab: APISUNAT.pe */}
+            {activeTab === 'apisunat' && (
               <div className="space-y-5">
-                <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+                <div className="bg-indigo-50 rounded-xl p-4 border border-indigo-100">
                   <div className="flex items-start gap-3">
-                    <AlertCircle size={18} className="text-blue-600 shrink-0 mt-0.5" />
+                    <Zap size={18} className="text-indigo-600 shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-sm font-medium text-blue-800">Emisión directa a SUNAT</p>
-                      <p className="text-xs text-blue-600 mt-1">
-                        Con tu certificado digital (.pfx) y usuario SOL, emitirás comprobantes directamente a SUNAT sin pagar a un OSE intermediario.
+                      <p className="text-sm font-medium text-indigo-800">Emisión vía APISUNAT.pe</p>
+                      <p className="text-xs text-indigo-600 mt-1">
+                        API REST simple, sin XML ni SOAP. Plan Free: 20 comprobantes gratis.
+                        Plan 01: S/8 x 100 comprobantes. Solo necesitas tu token de API.
                       </p>
                     </div>
                   </div>
@@ -624,128 +713,36 @@ export default function MusicPlayerPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-primary-700 mb-2">Certificado Digital (.pfx)</label>
-                    <div className="border-2 border-dashed border-primary-300 rounded-xl p-6 text-center hover:border-accent-gold transition-colors">
-                      <input
-                        type="file"
-                        accept=".pfx,.p12"
-                        onChange={e => setCertFile(e.target.files?.[0] || null)}
-                        className="hidden"
-                        id="cert-upload"
-                      />
-                      <label htmlFor="cert-upload" className="cursor-pointer flex flex-col items-center gap-2">
-                        <Upload size={28} className="text-primary-400" />
-                        <span className="text-sm text-primary-600 font-medium">
-                          {certFile ? certFile.name : sunatConfig?.cert_base64 ? 'Certificado ya cargado ✅' : 'Haz clic para subir tu .pfx'}
-                        </span>
-                        <span className="text-xs text-primary-400">
-                          {certFile ? 'Listo para guardar' : 'Archivo .pfx o .p12'}
-                        </span>
-                      </label>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-primary-700 mb-1">Contraseña del .pfx *</label>
+                    <label className="block text-sm font-medium text-primary-700 mb-1">Token de API *</label>
                     <input
                       type="password"
-                      value={sunatConfig?.cert_password || ''}
-                      onChange={e => updateSunatField('cert_password', e.target.value)}
+                      value={sunatConfig?.apisunat_token || ''}
+                      onChange={e => updateSunatField('apisunat_token', e.target.value)}
                       className="input-field w-full"
-                      placeholder="Contraseña del certificado"
+                      placeholder="Tu token de APISUNAT.pe"
                     />
+                    <p className="text-xs text-primary-400 mt-1">Lo obtienes en app.apisunat.pe → Organizaciones</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary-700 mb-1">Usuario SOL *</label>
-                    <input
-                      value={sunatConfig?.sol_user || ''}
-                      onChange={e => updateSunatField('sol_user', e.target.value)}
+                    <label className="block text-sm font-medium text-primary-700 mb-1">Ambiente</label>
+                    <select
+                      value={sunatConfig?.apisunat_environment || 'sandbox'}
+                      onChange={e => updateSunatField('apisunat_environment', e.target.value)}
                       className="input-field w-full"
-                      placeholder="TUUSUARIOSOL"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-primary-700 mb-1">Clave SOL *</label>
-                    <input
-                      type="password"
-                      value={sunatConfig?.sol_password || ''}
-                      onChange={e => updateSunatField('sol_password', e.target.value)}
-                      className="input-field w-full"
-                      placeholder="Tu clave SOL"
-                    />
+                    >
+                      <option value="sandbox">Sandbox (pruebas)</option>
+                      <option value="produccion">Producción (real)</option>
+                    </select>
                   </div>
                 </div>
 
-                {/* Estado del certificado */}
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-primary-50">
-                  {sunatConfig?.cert_base64 ? (
-                    <>
-                      <CheckCircle size={18} className="text-green-500 shrink-0" />
-                      <div>
-                        <p className="text-sm font-medium text-green-700">Certificado digital configurado</p>
-                        <p className="text-xs text-green-600">Modo: {sunatConfig?.environment === 'produccion' ? 'Producción' : 'Demo/Beta'}</p>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <AlertCircle size={18} className="text-amber-500 shrink-0" />
-                      <p className="text-sm text-amber-700">No hay certificado digital configurado. Sube tu .pfx para activar la emisión directa.</p>
-                    </>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Tab: OSE */}
-            {activeTab === 'ose' && (
-              <div className="space-y-5">
-                <div className="bg-amber-50 rounded-xl p-4 border border-amber-100">
-                  <div className="flex items-start gap-3">
-                    <Globe size={18} className="text-amber-600 shrink-0 mt-0.5" />
+                {sunatConfig?.apisunat_token && (
+                  <div className="flex items-center gap-3 p-3 rounded-xl bg-indigo-50">
+                    <CheckCircle size={18} className="text-indigo-500 shrink-0" />
                     <div>
-                      <p className="text-sm font-medium text-amber-800">Emisión vía OSE (Nubefact)</p>
-                      <p className="text-xs text-amber-600 mt-1">
-                        Si no tienes certificado digital, puedes usar un OSE como Nubefact. Ellos firman y envían a SUNAT por ti. Requiere token de API.
-                      </p>
+                      <p className="text-sm font-medium text-indigo-700">Token APISUNAT.pe configurado ✅</p>
+                      <p className="text-xs text-indigo-500">Ambiente: {sunatConfig?.apisunat_environment === 'produccion' ? 'Producción' : 'Sandbox'}</p>
                     </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-primary-700 mb-1">Token de API (OSE)</label>
-                    <input
-                      type="password"
-                      value={sunatConfig?.ose_token || ''}
-                      onChange={e => updateSunatField('ose_token', e.target.value)}
-                      className="input-field w-full"
-                      placeholder="Token de Nubefact u otro OSE"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-primary-700 mb-1">URL Base</label>
-                    <input
-                      value={sunatConfig?.ose_url || ''}
-                      onChange={e => updateSunatField('ose_url', e.target.value)}
-                      className="input-field w-full"
-                      placeholder="https://api.nubefact.com/api/v1/"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-primary-700 mb-1">Endpoint</label>
-                    <input
-                      value={sunatConfig?.ose_endpoint || ''}
-                      onChange={e => updateSunatField('ose_endpoint', e.target.value)}
-                      className="input-field w-full"
-                      placeholder="943e6f17a99a4339ab7d59306f920555"
-                    />
-                  </div>
-                </div>
-
-                {sunatConfig?.ose_token && (
-                  <div className="flex items-center gap-3 p-3 rounded-xl bg-green-50">
-                    <CheckCircle size={18} className="text-green-500 shrink-0" />
-                    <p className="text-sm text-green-700">Token OSE configurado. Si también tienes certificado digital, se priorizará la emisión directa.</p>
                   </div>
                 )}
               </div>
@@ -775,7 +772,7 @@ export default function MusicPlayerPage() {
                       value={empresaConfig.whatsapp_clientes}
                       onChange={e => setEmpresaConfig(p => ({ ...p, whatsapp_clientes: e.target.value }))}
                       className="input-field w-full"
-                      placeholder="51949324254"
+                      placeholder="51916165543"
                     />
                     <p className="text-xs text-primary-400 mt-1">Número que ven los clientes en la web (con código de país)</p>
                   </div>
@@ -799,7 +796,7 @@ export default function MusicPlayerPage() {
                       value={empresaConfig.direccion_display}
                       onChange={e => setEmpresaConfig(p => ({ ...p, direccion_display: e.target.value }))}
                       className="input-field w-full"
-                      placeholder="Ate Vitarte, Lima"
+                      placeholder="Lurigancho, Lima"
                     />
                     <p className="text-xs text-primary-400 mt-1">Dirección corta que aparece en el footer del landing</p>
                   </div>
@@ -813,6 +810,32 @@ export default function MusicPlayerPage() {
                       className="input-field w-full"
                       placeholder="Lun–Sáb: 8:00 am – 6:00 pm"
                     />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-primary-700 mb-1 flex items-center gap-1.5">
+                      <span className="text-base">👥</span> Clientes satisfechos (landing)
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={empresaConfig.clientes_satisfechos}
+                      onChange={e => setEmpresaConfig(p => ({ ...p, clientes_satisfechos: e.target.value }))}
+                      className="input-field w-full"
+                      placeholder="12800"
+                    />
+                    <p className="text-xs text-primary-400 mt-1">Se muestra en la sección de estadísticas del landing (contador animado)</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-primary-700 mb-1 flex items-center gap-1.5">
+                      <span className="text-base">🏭</span> Fecha de constitución
+                    </label>
+                    <input
+                      type="date"
+                      value={empresaConfig.fecha_constitucion}
+                      onChange={e => setEmpresaConfig(p => ({ ...p, fecha_constitucion: e.target.value }))}
+                      className="input-field w-full"
+                    />
+                    <p className="text-xs text-primary-400 mt-1">El landing calculará automáticamente los años de experiencia (ej: 2021-03-15 → "4 años fabricando calidad")</p>
                   </div>
                 </div>
 
@@ -1312,6 +1335,7 @@ export default function MusicPlayerPage() {
 
         {/* Playlist */}
         <div className="card">
+          {/* Header con buscador */}
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
             <div className="flex items-center gap-3 flex-1">
               <h2 className="font-heading font-bold text-primary-800 text-lg">🎶 Playlist</h2>
@@ -1320,33 +1344,57 @@ export default function MusicPlayerPage() {
               </span>
             </div>
             <div className="flex items-center gap-2">
-              {/* Search */}
+              <button
+                onClick={() => setNewGroupForm(f => ({ ...f, open: !f.open, label: '', emoji: '📁' }))}
+                className="btn-outline text-xs !px-3 !py-1.5 flex items-center gap-1.5"
+                title="Crear grupo personalizado"
+              >
+                <Plus size={13} /> Nuevo grupo
+              </button>
               <div className="relative">
                 <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-primary-400" />
                 <input
                   type="text"
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  placeholder="Buscar..."
-                  className="input-field !pl-8 !py-1.5 !text-sm w-36 sm:w-44"
+                  placeholder="Buscar canción..."
+                  className="input-field !pl-8 !py-1.5 !text-sm w-full sm:w-48"
                 />
-              </div>
-              {/* Filter tabs */}
-              <div className="flex bg-primary-100 rounded-xl p-0.5">
-                {(['all', 'top-gear', 'gunbound'] as GameFilter[]).map(f => (
-                  <button
-                    key={f}
-                    onClick={() => setFilter(f)}
-                    className={`text-xs px-2.5 py-1.5 rounded-lg font-medium transition-all ${
-                      filter === f ? 'bg-white text-primary-800 shadow-sm' : 'text-primary-500 hover:text-primary-700'
-                    }`}
-                  >
-                    {f === 'all' ? 'Todo' : f === 'top-gear' ? '🏁 Top Gear' : '🎮 Gunbound'}
+                {search && (
+                  <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-primary-300 hover:text-primary-600">
+                    <X size={13} />
                   </button>
-                ))}
+                )}
               </div>
             </div>
           </div>
+
+          {/* Form nuevo grupo */}
+          {newGroupForm.open && (
+            <div className="flex items-center gap-2 mb-3 px-4 py-3 bg-blue-50/60 border border-blue-200 rounded-xl">
+              <input
+                value={newGroupForm.emoji}
+                onChange={e => setNewGroupForm(f => ({ ...f, emoji: e.target.value }))}
+                className="w-10 text-center text-xl border border-primary-200 rounded-lg p-1 bg-white"
+                maxLength={2}
+                title="Emoji del grupo"
+              />
+              <input
+                value={newGroupForm.label}
+                onChange={e => setNewGroupForm(f => ({ ...f, label: e.target.value }))}
+                className="flex-1 input-field !py-1.5 !text-sm"
+                placeholder="Nombre del grupo..."
+                autoFocus
+                onKeyDown={e => { if (e.key === 'Enter') createCustomGroup(); if (e.key === 'Escape') setNewGroupForm({ open: false, label: '', emoji: '📁' }) }}
+              />
+              <button onClick={createCustomGroup} className="p-2 rounded-xl bg-green-100 text-green-700 hover:bg-green-200 transition-colors" title="Crear">
+                <Check size={16} />
+              </button>
+              <button onClick={() => setNewGroupForm({ open: false, label: '', emoji: '📁' })} className="p-2 rounded-xl bg-primary-100 text-primary-500 hover:bg-primary-200 transition-colors" title="Cancelar">
+                <X size={16} />
+              </button>
+            </div>
+          )}
 
           {/* Empty state */}
           {visibleTracks.length === 0 && (
@@ -1356,105 +1404,347 @@ export default function MusicPlayerPage() {
               <p className="text-sm text-primary-400 mt-1">
                 {search ? 'Prueba con otro término de búsqueda' : 'Todos los tracks están ocultos'}
               </p>
-              {(search || hiddenCount > 0) && (
-                <button onClick={() => { setSearch(''); setFilter('all') }} className="btn-outline text-xs mt-3 !px-3 !py-1.5">
-                  Limpiar filtros
+              {search && (
+                <button onClick={() => setSearch('')} className="btn-outline text-xs mt-3 !px-3 !py-1.5">
+                  Limpiar búsqueda
                 </button>
               )}
             </div>
           )}
 
-          {/* Track list */}
-          <div className="space-y-1.5">
-            {visibleTracks.map(([id, preset]) => {
-              const meta = config.track_meta[id] || { locked: true }
-              const isPlaying = audio.trackPlaying && audio.currentTrackId === id
-              const isLocked = meta.locked
-              const isDefault = Object.values(activeDefault).includes(id)
-              const assignedScenes = Object.entries(activeDefault)
-                .filter(([_, v]) => v === id)
-                .map(([k]) => k as SceneKey)
+          {/* Backdrop para cerrar move menu */}
+          {moveMenu && <div className="fixed inset-0 z-[15]" onClick={() => setMoveMenu(null)} />}
+
+          {/* Grupos colapsables */}
+          <div className="space-y-2">
+            {TRACK_GROUPS.map(group => {
+              const groupTracks = group.ids.filter(id => {
+                if (config.hidden_tracks.includes(id)) return false
+                if (tracksInCustomGroups.has(id)) return false
+                if (search) {
+                  const term = search.toLowerCase()
+                  return id.toLowerCase().includes(term) || TRACK_PRESETS[id]?.label.toLowerCase().includes(term)
+                }
+                return true
+              })
+              if (groupTracks.length === 0) return null
+
+              const isOpen = openGroups[group.key] ?? false
+              const playingInGroup = groupTracks.some(id => audio.trackPlaying && audio.currentTrackId === id)
+              const defaultsInGroup = groupTracks.filter(id => Object.values(activeDefault).includes(id)).length
+              const groupColors: Record<string, { header: string; badge: string; border: string }> = {
+                'top-gear': { header: 'hover:bg-orange-50/60', badge: 'bg-orange-100 text-orange-700', border: 'border-orange-200' },
+                'gunbound': { header: 'hover:bg-purple-50/60', badge: 'bg-purple-100 text-purple-700', border: 'border-purple-200' },
+              }
+              const gc = groupColors[group.key] || { header: 'hover:bg-primary-50', badge: 'bg-primary-100 text-primary-600', border: 'border-primary-200' }
+              const hasCustomGroups = (config.custom_groups || []).length > 0
 
               return (
-                <div
-                  key={id}
-                  className={`group flex items-center gap-3 p-3 rounded-xl border transition-all ${
-                    isPlaying
-                      ? 'bg-accent-gold/10 border-accent-gold shadow-sm'
-                      : 'bg-white border-primary-100 hover:border-primary-200 hover:shadow-sm'
-                  }`}
-                >
-                  {/* Play/Pause */}
+                <div key={group.key} className={`border ${isOpen ? gc.border : 'border-primary-200'} rounded-2xl overflow-hidden transition-all`}>
+                  {/* Cabecera del grupo */}
                   <button
-                    onClick={() => playPreview(id)}
-                    className={`shrink-0 w-9 h-9 flex items-center justify-center rounded-xl transition-all ${
-                      isPlaying
-                        ? 'bg-accent-gold text-white shadow-md scale-110'
-                        : 'bg-primary-100 text-primary-600 hover:bg-primary-200 hover:scale-105 active:scale-95'
-                    }`}
-                    title={isPlaying ? 'Detener' : 'Previsualizar'}
+                    onClick={() => setOpenGroups(p => ({ ...p, [group.key]: !p[group.key] }))}
+                    className={`w-full flex items-center gap-3 px-4 py-3.5 transition-all ${isOpen ? 'bg-primary-50/80' : `bg-white ${gc.header}`}`}
                   >
-                    {isPlaying ? <Pause size={16} /> : <Play size={16} />}
+                    <span className="text-xl shrink-0">{group.emoji}</span>
+                    <div className="flex-1 text-left">
+                      <span className="font-heading font-semibold text-primary-800">{group.label}</span>
+                      <span className="ml-2 text-xs text-primary-400">{groupTracks.length} canciones</span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {playingInGroup && (
+                        <span className="text-xs font-medium text-accent-gold flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 bg-accent-gold rounded-full animate-pulse" />
+                          Sonando
+                        </span>
+                      )}
+                      {defaultsInGroup > 0 && !playingInGroup && (
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${gc.badge}`}>
+                          ★ {defaultsInGroup} activa{defaultsInGroup > 1 ? 's' : ''}
+                        </span>
+                      )}
+                      <ChevronDown
+                        size={17}
+                        className={`text-primary-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                      />
+                    </div>
                   </button>
 
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className={`font-medium text-sm truncate ${isPlaying ? 'text-accent-gold' : 'text-primary-800'}`}>
-                        {preset.label}
-                      </p>
-                      {isDefault && (
-                        <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-accent-gold/10 text-accent-gold border border-accent-gold/20">
-                          ★ Default
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
-                        id.startsWith('top-gear')
-                          ? 'bg-orange-100 text-orange-700'
-                          : 'bg-purple-100 text-purple-700'
-                      }`}>
-                        {id.startsWith('top-gear') ? '🏁 Top Gear' : '🎮 Gunbound'}
-                      </span>
-                      {assignedScenes.map(sk => {
-                        const sc = SCENES.find(s => s.key === sk)
-                        return sc ? (
-                          <span key={sk} className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-sky-100 text-sky-700">
-                            {sc.icon} {sc.label}
-                          </span>
-                        ) : null
+                  {/* Lista de tracks del grupo */}
+                  {isOpen && (
+                    <div className="border-t border-primary-100 divide-y divide-primary-50/80 bg-white">
+                      {groupTracks.map(id => {
+                        const preset = TRACK_PRESETS[id]
+                        if (!preset) return null
+                        const meta = config.track_meta[id] || { locked: true }
+                        const isPlaying = audio.trackPlaying && audio.currentTrackId === id
+                        const isLocked = meta.locked
+                        const assignedScenes = Object.entries(activeDefault)
+                          .filter(([_, v]) => v === id)
+                          .map(([k]) => k as SceneKey)
+                        const isDefault = assignedScenes.length > 0
+
+                        return (
+                          <div
+                            key={id}
+                            className={`group relative flex items-center gap-3 px-4 py-2.5 transition-all ${
+                              isPlaying ? 'bg-accent-gold/8' : 'hover:bg-primary-50/60'
+                            }`}
+                          >
+                            {/* Play/Pause */}
+                            <button
+                              onClick={() => playPreview(id)}
+                              className={`shrink-0 w-8 h-8 flex items-center justify-center rounded-xl transition-all ${
+                                isPlaying
+                                  ? 'bg-accent-gold text-white shadow-sm scale-105'
+                                  : 'bg-primary-100 text-primary-600 hover:bg-primary-200 hover:scale-105 active:scale-95'
+                              }`}
+                              title={isPlaying ? 'Detener' : 'Previsualizar'}
+                            >
+                              {isPlaying ? <Pause size={14} /> : <Play size={14} />}
+                            </button>
+
+                            {/* Info */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className={`font-medium text-sm truncate ${isPlaying ? 'text-accent-gold' : 'text-primary-800'}`}>
+                                  {preset.label}
+                                </p>
+                                {isDefault && (
+                                  <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-accent-gold/10 text-accent-gold border border-accent-gold/20">
+                                    ★ Default
+                                  </span>
+                                )}
+                                {assignedScenes.map(sk => {
+                                  const sc = SCENES.find(s => s.key === sk)
+                                  return sc ? (
+                                    <span key={sk} className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-sky-100 text-sky-700">
+                                      {sc.icon} {sc.label}
+                                    </span>
+                                  ) : null
+                                })}
+                                {!isDefault && preset.scene && (
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-primary-100 text-primary-400">
+                                    {SCENES.find(s => s.key === preset.scene)?.icon} sugerido
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Mover a grupo personalizado */}
+                            {hasCustomGroups && (
+                              <div className="relative z-[20]">
+                                <button
+                                  onClick={e => { e.stopPropagation(); setMoveMenu(moveMenu === id ? null : id) }}
+                                  className="shrink-0 p-1.5 rounded-xl transition-all text-primary-300 hover:bg-blue-50 hover:text-blue-500 opacity-0 group-hover:opacity-100 focus:opacity-100"
+                                  title="Mover a grupo"
+                                >
+                                  <FolderOpen size={13} />
+                                </button>
+                                {moveMenu === id && (
+                                  <div className="absolute right-0 top-8 z-[30] bg-white border border-primary-200 rounded-xl shadow-lg py-1.5 min-w-[170px]">
+                                    <p className="text-[10px] text-primary-400 px-3 py-1 font-medium uppercase tracking-wide">Mover a...</p>
+                                    {(config.custom_groups || []).map(cg => (
+                                      <button
+                                        key={cg.key}
+                                        onClick={e => { e.stopPropagation(); moveTrackToCustomGroup(id, cg.key) }}
+                                        className="w-full text-left text-xs px-3 py-1.5 hover:bg-primary-50 flex items-center gap-2"
+                                      >
+                                        <span>{cg.emoji}</span>
+                                        <span>{cg.label}</span>
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Candado */}
+                            <button
+                              onClick={() => updateMeta(id, { locked: !isLocked })}
+                              className={`shrink-0 p-1.5 rounded-xl transition-all ${
+                                isLocked
+                                  ? 'text-accent-gold hover:bg-accent-gold/10'
+                                  : 'text-primary-300 hover:bg-red-50 hover:text-red-400'
+                              }`}
+                              title={isLocked ? 'Bloqueada' : 'Desbloqueada'}
+                            >
+                              {isLocked ? <Lock size={13} /> : <Unlock size={13} />}
+                            </button>
+
+                            {/* Ocultar */}
+                            {!isLocked && (
+                              <button
+                                onClick={() => hideTrack(id)}
+                                className="shrink-0 p-1.5 rounded-xl text-red-400 hover:bg-red-50 hover:text-red-600 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+                                title="Ocultar"
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            )}
+                          </div>
+                        )
                       })}
-                      {!isDefault && preset.scene && !assignedScenes.includes(preset.scene) && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-primary-100 text-primary-500">
-                          {SCENES.find(s => s.key === preset.scene)?.icon} sugerido
-                        </span>
-                      )}
                     </div>
+                  )}
+                </div>
+              )
+            })}
+
+            {/* Grupos personalizados */}
+            {(config.custom_groups || []).map(cg => {
+              const cgTracks = cg.ids.filter(id => {
+                if (config.hidden_tracks.includes(id)) return false
+                if (!TRACK_PRESETS[id]) return false
+                if (search) {
+                  const term = search.toLowerCase()
+                  return id.toLowerCase().includes(term) || TRACK_PRESETS[id]?.label.toLowerCase().includes(term)
+                }
+                return true
+              })
+
+              const isOpen = openGroups[cg.key] ?? true
+              const playingInGroup = cgTracks.some(id => audio.trackPlaying && audio.currentTrackId === id)
+              const isEditing = editGroupKey === cg.key
+
+              return (
+                <div key={cg.key} className={`border ${isOpen ? 'border-blue-200' : 'border-primary-200'} rounded-2xl overflow-hidden transition-all`}>
+                  {/* Cabecera */}
+                  <div className={`flex items-center gap-2 px-4 py-3.5 transition-all ${isOpen ? 'bg-blue-50/40' : 'bg-white hover:bg-blue-50/20'}`}>
+                    {isEditing ? (
+                      <div className="flex-1 flex items-center gap-2">
+                        <input
+                          value={editGroupData.emoji}
+                          onChange={e => setEditGroupData(d => ({ ...d, emoji: e.target.value }))}
+                          className="w-10 text-center text-xl border border-primary-200 rounded-lg p-1 bg-white"
+                          maxLength={2}
+                        />
+                        <input
+                          value={editGroupData.label}
+                          onChange={e => setEditGroupData(d => ({ ...d, label: e.target.value }))}
+                          className="flex-1 input-field !py-1.5 !text-sm"
+                          placeholder="Nombre del grupo"
+                          autoFocus
+                          onKeyDown={e => { if (e.key === 'Enter') saveEditGroup(); if (e.key === 'Escape') setEditGroupKey(null) }}
+                        />
+                        <button onClick={saveEditGroup} className="p-1.5 rounded-lg bg-green-100 text-green-700 hover:bg-green-200 transition-colors">
+                          <Check size={15} />
+                        </button>
+                        <button onClick={() => setEditGroupKey(null)} className="p-1.5 rounded-lg bg-primary-100 text-primary-500 hover:bg-primary-200 transition-colors">
+                          <X size={15} />
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => setOpenGroups(p => ({ ...p, [cg.key]: !p[cg.key] }))}
+                          className="flex-1 flex items-center gap-3 text-left"
+                        >
+                          <span className="text-xl shrink-0">{cg.emoji}</span>
+                          <div className="flex-1">
+                            <span className="font-heading font-semibold text-primary-800">{cg.label}</span>
+                            <span className="ml-2 text-xs text-primary-400">{cgTracks.length} canciones</span>
+                            <span className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-600 font-medium">personalizado</span>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            {playingInGroup && (
+                              <span className="text-xs font-medium text-accent-gold flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 bg-accent-gold rounded-full animate-pulse" />
+                                Sonando
+                              </span>
+                            )}
+                            <ChevronDown size={17} className={`text-primary-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                          </div>
+                        </button>
+                        <div className="flex items-center gap-1 ml-1 shrink-0">
+                          <button
+                            onClick={() => { setEditGroupKey(cg.key); setEditGroupData({ label: cg.label, emoji: cg.emoji }) }}
+                            className="p-1.5 rounded-xl text-primary-300 hover:bg-blue-50 hover:text-blue-500 transition-colors"
+                            title="Editar nombre"
+                          >
+                            <Pencil size={13} />
+                          </button>
+                          <button
+                            onClick={() => { if (confirm(`¿Eliminar el grupo "${cg.label}"? Las canciones vuelven a su grupo original.`)) deleteCustomGroup(cg.key) }}
+                            className="p-1.5 rounded-xl text-primary-300 hover:bg-red-50 hover:text-red-400 transition-colors"
+                            title="Eliminar grupo"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </div>
 
-                  {/* Candado */}
-                  <button
-                    onClick={() => updateMeta(id, { locked: !isLocked })}
-                    className={`shrink-0 p-2 rounded-xl transition-all ${
-                      isLocked
-                        ? 'text-accent-gold hover:bg-accent-gold/10'
-                        : 'text-primary-300 hover:bg-red-50 hover:text-red-400'
-                    }`}
-                    title={isLocked ? 'Bloqueada — desbloquear para ocultar' : 'Desbloqueada — toca el candado para proteger'}
-                  >
-                    {isLocked ? <Lock size={15} /> : <Unlock size={15} />}
-                  </button>
+                  {/* Tracks del grupo */}
+                  {isOpen && (
+                    <div className="border-t border-blue-100 divide-y divide-primary-50/80 bg-white">
+                      {cgTracks.length === 0 ? (
+                        <div className="text-center py-6 text-primary-400">
+                          <FolderOpen size={28} className="mx-auto mb-2 opacity-30" />
+                          <p className="text-sm font-medium">Grupo vacío</p>
+                          <p className="text-xs mt-1">Usa el ícono 📁 en cualquier track para moverlo aquí</p>
+                        </div>
+                      ) : (
+                        cgTracks.map(id => {
+                          const preset = TRACK_PRESETS[id]
+                          if (!preset) return null
+                          const meta = config.track_meta[id] || { locked: true }
+                          const isPlaying = audio.trackPlaying && audio.currentTrackId === id
+                          const isLocked = meta.locked
 
-                  {/* Ocultar (solo si desbloqueado) */}
-                  {!isLocked && (
-                    <button
-                      onClick={() => hideTrack(id)}
-                      className="shrink-0 p-2 rounded-xl text-red-400 hover:bg-red-50 hover:text-red-600 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
-                      title="Ocultar de la playlist"
-                    >
-                      <Trash2 size={15} />
-                    </button>
+                          return (
+                            <div
+                              key={id}
+                              className={`group relative flex items-center gap-3 px-4 py-2.5 transition-all ${
+                                isPlaying ? 'bg-accent-gold/8' : 'hover:bg-primary-50/60'
+                              }`}
+                            >
+                              <button
+                                onClick={() => playPreview(id)}
+                                className={`shrink-0 w-8 h-8 flex items-center justify-center rounded-xl transition-all ${
+                                  isPlaying ? 'bg-accent-gold text-white shadow-sm scale-105' : 'bg-primary-100 text-primary-600 hover:bg-primary-200 hover:scale-105 active:scale-95'
+                                }`}
+                                title={isPlaying ? 'Detener' : 'Previsualizar'}
+                              >
+                                {isPlaying ? <Pause size={14} /> : <Play size={14} />}
+                              </button>
+                              <div className="flex-1 min-w-0">
+                                <p className={`font-medium text-sm truncate ${isPlaying ? 'text-accent-gold' : 'text-primary-800'}`}>
+                                  {preset.label}
+                                </p>
+                              </div>
+                              {/* Quitar del grupo */}
+                              <button
+                                onClick={() => moveTrackToCustomGroup(id, null)}
+                                className="shrink-0 p-1.5 rounded-xl text-primary-300 hover:bg-orange-50 hover:text-orange-500 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+                                title="Quitar del grupo (vuelve al original)"
+                              >
+                                <X size={13} />
+                              </button>
+                              {/* Candado */}
+                              <button
+                                onClick={() => updateMeta(id, { locked: !isLocked })}
+                                className={`shrink-0 p-1.5 rounded-xl transition-all ${isLocked ? 'text-accent-gold hover:bg-accent-gold/10' : 'text-primary-300 hover:bg-red-50 hover:text-red-400'}`}
+                                title={isLocked ? 'Bloqueada' : 'Desbloqueada'}
+                              >
+                                {isLocked ? <Lock size={13} /> : <Unlock size={13} />}
+                              </button>
+                              {/* Ocultar */}
+                              {!isLocked && (
+                                <button
+                                  onClick={() => hideTrack(id)}
+                                  className="shrink-0 p-1.5 rounded-xl text-red-400 hover:bg-red-50 hover:text-red-600 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+                                  title="Ocultar"
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              )}
+                            </div>
+                          )
+                        })
+                      )}
+                    </div>
                   )}
                 </div>
               )

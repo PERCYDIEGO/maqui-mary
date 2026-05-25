@@ -294,15 +294,20 @@ export default function ProductosPage() {
                   <input
                     type="text"
                     inputMode="decimal"
-                    value={rawPrecio.original !== null ? rawPrecio.original : (form.precioOriginal === 0 ? '' : String(form.precioOriginal))}
+                    value={rawPrecio.original ?? (form.precioOriginal === 0 ? '' : String(form.precioOriginal))}
                     onChange={e => {
                       const raw = e.target.value.replace(',', '.');
                       if (raw !== '' && !/^\d*\.?\d*$/.test(raw)) return;
                       setRawPrecio(r => ({ ...r, original: raw }));
-                      const val = parseFloat(raw);
-                      setForm(f => ({ ...f, precioOriginal: isNaN(val) ? 0 : val }));
+                      if (raw !== '') {
+                        const val = parseFloat(raw);
+                        setForm(f => ({ ...f, precioOriginal: isNaN(val) ? 0 : val }));
+                      }
                     }}
-                    onBlur={() => setRawPrecio(r => ({ ...r, original: null }))}
+                    onBlur={() => {
+                      if (rawPrecio.original === '') setForm(f => ({ ...f, precioOriginal: 0 }));
+                      setRawPrecio(r => ({ ...r, original: null }));
+                    }}
                     placeholder="0.00"
                     className="w-full px-4 py-3 border border-ink-200 rounded-xl focus:ring-2 focus:ring-accent-terracotta focus:border-transparent outline-none bg-white"
                   />
@@ -313,15 +318,20 @@ export default function ProductosPage() {
                     type="text"
                     inputMode="decimal"
                     required
-                    value={rawPrecio.venta !== null ? rawPrecio.venta : (form.precioUnitario === 0 ? '' : String(form.precioUnitario))}
+                    value={rawPrecio.venta ?? (form.precioUnitario === 0 ? '' : String(form.precioUnitario))}
                     onChange={e => {
                       const raw = e.target.value.replace(',', '.');
                       if (raw !== '' && !/^\d*\.?\d*$/.test(raw)) return;
                       setRawPrecio(r => ({ ...r, venta: raw }));
-                      const val = parseFloat(raw);
-                      setForm(f => ({ ...f, precioUnitario: isNaN(val) ? 0 : val }));
+                      if (raw !== '') {
+                        const val = parseFloat(raw);
+                        setForm(f => ({ ...f, precioUnitario: isNaN(val) ? 0 : val }));
+                      }
                     }}
-                    onBlur={() => setRawPrecio(r => ({ ...r, venta: null }))}
+                    onBlur={() => {
+                      if (rawPrecio.venta === '') setForm(f => ({ ...f, precioUnitario: 0 }));
+                      setRawPrecio(r => ({ ...r, venta: null }));
+                    }}
                     placeholder="0.00"
                     className="w-full px-4 py-3 border border-ink-200 rounded-xl focus:ring-2 focus:ring-accent-terracotta focus:border-transparent outline-none bg-white"
                   />

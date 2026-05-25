@@ -8,7 +8,7 @@ type SectionKey = 'hero' | 'productos' | 'nosotros' | 'testimonios' | 'contacto'
 const GUIDE: Record<SectionKey, { icon: string; tip: string }> = {
   hero: { icon: '👋', tip: '¡Bienvenido! Somos Maqui Mary, esponjas de calidad hechas en Perú' },
   productos: { icon: '🧼', tip: 'Colores, acero, doble uso... explora nuestra variedad de esponjas' },
-  nosotros: { icon: '🇵🇪', tip: 'Fabricación propia en Ate Vitarte — calidad peruana para tu hogar' },
+  nosotros: { icon: '🇵🇪', tip: 'Fabricación propia en Lurigancho — calidad peruana para tu hogar' },
   testimonios: { icon: '⭐', tip: 'Más de 12,800 clientes ya confiaron en nosotros' },
   contacto: { icon: '💬', tip: '¿Listo? Escríbenos al WhatsApp o compra directo desde la web' },
   footer: { icon: '🧼', tip: 'Gracias por visitarnos — llevamos calidad a tu hogar' },

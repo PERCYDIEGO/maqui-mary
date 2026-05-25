@@ -108,7 +108,7 @@ function ConsultaFacturaContent() {
             <img src="/img/logo_oficial.png" alt="Maqui Mary" className="h-8 w-auto" />
             <span className="font-heading font-bold text-primary-700 text-sm">MAQUI MARY</span>
           </div>
-          <p className="text-xs text-primary-500 mt-1">Esponjas de limpieza · Ate Vitarte, Lima, Perú</p>
+          <p className="text-xs text-primary-500 mt-1">Esponjas de limpieza · Lurigancho, Lima, Perú</p>
         </div>
       </div>
     </div>

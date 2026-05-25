@@ -1,16 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
-import { generateInvoiceXML, getSunatFilename } from '@/lib/sunat/xml-builder'
-import { extractFromPfx, signXml } from '@/lib/sunat/xml-signer'
-import { zipXml, sendToSunat } from '@/lib/sunat/soap-client'
+import { supabaseAdmin as supabase } from '@/lib/supabase-server'
+import { verifyAuth } from '@/lib/api-auth'
+import { buildApiSunatRequest, sendToApiSunat } from '@/lib/sunat/apisunat-client'
 
-/**
- * Emite una factura o boleta electrónica.
- * Detecta automáticamente si usar certificado digital (SUNAT directo)
- * o token OSE (Nubefact).
- * POST /api/sunat/emit
- */
 export async function POST(req: NextRequest) {
+  // BUG-03: verificar sesión antes de emitir comprobantes
+  const user = await verifyAuth(req)
+  if (!user) {
+    return NextResponse.json({ ok: false, error: 'No autorizado' }, { status: 401 })
+  }
+
   try {
     const body = await req.json()
     const {
@@ -29,304 +28,124 @@ export async function POST(req: NextRequest) {
       tipo_cambio = '',
       guia_remision = '',
       orden_compra = '',
+      // BUG-01: serie y número provistos por el frontend (del documento ya creado)
+      serie_override,
+      numero_override,
+      // BUG-07: flag para no descontar stock cuando ya fue descontado al confirmar pedido web
+      stock_ya_descontado = false,
     } = body
 
     const isFactura = tipo_comprobante === '01'
     const isBoletaSinId = !isFactura && sin_identificar
 
-    // ─── Validaciones ───
     if ((!cliente_nombre && !isBoletaSinId) || !items || items.length === 0) {
       return NextResponse.json({ ok: false, error: 'Faltan datos: cliente o items' }, { status: 400 })
     }
 
-    // ─── Obtener configuración SUNAT desde Supabase ───
-    const { data: configRows, error: configError } = await supabase
+    let { data: configRows, error: configError } = await supabase
       .from('sunat_config')
       .select('*')
       .eq('id', 1)
       .single()
 
-    if (configError || !configRows) {
-      return NextResponse.json({ ok: false, error: 'No hay configuración SUNAT' }, { status: 400 })
+    if (configError?.code === 'PGRST116' || (!configError && !configRows)) {
+      await supabase.from('sunat_config').upsert({
+        id: 1, environment: 'demo', ruc: '', razon_social: '', series_factura: 'F001',
+        series_boleta: 'B001', next_number_factura: 1, next_number_boleta: 1,
+      })
+      const { data: retryData } = await supabase.from('sunat_config').select('*').eq('id', 1).single()
+      configRows = retryData
     }
 
-    const config = configRows as any
+    if (configError && configError.code !== 'PGRST116') {
+      return NextResponse.json({ ok: false, error: 'Error accediendo a configuración SUNAT: ' + configError.message }, { status: 500 })
+    }
 
-    // ─── Determinar modo de emisión ───
-    const hasCert = config.cert_base64?.trim() && config.cert_password?.trim() && config.sol_user?.trim() && config.sol_password?.trim()
-    const hasOse = config.ose_token?.trim() && config.ose_endpoint?.trim()
-    const modo = hasCert ? 'sunat_directo' : hasOse ? 'ose' : 'ninguno'
+    const config = (configRows || { id: 1, environment: 'demo', ruc: '', series_factura: 'F001', series_boleta: 'B001', next_number_factura: 1, next_number_boleta: 1 }) as any
 
-    // ─── Determinar serie y número ───
-    const serie = isFactura ? (config.series_factura || 'F001') : (config.series_boleta || 'B001')
+    // BUG-01: usar serie/número del documento frontend si se proveen; si no, auto-asignar desde config
+    const configSerie = isFactura ? (config.series_factura || 'F001') : (config.series_boleta || 'B001')
     const nextField = isFactura ? 'next_number_factura' : 'next_number_boleta'
-    const numero = isFactura ? (config.next_number_factura || 1) : (config.next_number_boleta || 1)
+    const configNumero = isFactura ? (config.next_number_factura || 1) : (config.next_number_boleta || 1)
 
-    // ─── Calcular totales ───
-    const subtotal = items.reduce((s: number, it: any) => s + (it.quantity * it.unit_price), 0)
-    const igv = subtotal * 0.18
-    const total = subtotal + igv
+    const serie = (serie_override && String(serie_override).trim()) ? String(serie_override).trim() : configSerie
+    const numero = (numero_override && Number(numero_override) > 0) ? Number(numero_override) : configNumero
+
+    const subtotalRaw = items.reduce((s: number, it: any) => s + (it.quantity * it.unit_price), 0)
+    const subtotal = Math.round(subtotalRaw * 100) / 100
+    const igv      = Math.round(subtotal * 0.18 * 100) / 100
+    const total    = Math.round((subtotal + igv) * 100) / 100
 
     const now = new Date()
     const fechaEmision = now.toISOString().slice(0, 10)
     const horaEmision = now.toTimeString().slice(0, 8)
 
-    // ─── Variables de resultado ───
     let sunatStatus = 'PENDIENTE'
     let sunatError = ''
-    let cdrXml = ''
-    let cdrBase64 = ''
-    let pdfUrl = ''
-    let xmlUrl = ''
-    let ticketSunat = ''
-    let cdrCodigo = ''
-    let cdrDescripcion = ''
     let hash = ''
-    let firmaDigest = ''
     let codigoQR = ''
 
-    // ═══════════════════════════════════════════
-    // MODO 1: EMISIÓN DIRECTA SUNAT (certificado digital)
-    // ═══════════════════════════════════════════
-    if (modo === 'sunat_directo') {
-      try {
-        // 1. Generar XML UBL 2.1 con datos reales del emisor desde Supabase
-        // Catálogo SUNAT 06: 0=SinRUC, 1=DNI, 6=RUC, 7=Pasaporte
-        const tipoDocCliente = isFactura ? '6' : (isBoletaSinId ? '0' : (cliente_tipo_doc || '1'))
-        const emisorConfig = {
-          environment: config.environment || 'demo',
-          ruc: config.ruc || '',
-          razonSocial: config.razon_social || '',
-          nombreComercial: config.nombre_comercial || '',
-          address: config.address || '',
-          urbanizacion: config.urbanizacion || '',
-          provincia: config.provincia || '',
-          departamento: config.departamento || '',
-          distrito: config.distrito || '',
-          codigoPais: 'PE',
-          ubigeo: config.ubigeo || '',
-          solUser: config.sol_user || '',
-          solPassword: config.sol_password || '',
-          certPath: '',
-          certPassword: '',
-          seriesFactura: config.series_factura || 'F001',
-          seriesBoleta: config.series_boleta || 'B001',
-          seriesNC: config.series_nc || 'FC01',
-          seriesND: config.series_nd || 'FD01',
-        }
+    const hasApiSunat = config.apisunat_token?.trim()
 
-        const invoiceXml = generateInvoiceXML({
+    if (hasApiSunat) {
+      try {
+        const apisunatToken = config.apisunat_token.trim()
+        const apisunatEnv = (config.apisunat_environment || 'sandbox') === 'produccion' ? 'produccion' : 'sandbox'
+
+        const apiSunatReq = buildApiSunatRequest({
           tipoComprobante: tipo_comprobante,
           serie,
           numero,
           fechaEmision,
           horaEmision,
-          cliente: {
-            tipoDoc: tipoDocCliente as any,
-            numDoc: isBoletaSinId ? '00000000' : (cliente_ruc || '-'),
-            nombre: isBoletaSinId ? 'CLIENTES VARIOS' : (cliente_nombre || 'CLIENTES VARIOS'),
-            direccion: isBoletaSinId ? '' : (cliente_direccion || ''),
-          },
-          productos: items.map((it: any) => ({
-            codigo: it.codigo || '',
+          moneda,
+          clienteTipoDoc: isFactura ? '6' : (isBoletaSinId ? '1' : (cliente_tipo_doc || '1')),
+          clienteNumDoc: isBoletaSinId ? '99999999' : (cliente_ruc || '99999999'),
+          clienteNombre: isBoletaSinId ? 'CLIENTE VARIOS' : (cliente_nombre || 'CLIENTE VARIOS'),
+          clienteDireccion: isBoletaSinId ? '-' : (cliente_direccion || '-'),
+          items: items.map((it: any) => ({
             descripcion: it.description,
             cantidad: it.quantity,
-            precioUnitario: it.unit_price,
-            precioConIgv: it.unit_price,
-            total: it.quantity * it.unit_price,
+            valorUnitario: it.unit_price,
           })),
-          subtotal,
-          igv,
           total,
           nota: notes,
-          emisor: emisorConfig,
         })
 
-        // 2. Extraer certificado del .pfx
-        const certInfo = extractFromPfx(config.cert_base64, config.cert_password)
+        const apiResult = await sendToApiSunat(apiSunatReq, apisunatToken, apisunatEnv)
 
-        // 3. Firmar XML
-        const signedXml = signXml(invoiceXml, certInfo)
+        if (apiResult.success && apiResult.payload) {
+          const estado = apiResult.payload.estado
+          sunatStatus = estado === 'ACEPTADO' ? 'ACEPTADO' : estado === 'RECHAZADO' ? 'RECHAZADO' : 'PENDIENTE'
+          hash = apiResult.payload.hash
 
-        // 3.1 Extraer DigestValue (hash SHA-256 del XML firmado)
-        const digestMatch = signedXml.match(/<(?:ds:)?DigestValue>([^<]+)<\/(?:ds:)?DigestValue>/)
-        if (digestMatch) {
-          firmaDigest = digestMatch[1].trim()
-          hash = firmaDigest
-        }
-
-        // 4. Comprimir en ZIP
-        const filename = getSunatFilename(config.ruc || '', tipo_comprobante, serie, numero)
-        const zipBase64 = await zipXml(filename, signedXml)
-
-        // 5. Enviar a SUNAT por SOAP (endpoint según environment configurado en Supabase)
-        const endpoint = config.environment === 'produccion'
-          ? 'https://e-gw.sunat.gob.pe/ol-ti-itcpfegem/billService'
-          : 'https://e-beta.sunat.gob.pe/ol-ti-itcpfegem-beta/billService'
-
-        // SUNAT requiere que el username sea RUC + usuario SOL (ej. "20606218801MAQUISOL")
-        const solUsername = (config.sol_user || '').startsWith(config.ruc || '')
-          ? config.sol_user
-          : `${config.ruc}${config.sol_user}`
-
-        const sunatResult = await sendToSunat(
-          filename,
-          zipBase64,
-          solUsername,
-          config.sol_password,
-          endpoint
-        )
-
-        if (sunatResult.success) {
-          sunatStatus = 'ACEPTADO'
-          cdrXml = sunatResult.cdrXml || ''
-          cdrBase64 = sunatResult.cdrBase64 || ''
-          ticketSunat = sunatResult.responseCode || '0'
-          cdrCodigo = sunatResult.responseCode || ''
-          cdrDescripcion = sunatResult.description || ''
-        } else {
-          sunatStatus = sunatResult.responseCode ? 'RECHAZADO' : 'ERROR'
-          sunatError = sunatResult.error || 'Error en envío a SUNAT'
-          cdrCodigo = sunatResult.responseCode || ''
-          cdrDescripcion = sunatResult.description || ''
-        }
-      } catch (e: any) {
-        sunatStatus = 'ERROR'
-        sunatError = `Error en emisión directa: ${e.message}`
-      }
-    }
-
-    // ═══════════════════════════════════════════
-    // MODO 2: EMISIÓN VÍA OSE (Nubefact)
-    // ═══════════════════════════════════════════
-    else if (modo === 'ose') {
-      try {
-        const oseToken = config.ose_token.trim()
-        const oseUrl = (config.ose_url || 'https://api.nubefact.com/api/v1/').trim()
-        const oseEndpoint = config.ose_endpoint?.trim() || ''
-
-        const issueDate = now.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-')
-
-        const oseItems = items.map((it: any) => {
-          const valorSinIgv = it.unit_price
-          const precioConIgv = valorSinIgv * 1.18
-          const itemSubtotal = valorSinIgv * it.quantity
-          const itemIgv = itemSubtotal * 0.18
-          return {
-            unidad_de_medida: 'NIU',
-            codigo: it.codigo || '',
-            descripcion: it.description,
-            cantidad: it.quantity,
-            valor_unitario: parseFloat(valorSinIgv.toFixed(4)),
-            precio_unitario: parseFloat(precioConIgv.toFixed(2)),
-            descuento: '',
-            subtotal: parseFloat(itemSubtotal.toFixed(2)),
-            tipo_de_igv: 1,
-            igv: parseFloat(itemIgv.toFixed(2)),
-            total: parseFloat((it.quantity * precioConIgv).toFixed(2)),
-            anticipo_regularizacion: '',
-            anticipo_documento_serie: '',
-            anticipo_documento_numero: ''
+          if (estado === 'ACEPTADO') {
+            sunatError = ''
+          } else if (estado === 'RECHAZADO') {
+            sunatError = apiResult.message || 'Rechazado por SUNAT'
+          } else {
+            sunatStatus = 'ENVIADO'
+            sunatError = apiResult.message || 'Pendiente de aceptación SUNAT'
           }
-        })
-
-        const oseRequest = {
-          operacion: 'generar_comprobante',
-          tipo_de_comprobante: isFactura ? 1 : 2,
-          serie,
-          numero,
-          sunat_transaction: 1,
-          cliente_tipo_de_documento: isFactura ? '6' : (isBoletaSinId ? '0' : (body.cliente_tipo_doc || '1')),
-          cliente_numero_de_documento: (cliente_ruc || '').toString(),
-          cliente_denominacion: cliente_nombre,
-          cliente_direccion: (cliente_direccion || '').toString(),
-          cliente_email: '',
-          cliente_telefono: '',
-          fecha_de_emision: issueDate,
-          fecha_de_vencimiento: '',
-          moneda: 1,
-          tipo_de_cambio: '',
-          porcentaje_de_igv: 18.0,
-          descuento_global: '',
-          total_descuento: '',
-          total_anticipo: '',
-          total_gravada: parseFloat(subtotal.toFixed(2)),
-          total_inafecta: '',
-          total_exonerada: '',
-          total_igv: parseFloat(igv.toFixed(2)),
-          total_gratuita: '',
-          total_otros_cargos: '',
-          total: parseFloat(total.toFixed(2)),
-          percepcion_tipo: '',
-          percepcion_base_imponible: '',
-          total_percepcion: '',
-          total_incluido_percepcion: '',
-          detraccion: false,
-          observaciones: notes,
-          documento_que_se_modifica_tipo: '',
-          documento_que_se_modifica_serie: '',
-          documento_que_se_modifica_numero: '',
-          enviar_automaticamente_a_la_sunat: true,
-          enviar_automaticamente_al_cliente: false,
-          codigo_unico: '',
-          condiciones_de_pago: '',
-          medio_de_pago: '',
-          placa_vehiculo: '',
-          orden_compra_servicio: '',
-          tabla_personalizada_codigo: '',
-          formato_de_pdf: '',
-          items: oseItems
-        }
-
-        const cleanEndpoint = oseEndpoint.startsWith('/') ? oseEndpoint.slice(1) : oseEndpoint
-        const url = `${oseUrl}${cleanEndpoint}`.replace(/\/+/g, '/').replace(':/', '://')
-
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': oseToken },
-          body: JSON.stringify(oseRequest),
-        })
-
-        const resBody = await res.text()
-        let parsed: any = null
-        try { parsed = JSON.parse(resBody) } catch { /* no es JSON */ }
-
-        if (res.ok && parsed) {
-          const aceptada = parsed.aceptada_por_sunat === true
-          sunatStatus = aceptada ? 'ACEPTADO' : (parsed.enlace ? 'ENVIADO' : 'ERROR')
-          sunatError = parsed.sunat_description || parsed.errors || ''
-          ticketSunat = parsed.numero?.toString() || ''
-          pdfUrl = parsed.enlace_del_pdf || parsed.enlace || ''
-          xmlUrl = parsed.enlace_del_xml || ''
-          cdrXml = parsed.enlace_del_cdr || ''
-          cdrCodigo = parsed.sunat_responsecode?.toString() || ''
-          cdrDescripcion = parsed.sunat_description || ''
         } else {
           sunatStatus = 'ERROR'
-          sunatError = resBody || `HTTP ${res.status}`
+          sunatError = JSON.stringify({
+            msg: apiResult.message || 'Error en APISUNAT.pe',
+            sent: apiSunatReq,
+          })
         }
       } catch (e: any) {
         sunatStatus = 'ERROR'
-        sunatError = e.message || 'Error de red al OSE'
+        sunatError = e.message || 'Error de conexión con APISUNAT.pe'
       }
+    } else {
+      sunatError = 'No hay token APISUNAT.pe configurado. Ve a Configuración > SUNAT.'
     }
 
-    // ═══════════════════════════════════════════
-    // MODO 3: SIN CONFIGURACIÓN
-    // ═══════════════════════════════════════════
-    else {
-      sunatStatus = 'PENDIENTE'
-      sunatError = 'No hay certificado digital ni token OSE configurado. Ve a Configuración > SUNAT.'
-    }
-
-    // ─── Generar QR: URL de verificación pública ───
-    // El cliente escanea y ve su comprobante en maquimary.vercel.app/doc/SERIE-NUMERO
     const numPadded = String(numero).padStart(8, '0')
     const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://maquimary.vercel.app').replace(/\/$/, '')
     codigoQR = `${appUrl}/doc/${serie}-${numPadded}`
 
-    // ─── Guardar factura en Supabase ───
-    // Usamos SOLO columnas que existen en la BD actual
     const facturaData: any = {
       series: serie,
       number: numero,
@@ -343,10 +162,13 @@ export async function POST(req: NextRequest) {
       notes,
       estado_sunat: sunatStatus,
       sunat_response: sunatError || 'OK',
-      ticket_sunat: ticketSunat,
+      date_millis: now.getTime(),
       codigo_qr: codigoQR,
       hash_cpe: hash,
-      date_millis: now.getTime(),
+      forma_pago: forma_pago || 'contado',
+      tipo_cambio: tipo_cambio ? parseFloat(tipo_cambio) : null,
+      guia_remision: guia_remision || '',
+      orden_compra: orden_compra || '',
     }
 
     const { data: facturaInsert, error: facturaError } = await supabase
@@ -359,7 +181,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: 'Error guardando factura: ' + facturaError.message }, { status: 500 })
     }
 
-    // ─── Guardar items ───
     const facturaId = facturaInsert.id
     const itemsToInsert = items.map((it: any) => ({
       factura_id: facturaId,
@@ -370,71 +191,65 @@ export async function POST(req: NextRequest) {
       total: it.quantity * it.unit_price,
     }))
 
+    // BUG-08: propagar error de items en lugar de ignorarlo silenciosamente
     const { error: itemsError } = await supabase.from('factura_items').insert(itemsToInsert)
-    if (itemsError) console.error('Error insertando items:', itemsError)
+    if (itemsError) {
+      // Revertir la factura huérfana
+      await supabase.from('facturas').delete().eq('id', facturaId)
+      return NextResponse.json({ ok: false, error: 'Error guardando items de la factura: ' + itemsError.message }, { status: 500 })
+    }
 
-    // ─── Descontar stock automáticamente ───
-    for (const it of items) {
-      if (it.producto_id) {
-        // Registrar salida en movimientos_stock
-        await supabase.from('movimientos_stock').insert({
-          producto_id: it.producto_id,
-          tipo: 'salida',
-          cantidad: it.quantity,
-          motivo: `Venta ${tipo_comprobante === '01' ? 'Factura' : 'Boleta'} ${serie}-${String(numero).padStart(4, '0')}`,
-          factura_id: facturaId,
-        })
+    // BUG-07: no descontar stock si el pedido web ya lo hizo al confirmarse
+    // BUG-04: TODO — reemplazar con RPC atómica (decrement_stock) para evitar race condition bajo concurrencia
+    if (!stock_ya_descontado) {
+      for (const it of items) {
+        if (it.producto_id) {
+          await supabase.from('movimientos_stock').insert({
+            producto_id: it.producto_id,
+            tipo: 'salida',
+            cantidad: it.quantity,
+            motivo: `Venta ${tipo_comprobante === '01' ? 'Factura' : 'Boleta'} ${serie}-${String(numero).padStart(4, '0')}`,
+            factura_id: facturaId,
+          })
 
-        // Descontar stock del producto (directo, no RPC)
-        const { data: prodData } = await supabase
-          .from('productos')
-          .select('stock')
-          .eq('id', it.producto_id)
-          .single()
+          const { data: prodData } = await supabase
+            .from('productos')
+            .select('stock')
+            .eq('id', it.producto_id)
+            .single()
 
-        const stockActual = (prodData?.stock || 0)
-        const nuevoStock = Math.max(0, stockActual - it.quantity)
+          const stockActual = (prodData?.stock || 0)
+          const nuevoStock = Math.max(0, stockActual - it.quantity)
 
-        await supabase
-          .from('productos')
-          .update({ stock: nuevoStock })
-          .eq('id', it.producto_id)
+          await supabase
+            .from('productos')
+            .update({ stock: nuevoStock })
+            .eq('id', it.producto_id)
+        }
       }
     }
 
-    // ─── Incrementar siguiente número ───
-    await supabase.from('sunat_config').update({
-      [nextField]: numero + 1,
-      updated_at: now.toISOString(),
-    }).eq('id', 1)
-
-    // ─── Mensaje según modo ───
-    let mensaje = ''
-    if (modo === 'sunat_directo') {
-      mensaje = sunatStatus === 'ACEPTADO'
-        ? 'Comprobante aceptado por SUNAT (emisión directa con certificado digital)'
-        : sunatStatus === 'RECHAZADO'
-        ? 'Comprobante rechazado por SUNAT'
-        : 'Error en emisión directa a SUNAT'
-    } else if (modo === 'ose') {
-      mensaje = sunatStatus === 'ACEPTADO'
-        ? 'Comprobante aceptado por SUNAT vía OSE'
-        : sunatStatus === 'ENVIADO'
-        ? 'Comprobante enviado a SUNAT vía OSE'
-        : 'Comprobante guardado. Error en envío a OSE.'
-    } else {
-      mensaje = 'Comprobante guardado como PENDIENTE. Configura certificado digital o token OSE.'
+    // Solo incrementar el contador de sunat_config cuando se usó la numeración automática
+    if (!serie_override && !numero_override) {
+      await supabase.from('sunat_config').update({
+        [nextField]: numero + 1,
+        updated_at: now.toISOString(),
+      }).eq('id', 1)
     }
 
+    const mensaje = sunatStatus === 'ACEPTADO'
+      ? 'Comprobante aceptado por SUNAT vía APISUNAT.pe'
+      : sunatStatus === 'ENVIADO'
+      ? 'Comprobante enviado a SUNAT vía APISUNAT.pe (pendiente)'
+      : `Error: ${sunatError}`
+
     return NextResponse.json({
-      ok: true,
+      ok: sunatStatus === 'ACEPTADO' || sunatStatus === 'ENVIADO',
       factura: facturaInsert,
       estado_sunat: sunatStatus,
-      modo,
       mensaje,
       codigo_qr: codigoQR,
       hash_cpe: hash,
-      error_ose: sunatError || undefined,
     })
 
   } catch (e: any) {

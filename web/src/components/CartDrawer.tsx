@@ -465,7 +465,7 @@ export default function CartDrawer({
             <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }} className="space-y-3 mt-6">
               {!paymentEvidenceUrl && (
                 <a
-                  href={`https://wa.me/${waNumero || '51949324254'}?text=${encodeURIComponent(`¡Hola! Soy ${customerName}. Acabo de pagar S/ ${totalConDelivery.toFixed(2)} por ${paymentMethod}. Dirección de entrega: ${deliveryAddress || 'por definir'}.`)}`}
+                  href={`https://wa.me/${waNumero || '51916165543'}?text=${encodeURIComponent(`¡Hola! Soy ${customerName}. Acabo de pagar S/ ${totalConDelivery.toFixed(2)} por ${paymentMethod}. Dirección de entrega: ${deliveryAddress || 'por definir'}.`)}`}
                   target="_blank"
                   className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-green-500 text-white font-medium text-sm hover:bg-green-600 transition-all hover:shadow-lg active:scale-[0.98]"
                 >

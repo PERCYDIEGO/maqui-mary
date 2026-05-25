@@ -2,7 +2,7 @@ import { SunatConfig, SunatEnviroment } from './types'
 
 export const SUNAT_DEMO_RUC = '10456789012'
 export const SUNAT_DEMO_RZ = 'ES PONJAS MAQUI MARY'
-export const SUNAT_DEMO_DIRECCION = 'Calle Las Quebradas Mz E Lote 10, Ate Vitarte'
+export const SUNAT_DEMO_DIRECCION = 'Pro. Quinta Avenida Mza. J Lote 17-B Asc. Ganaderos Porcinos Saraco, Lurigancho'
 
 export const SUNAT_ENDPOINTS: Record<SunatEnviroment, { billService: string; statusService: string }> = {
   demo: {
@@ -28,7 +28,7 @@ export function getSunatConfig(): SunatConfig {
     razonSocial: process.env.SUNAT_RAZON_SOCIAL || SUNAT_DEMO_RZ,
     nombreComercial: process.env.SUNAT_NOMBRE_COMERCIAL || 'MAQUI MARY',
     address: process.env.SUNAT_DIRECCION || SUNAT_DEMO_DIRECCION,
-    urbanizacion: process.env.SUNAT_URBANIZACION || 'LAS QUEBRADAS',
+    urbanizacion: process.env.SUNAT_URBANIZACION || 'GANADEROS PORCINOS SARACO',
     provincia: process.env.SUNAT_PROVINCIA || 'LIMA',
     departamento: process.env.SUNAT_DEPARTAMENTO || 'LIMA',
     distrito: process.env.SUNAT_DISTRITO || 'ATE',

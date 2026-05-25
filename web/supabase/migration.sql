@@ -198,5 +198,5 @@ create table if not exists sunat_config (
 
 -- Insertar config por defecto si no existe
 insert into sunat_config (id, ruc, razon_social, nombre_comercial, address, provincia, departamento, distrito, ubigeo, series_factura, series_boleta)
-values (1, '10456789012', 'ES PONJAS MAQUI MARY', 'MAQUI MARY', 'Calle Las Quebradas Mz E Lote 10, Ate Vitarte', 'LIMA', 'LIMA', 'ATE', '150103', 'F001', 'B001')
+values (1, '10456789012', 'ES PONJAS MAQUI MARY', 'MAQUI MARY', 'PRO. QUINTA AVENIDA MZA. J LOTE. 17-B ASC. GANADEROS PORCINOS SARACO', 'LIMA', 'LIMA', 'LURIGANCHO', '150103', 'F001', 'B001')
 on conflict (id) do nothing;

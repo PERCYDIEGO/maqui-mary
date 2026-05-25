@@ -66,6 +66,8 @@ const config: Config = {
         'sponge-heart': 'spongeHeart 3s ease-in-out infinite',
         'sponge-squeeze': 'spongeSqueeze 0.6s ease-out forwards',
         'sponge-unsqueeze': 'spongeUnsqueeze 0.6s ease-out forwards',
+        'glow-pulse': 'glowPulse 3s ease-in-out infinite',
+        'drift': 'drift 8s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: {
@@ -133,6 +135,15 @@ const config: Config = {
         spongeUnsqueeze: {
           '0%': { transform: 'scaleY(1) scaleX(1)' },
           '100%': { transform: 'scaleY(1) scaleX(1)' },
+        },
+        glowPulse: {
+          '0%, 100%': { opacity: '0.3', filter: 'brightness(1)' },
+          '50%': { opacity: '0.6', filter: 'brightness(1.15)' },
+        },
+        drift: {
+          '0%, 100%': { transform: 'translate(0, 0) rotate(0deg)' },
+          '33%': { transform: 'translate(4px, -6px) rotate(0.5deg)' },
+          '66%': { transform: 'translate(-3px, 4px) rotate(-0.5deg)' },
         },
       },
       backgroundImage: {

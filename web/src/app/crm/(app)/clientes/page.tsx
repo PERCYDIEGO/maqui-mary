@@ -8,6 +8,7 @@ import toast from 'react-hot-toast'
 
 type Cliente = {
   id: number
+  codigo?: string
   name: string
   tipo_documento: '0' | '1' | '6' | '7'
   num_documento: string
@@ -209,6 +210,7 @@ export default function ClientesPage() {
           <table className="w-full">
             <thead className="bg-primary-50 border-b border-primary-200">
               <tr>
+                <th className="px-4 py-4 text-left text-xs font-semibold text-primary-600 uppercase">Código</th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-primary-600 uppercase">Cliente</th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-primary-600 uppercase">Documento</th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-primary-600 uppercase">Contacto</th>
@@ -219,6 +221,9 @@ export default function ClientesPage() {
             <tbody className="divide-y divide-primary-100">
               {filtrados.map(c => (
                 <tr key={c.id} className="hover:bg-primary-50/50 transition-colors">
+                  <td className="px-4 py-4">
+                    <span className="px-2 py-1 bg-slate-100 text-slate-600 rounded text-xs font-mono font-medium">{c.codigo || '—'}</span>
+                  </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center ${

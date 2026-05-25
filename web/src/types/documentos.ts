@@ -59,6 +59,7 @@ export interface DocumentoBase {
 // Cliente
 export interface Cliente {
   id: string;
+  codigo?: string;
   tipo: 'natural' | 'juridica';
   nombre: string;
   apellidos?: string;
@@ -81,7 +82,7 @@ export interface ItemDocumento {
   unidadMedida: UnidadMedida;
   descripcion: string;
   detalle?: string; // Detalle adicional del producto
-  valorUnitario: number; // Sin IGV
+  valorUnitario: number; // Precio con IGV (precio que paga el cliente; calcularItem lo descompone internamente)
   descuento: number;
   anticipos: number;
   icbper: number;
@@ -112,6 +113,8 @@ export interface Boleta extends DocumentoBase {
   clienteId: string;
   cliente: Cliente;
   moneda: 'PEN' | 'USD';
+  formaPago?: 'contado' | 'credito';
+  formaPagoSunat?: '001' | '002';
   items: ItemDocumento[];
   // Totales
   operacionGravada: number;
@@ -134,6 +137,8 @@ export interface Factura extends DocumentoBase {
   cliente: Cliente;
   moneda: 'PEN' | 'USD';
   formaPago: 'contado' | 'credito';
+  formaPagoSunat?: '001' | '002'; // Catálogo 12: 001=Contado, 002=Crédito
+  tipoOperacion?: string; // Catálogo 51: 0101=Venta
   fechaVencimiento?: Date;
   items: ItemDocumento[];
   // Totales
@@ -155,6 +160,7 @@ export interface Factura extends DocumentoBase {
 // Transportista
 export interface Transportista {
   id: string;
+  codigo?: string;
   modalidad: 'privado' | 'publico';
   // Privado — conductor propio de la empresa
   nombres: string;
@@ -162,10 +168,12 @@ export interface Transportista {
   nombreCompleto: string;
   dni?: string;
   licenciaConducir?: string;
+  categoriaLicencia?: string; // Categoría MTC: AIIa, AIIb, AIIIb, etc.
   numeroPlaca?: string;
   // Público — empresa/persona transportista externa
   ruc?: string;
   numeroRegistroMTC?: string;
+  direccion?: string;
   // Común
   fotoUrl?: string;
   activo: boolean;
@@ -175,16 +183,28 @@ export interface Transportista {
 
 export interface DocRelacionado {
   id: string;
-  tipo: 'boleta' | 'factura';
+  tipo: 'boleta' | 'factura' | 'gre';
   numero: string;   // numeroCompleto, ej: "EB01-000135"
   serie: string;
-  clienteNombre: string;
+  clienteNombre?: string;
+  // Para GRE Transportista — vinculación con GRE Remitente (GRR)
+  rucEmisorGRR?: string;
+  serieGRR?: string;     // 4 dígitos
+  numeroGRR?: string;    // 8 dígitos (con ceros adelante)
+}
+
+export interface DatosFlete {
+  quienPaga: 'remitente' | 'destinatario' | 'tercero';
+  rucTercero?: string;
+  razonSocialTercero?: string;
 }
 
 // Guía de Remisión
 export interface GuiaRemision extends DocumentoBase {
   tipo: 'guia';
+  tipoGuia?: 'remitente' | 'transportista'; // SUNAT: 09 = Remitente, 31 = Transportista
   fechaInicioTraslado: Date;
+  fechaEntregaTransportista?: Date;
   motivoTraslado: MotivoTraslado;
   // Documentos relacionados — puede ser UNO O MÁS (boletas y/o facturas)
   documentosRelacionados: DocRelacionado[];
@@ -197,12 +217,13 @@ export interface GuiaRemision extends DocumentoBase {
   destinatarioNombre: string;
   destinatarioDniRuc: string;
   // Puntos de traslado
-  puntoPartida: string; // Fijo: almacén Lurigancho
+  puntoPartida: string;
   puntoLlegada: string;
   // Bienes
   bienes: ItemDocumento[];
   pesoTotal: number;
   unidadMedidaPeso: 'KGM';
+  numeroBultos?: number;
   // Transporte
   modalidadTraslado: 'privado' | 'publico';
   transbordoProgramado: boolean;
@@ -212,18 +233,49 @@ export interface GuiaRemision extends DocumentoBase {
   // Transportista
   transportistaId?: string;
   transportista?: Transportista;
+  // Datos de flete (opcional, para GRE Transportista — slide paso 9)
+  datosFlete?: DatosFlete;
 }
 
+// Catálogo 31 SUNAT - Motivos de Traslado
 export type MotivoTraslado = 
-  | 'venta'
-  | 'traslado_establecimientos'
-  | 'importacion'
-  | 'exportacion'
-  | 'compra'
-  | 'devolucion'
-  | 'consignacion'
-  | 'emisor_itinerante'
-  | 'otros';
+  | '01' // Venta
+  | '02' // Compra
+  | '03' // Traslado entre establecimientos
+  | '04' // Devolución
+  | '05' // Exportación
+  | '06' // Zona primaria
+  | '07' // Consignación
+  | '08' // Emisor itinerante
+  | '09' // Zona primaria por emisor itinerante
+  | '10' // Venta con entrega a terceros
+  | '11' // Anticipo
+  | '12' // Transformación
+  | '13' // Emisor itinerante destino
+  | '14' // Recojo bienes transformados
+  | '15' // Cambio depositario
+  | '16' // Distribución directa
+  | '17' // Distribución
+
+export const CATALOGO_MOTIVOS_TRASLADO: { value: MotivoTraslado; label: string }[] = [
+  { value: '01', label: 'Venta' },
+  { value: '02', label: 'Compra' },
+  { value: '03', label: 'Traslado entre establecimientos' },
+  { value: '04', label: 'Devolución' },
+  { value: '05', label: 'Exportación' },
+  { value: '06', label: 'Traslado a zona primaria' },
+  { value: '07', label: 'Consignación' },
+  { value: '08', label: 'Emisor itinerante' },
+  { value: '09', label: 'Zona primaria por emisor itinerante' },
+  { value: '10', label: 'Venta con entrega a terceros' },
+  { value: '11', label: 'Anticipo de compraventa' },
+  { value: '12', label: 'Traslado para transformación' },
+  { value: '13', label: 'Emisor itinerante por entrega a destino' },
+  { value: '14', label: 'Recojo de bienes transformados' },
+  { value: '15', label: 'Cambio de depositario' },
+  { value: '16', label: 'Distribución directa' },
+  { value: '17', label: 'Distribución' },
+]
 
 // Producto/Catálogo
 export interface Producto {

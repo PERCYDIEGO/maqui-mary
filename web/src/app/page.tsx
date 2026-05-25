@@ -14,6 +14,28 @@ const GuiaAnimada = dynamic(() => import('@/components/GuiaAnimada'), { ssr: fal
 const MaryBot = dynamic(() => import('@/components/MaryBot'), { ssr: false })
 const CartDrawer = dynamic(() => import('@/components/CartDrawer'), { ssr: false })
 
+import { motion } from 'framer-motion'
+
+const slideUp = {
+  hidden: { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 80, damping: 18 } }
+}
+
+const slideUpSlow = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 60, damping: 20, delay: 0.15 } }
+}
+
+const staggerReveal = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.08 } }
+}
+
+const scaleReveal = {
+  hidden: { opacity: 0, scale: 0.9 },
+  visible: { opacity: 1, scale: 1, transition: { type: 'spring' as const, stiffness: 100, damping: 15 } }
+}
+
 type CartItem = { id: number; name: string; price: number; quantity: number }
 
 function Rating({ rating, count }: { rating: number; count: number }) {
@@ -37,6 +59,11 @@ function ContadorAnimado({ target, suffix = '', label }: { target: number; suffi
   const counted = useRef(false)
 
   useEffect(() => {
+    // Reiniciar cuando el target cambia (datos cargados desde la API)
+    counted.current = false
+    setCount(0)
+    setVisible(false)
+
     const obs = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting && !counted.current) {
         counted.current = true
@@ -64,7 +91,7 @@ function ContadorAnimado({ target, suffix = '', label }: { target: number; suffi
   )
 }
 
-function CintilloBanner({ bestseller }: { bestseller: { name: string; price: number } | null }) {
+function CintilloBanner({ bestseller, clientes = 0 }: { bestseller: { name: string; price: number } | null; clientes?: number }) {
   const [seconds, setSeconds] = useState(0)
   const [msgIdx, setMsgIdx] = useState(0)
 
@@ -85,8 +112,8 @@ function CintilloBanner({ bestseller }: { bestseller: { name: string; price: num
         : `El más vendido: ${bestseller?.name || 'Esponjas'} — desde S/ ${bestseller?.price.toFixed(2) || '—'} 🏆`
     },
     { icon: '⏱️', text: `Llevas ${timer} explorando — ¡Calidad y precio justo te esperan!` },
-    { icon: '🇵🇪', text: 'Hecho en Perú · Fabricación propia en Ate Vitarte — Calidad que tu hogar merece' },
-    { icon: '⭐', text: '5.0 estrellas · Más de 12,800 clientes nos respaldan' },
+    { icon: '🇵🇪', text: 'Hecho en Perú · Fabricación propia en Lurigancho — Calidad que tu hogar merece' },
+    { icon: '⭐', text: clientes > 0 ? `5.0 estrellas · Más de ${Intl.NumberFormat('es-PE').format(clientes)} clientes nos respaldan` : '5.0 estrellas · Calidad comprobada por nuestros clientes' },
     { icon: '💪', text: 'La mejor relación calidad-precio — ¡Agrega al carrito y comprueba!' },
   ]
 
@@ -123,9 +150,13 @@ export default function LandingPage() {
     direccion_display: string
     horario: string
   }>({
-    whatsapp_clientes: '51949324254',
-    direccion_display: 'Ate Vitarte, Lima',
+    whatsapp_clientes: '51916165543',
+    direccion_display: 'Lurigancho, Lima',
     horario: 'Lun–Sáb: 8:00 am – 6:00 pm',
+  })
+  const [estadisticas, setEstadisticas] = useState({
+    clientes_satisfechos: 0,
+    anios_experiencia: 0,
   })
 
   // Cargar productos actualizados desde Supabase al montar
@@ -150,6 +181,20 @@ export default function LandingPage() {
           direccion_display: data.direccion_display || prev.direccion_display,
           horario: data.horario || prev.horario,
         }))
+        // Calcular años de experiencia desde fecha_constitucion
+        const clientes = Number(data.clientes_satisfechos) || 0
+        let anios = 0
+        if (data.fecha_constitucion) {
+          const fechaFundacion = new Date(data.fecha_constitucion)
+          const hoy = new Date()
+          anios = hoy.getFullYear() - fechaFundacion.getFullYear()
+          // Si aún no llegó el aniversario de este año, restar 1
+          const mesTodo = hoy.getMonth() > fechaFundacion.getMonth() ||
+            (hoy.getMonth() === fechaFundacion.getMonth() && hoy.getDate() >= fechaFundacion.getDate())
+          if (!mesTodo) anios -= 1
+          anios = Math.max(1, anios)
+        }
+        setEstadisticas({ clientes_satisfechos: clientes, anios_experiencia: anios })
       }
     }).catch(() => {})
     setTimeout(() => setHeroLoaded(true), 100)
@@ -314,36 +359,37 @@ export default function LandingPage() {
               <span className="badge-gold text-sm">🇵🇪 Empresa Peruana</span>
               <span className="inline-flex items-center gap-1 bg-white/10 text-white px-3 py-1 rounded-full text-sm backdrop-blur-sm">
                 <Star size={14} className="fill-accent-gold text-accent-gold" />
-                5.0 (12.8k reseñas)
+                5.0 ({estadisticas.clientes_satisfechos >= 1000 ? `${(estadisticas.clientes_satisfechos / 1000).toFixed(1)}k` : estadisticas.clientes_satisfechos} reseñas)
               </span>
             </div>
             <h1 className={`font-display text-5xl md:text-7xl font-bold leading-tight mb-6 transition-all duration-700 delay-200 ${heroLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-              Esponjas{' '}
+              Esponjas de Limpieza{' '}
               <span className="gradient-text bg-gradient-to-r from-accent-gold via-accent-terracotta to-accent-gold bg-clip-text text-transparent">
-                Maqui Mary
+                en Lima
               </span>
               <br />
               <span className="text-2xl md:text-3xl font-light text-ink-300 font-body animate-fade-in" style={{ animationDelay: '1s', animationFillMode: 'both' }}>
-                Limpieza que inspira confianza
+                Precios bajos · Calidad Peruana · Delivery en Lima
               </span>
             </h1>
             <p className={`text-lg md:text-xl text-ink-300 mb-8 max-w-2xl leading-relaxed transition-all duration-700 delay-400 ${heroLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-              Fabricantes y distribuidores de esponjas de limpieza en Ate Vitarte, Lima.
+              Fabricantes y distribuidores de esponjas de limpieza en Lurigancho, Lima.
               Calidad que tu hogar merece, precio justo para tu bolsillo.
             </p>
             <div className={`flex flex-wrap gap-4 transition-all duration-700 delay-600 ${heroLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-              <a href={`https://wa.me/${empresaData.whatsapp_clientes}?text=¡Hola!%20Quiero%20hacer%20un%20pedido`} target="_blank" rel="noopener noreferrer" className="btn-secondary text-lg flex items-center gap-2 group">
-                <MessageCircle size={20} /> Cotizar por WhatsApp{' '}
+              <a href={`https://wa.me/${empresaData.whatsapp_clientes}?text=¡Hola!%20Quiero%20comprar%20esponjas%20de%20limpieza`} target="_blank" rel="noopener noreferrer" className="btn-secondary text-lg flex items-center gap-2 group relative overflow-hidden">
+                <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-bl-lg animate-pulse">HOT</span>
+                <MessageCircle size={20} /> Comprar por WhatsApp{' '}
                 <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
               </a>
-              <button onClick={() => setCartOpen(true)} className="btn-outline !border-ink-300 !text-ink-200 hover:!bg-accent-cream hover:!text-ink-900">
-                Comprar ahora
+              <button onClick={() => document.getElementById('productos')?.scrollIntoView({ behavior: 'smooth' })} className="btn-outline !border-ink-300 !text-ink-200 hover:!bg-accent-cream hover:!text-ink-900 flex items-center gap-2">
+                🛒 Ver Productos
               </button>
             </div>
             <div className={`mt-12 flex items-center gap-6 text-sm text-ink-400 transition-all duration-700 delay-800 ${heroLoaded ? 'opacity-100' : 'opacity-0'}`}>
               <span className="flex items-center gap-1.5"><Shield size={14} /> Fabricación propia</span>
               <span className="flex items-center gap-1.5"><Truck size={14} /> Delivery Lima</span>
-              <span className="flex items-center gap-1.5"><Users size={14} /> +12.8k clientes</span>
+              <span className="flex items-center gap-1.5"><Users size={14} /> +{estadisticas.clientes_satisfechos >= 1000 ? `${(estadisticas.clientes_satisfechos / 1000).toFixed(1)}k` : estadisticas.clientes_satisfechos} clientes</span>
             </div>
           </div>
         </div>
@@ -353,29 +399,41 @@ export default function LandingPage() {
       {/* ===== CONFIANZA / CONTADORES ===== */}
       <section className="bg-ink-100 py-16">
         <div className="max-w-5xl mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <ContadorAnimado target={12800} suffix="+" label="Clientes satisfechos" />
-            <ContadorAnimado target={50} suffix="+" label="Productos fabricados" />
-            <ContadorAnimado target={4} suffix=" años" label="Fabricando calidad" />
-            <ContadorAnimado target={100} suffix="%" label="Calidad garantizada" />
-          </div>
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-60px' }}
+            variants={staggerReveal}
+            className="grid grid-cols-2 md:grid-cols-4 gap-8"
+          >
+            <motion.div variants={slideUp}><ContadorAnimado target={estadisticas.clientes_satisfechos} suffix="+" label="Clientes satisfechos" /></motion.div>
+            <motion.div variants={slideUp}><ContadorAnimado target={productosLanding.length || 0} suffix="+" label="Productos únicos" /></motion.div>
+            <motion.div variants={slideUp}><ContadorAnimado target={estadisticas.anios_experiencia} suffix=" años" label="Fabricando calidad" /></motion.div>
+            <motion.div variants={slideUp}><ContadorAnimado target={100} suffix="%" label="Calidad garantizada" /></motion.div>
+          </motion.div>
         </div>
       </section>
 
       {/* ===== PRODUCTOS ===== */}
       <section id="productos" className="py-20 bg-accent-cream">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-16">
-            <span className="badge-gold text-sm mb-4 inline-block">Venta al por mayor y menor</span>
-            <h2 className="font-display text-4xl md:text-5xl font-bold text-ink-800 mb-4">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-60px' }}
+            variants={staggerReveal}
+            className="text-center mb-16"
+          >
+            <motion.span variants={slideUp} className="badge-gold text-sm mb-4 inline-block">Venta al por mayor y menor</motion.span>
+            <motion.h2 variants={slideUp} className="font-display text-4xl md:text-5xl font-bold text-ink-800 mb-4">
               Nuestros Productos
-            </h2>
-            <p className="text-ink-500 max-w-2xl mx-auto text-lg">
+            </motion.h2>
+            <motion.p variants={slideUp} className="text-ink-500 max-w-2xl mx-auto text-lg">
               Fabricamos esponjas para cada necesidad. Todos nuestros productos cuentan con la valoración máxima de nuestros clientes.
-            </p>
-          </div>
+            </motion.p>
+          </motion.div>
 
-          {bestseller && <CintilloBanner bestseller={bestseller} />}
+          {bestseller && <CintilloBanner bestseller={bestseller} clientes={estadisticas.clientes_satisfechos} />}
 
           {productosLanding.length === 0 && (
             <div className="text-center py-16 text-ink-400">
@@ -397,7 +455,15 @@ export default function LandingPage() {
                   const precioOriginal = Number(f.precio_original || f.precioOriginal || 0)
                   const descripcion = f.description || f.detalle || ''
                   return (
-                    <div key={f.id} className="card hover:shadow-2xl transition-all duration-300 group overflow-hidden animate-fade-up" style={{ animationDelay: `${idx * 80}ms`, animationFillMode: 'both' }}>
+                    <motion.div
+                      key={f.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: '-40px' }}
+                      transition={{ type: 'spring' as const, stiffness: 80, damping: 18, delay: idx * 0.04 }}
+                      whileHover={{ y: -8, transition: { type: 'spring' as const, stiffness: 300, damping: 15 } }}
+                      className="card hover:shadow-2xl transition-all duration-300 group overflow-hidden"
+                    >
                       <div className="h-44 -mx-6 -mt-6 mb-4 bg-gradient-to-b from-ink-100 to-white relative overflow-hidden rounded-t-3xl">
                         {imgUrl ? (
                           <Image src={imgUrl} alt={nombre} fill className={`object-contain p-4 transition-all duration-500 ${out ? 'opacity-30' : 'group-hover:scale-110 group-hover:rotate-1'}`} sizes="(max-width: 768px) 50vw, 25vw" />
@@ -412,8 +478,18 @@ export default function LandingPage() {
                           </div>
                         )}
                         {!out && f.stock < 20 && f.stock > 0 && (
-                          <div className="absolute top-2 right-2 bg-accent-terracotta text-white text-xs font-bold px-2 py-1 rounded-lg animate-pulse-soft">
-                            Solo {f.stock} uds
+                          <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-lg animate-pulse">
+                            🔥 Solo {f.stock} uds — Se agota
+                          </div>
+                        )}
+                        {!out && idx === 0 && (
+                          <div className="absolute top-2 left-2 bg-accent-gold text-ink-800 text-xs font-bold px-2 py-1 rounded-lg shadow-md">
+                            🏆 MÁS VENDIDO
+                          </div>
+                        )}
+                        {!out && precioOriginal > precio && (
+                          <div className="absolute bottom-2 left-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">
+                            ⚡ OFERTA -{Math.round((1 - precio/precioOriginal) * 100)}%
                           </div>
                         )}
                       </div>
@@ -435,7 +511,7 @@ export default function LandingPage() {
                       >
                         <Plus size={16} /> {out ? 'Agotado' : 'Agregar al carrito'}
                       </button>
-                    </div>
+                    </motion.div>
                   )
                 })}
               </div>
@@ -457,7 +533,15 @@ export default function LandingPage() {
                       const precioOriginal = Number(p.precio_original || p.precioOriginal || 0)
                       const colorInfo = p.color_info || p.detalle || ''
                       return (
-                      <div key={p.id} className="card !p-4 flex flex-col animate-fade-up" style={{ animationDelay: `${idx * 60}ms`, animationFillMode: 'both' }}>
+                      <motion.div
+                        key={p.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, margin: '-40px' }}
+                        transition={{ type: 'spring' as const, stiffness: 80, damping: 18, delay: idx * 0.04 }}
+                        whileHover={{ y: -6, transition: { type: 'spring' as const, stiffness: 300, damping: 15 } }}
+                        className="card !p-4 flex flex-col"
+                      >
                         <div className="h-28 -mx-4 -mt-4 mb-3 bg-gradient-to-b from-ink-100 to-white rounded-t-2xl overflow-hidden relative">
                           {imgUrl ? (
                             <Image src={imgUrl} alt={nombre} fill className={`object-contain p-2 transition-transform duration-500 ${outOfStock ? 'opacity-30' : 'hover:scale-105'}`} sizes="(max-width: 640px) 50vw, 25vw" />
@@ -501,7 +585,7 @@ export default function LandingPage() {
                             <Plus size={16} />
                           </button>
                         </div>
-                      </div>
+                      </motion.div>
                     )})}
                   </div>
                 </div>
@@ -510,7 +594,13 @@ export default function LandingPage() {
           )}
 
           {/* Wholesale CTA */}
-          <div className="mt-12 bg-gradient-to-r from-ink-800 to-ink-900 rounded-3xl p-8 md:p-12 text-white text-center relative overflow-hidden">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ type: 'spring' as const, stiffness: 80, damping: 18 }}
+            className="mt-12 bg-gradient-to-r from-ink-800 to-ink-900 rounded-3xl p-8 md:p-12 text-white text-center relative overflow-hidden"
+          >
             <div className="absolute inset-0 bg-textile-pattern opacity-10" />
             <div className="relative">
               <Store size={40} className="mx-auto mb-4 opacity-80" />
@@ -522,7 +612,7 @@ export default function LandingPage() {
                 <MessageCircle size={20} /> Cotizar por mayor <ChevronRight size={20} />
               </a>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -542,14 +632,19 @@ export default function LandingPage() {
       <section id="nosotros" className="py-20 bg-ink-100">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ type: 'spring' as const, stiffness: 80, damping: 18 }}
+            >
               <span className="badge-gold text-sm mb-4 inline-block">Nuestra Historia</span>
               <h2 className="font-display text-4xl md:text-5xl font-bold text-ink-800 mb-6">
                 Hecho en Perú, con <span className="text-accent-gold">orgullo</span>
               </h2>
               <p className="text-ink-600 mb-4 leading-relaxed text-lg">
                 Somos una empresa peruana fabricante de esponjas de limpieza ubicada en 
-                Ate Vitarte, Lima. Nacimos del esfuerzo y las ganas de ofrecer productos 
+                Lurigancho, Lima. Nacimos del esfuerzo y las ganas de ofrecer productos 
                 de calidad a precios justos para el hogar peruano.
               </p>
               <p className="text-ink-600 mb-6 leading-relaxed">
@@ -570,14 +665,20 @@ export default function LandingPage() {
                   </span>
                 ))}
               </div>
-            </div>
-            <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 relative shadow-xl border border-ink-200/30">
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ type: 'spring' as const, stiffness: 80, damping: 18, delay: 0.15 }}
+              className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 relative shadow-xl border border-ink-200/30"
+            >
               <div className="absolute -top-3 -left-3 bg-accent-gold text-ink-800 px-4 py-2 rounded-xl font-heading font-bold text-sm shadow-lg">
-                +4 años de experiencia
+                +{estadisticas.anios_experiencia} años de experiencia
               </div>
               <div className="space-y-5">
                 {[
-                  { icon: Shield, label: 'Fabricación propia', desc: 'Producimos nuestras esponjas en nuestro local en Ate' },
+                  { icon: Shield, label: 'Fabricación propia', desc: 'Producimos nuestras esponjas en nuestro local en Lurigancho' },
                   { icon: Store, label: 'Venta al por mayor y menor', desc: 'Desde una unidad hasta pallets completos' },
                   { icon: Truck, label: 'Delivery en Lima', desc: 'Coordinamos la entrega en tu zona' },
                   { icon: MessageCircle, label: 'Atención personalizada', desc: 'Habla directo con nosotros por WhatsApp' },
@@ -593,7 +694,7 @@ export default function LandingPage() {
                   </div>
                 ))}
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -601,27 +702,39 @@ export default function LandingPage() {
       {/* ===== TESTIMONIOS ===== */}
       <section id="testimonios" className="py-20 bg-accent-cream">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="font-display text-4xl md:text-5xl font-bold text-ink-800 mb-4">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-60px' }}
+            variants={staggerReveal}
+            className="text-center mb-16"
+          >
+            <motion.h2 variants={slideUp} className="font-display text-4xl md:text-5xl font-bold text-ink-800 mb-4">
               Lo que dicen nuestros clientes
-            </h2>
-            <div className="flex items-center justify-center gap-3 mb-2">
+            </motion.h2>
+            <motion.div variants={slideUp} className="flex items-center justify-center gap-3 mb-2">
               <div className="flex">
                 {[1, 2, 3, 4, 5].map((s) => (
                   <Star key={s} size={24} className="fill-accent-gold text-accent-gold" />
                 ))}
               </div>
               <span className="font-display font-bold text-3xl text-ink-800">5.0</span>
-            </div>
-            <p className="text-ink-500">Valoración promedio de 12.8k clientes satisfechos</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-6">
+            </motion.div>
+            <motion.p variants={slideUp} className="text-ink-500">Valoración promedio de {estadisticas.clientes_satisfechos >= 1000 ? `${(estadisticas.clientes_satisfechos / 1000).toFixed(1)}k` : estadisticas.clientes_satisfechos} clientes satisfechos</motion.p>
+          </motion.div>
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-40px' }}
+            variants={staggerReveal}
+            className="grid md:grid-cols-3 gap-6"
+          >
             {[
               { name: 'María G.', location: 'Los Olivos', text: 'Compra semanal segura. Las esponjas son de buena calidad y el precio justo. Llevo comprando más de un año.', purchases: 15 },
               { name: 'Carlos R.', location: 'Ate', text: 'Distribuyo sus esponjas en mi bodega. Mis clientes las prefieren por su durabilidad y buen precio. Ventas constantes.', purchases: 30 },
               { name: 'Rosa M.', location: 'San Juan de Lurigancho', text: 'Las doble uso son las mejores para la cocina. Compro al por mayor cada mes desde que las descubrí.', purchases: 12 },
             ].map((t, idx) => (
-              <div key={t.name} className="card animate-fade-up" style={{ animationDelay: `${idx * 150}ms`, animationFillMode: 'both' }}>
+              <motion.div key={t.name} variants={slideUp} className="card">
                 <div className="flex items-center gap-1 mb-3">
                   {[...Array(5)].map((_, i) => (
                     <Star key={i} size={16} className="fill-accent-gold text-accent-gold" />
@@ -638,23 +751,117 @@ export default function LandingPage() {
                   </div>
                   <span className="text-xs text-ink-400 bg-ink-100 px-2 py-1 rounded-full">{t.purchases} compras</span>
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
+
+      {/* ===== PREGUNTAS FRECUENTES ===== */}
+      <section id="faq" className="py-20 bg-white">
+        <div className="max-w-4xl mx-auto px-4">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-60px' }}
+            variants={staggerReveal}
+            className="text-center mb-12"
+          >
+            <motion.h2 variants={slideUp} className="font-display text-4xl md:text-5xl font-bold text-ink-800 mb-4">
+              Preguntas Frecuentes
+            </motion.h2>
+            <motion.p variants={slideUp} className="text-ink-500">Resolvemos tus dudas para que compres con confianza</motion.p>
+          </motion.div>
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-40px' }}
+            variants={staggerReveal}
+            className="space-y-4"
+          >
+            {[
+              { q: '¿Hacen delivery a todo Lima?', a: 'Sí, hacemos delivery a todos los distritos de Lima. El costo de envío varía según la zona, desde S/ 5.00 hasta S/ 15.00. También puedes recoger en nuestro local en Lurigancho sin costo adicional.' },
+              { q: '¿Cuál es el pedido mínimo?', a: 'No hay pedido mínimo. Puedes comprar desde una sola esponja. A mayor volumen, mejor precio — consulta por nuestros precios al por mayor, tenemos descuentos especiales para bodegueros y distribuidores.' },
+              { q: '¿Tienen precios al por mayor?', a: '¡Sí! Tenemos precios especiales para bodegueros, distribuidores y compras por volumen. Contáctanos por WhatsApp y te enviamos la lista de precios mayoristas.' },
+              { q: '¿Qué métodos de pago aceptan?', a: 'Aceptamos Yape, Plin, transferencia bancaria (BCP, BBVA, Interbank), tarjeta de crédito/débito y pago contraentrega (con recargo de S/ 5.00).' },
+              { q: '¿Cuánto duran las esponjas?', a: 'Nuestras esponjas están hechas para rendir. Con uso diario mantienen su forma y poder de limpieza por mucho tiempo. La línea de acero es ideal para limpieza profunda y su durabilidad es aún mayor. Calidad que se siente en cada uso.' },
+            ].map((faq, idx) => (
+              <motion.div key={idx} variants={slideUp} className="card !p-6">
+                <h3 className="font-heading font-bold text-lg text-ink-800 mb-2">{faq.q}</h3>
+                <p className="text-ink-600">{faq.a}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: [
+            {
+              '@type': 'Question',
+              name: '¿Hacen delivery a todo Lima?',
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: 'Sí, hacemos delivery a todos los distritos de Lima. El costo de envío varía según la zona. Consulta el costo exacto por WhatsApp. También puedes recoger en nuestro local en Lurigancho sin costo adicional.'
+              }
+            },
+            {
+              '@type': 'Question',
+              name: '¿Cuál es el pedido mínimo?',
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: 'No hay pedido mínimo. Puedes comprar desde una sola esponja. A mayor volumen, mejor precio — consulta por nuestros precios al por mayor por WhatsApp.'
+              }
+            },
+            {
+              '@type': 'Question',
+              name: '¿Tienen precios al por mayor?',
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: '¡Sí! Tenemos precios especiales para bodegueros, distribuidores y compras por volumen. Contáctanos por WhatsApp y te enviamos la lista de precios mayoristas.'
+              }
+            },
+            {
+              '@type': 'Question',
+              name: '¿Qué métodos de pago aceptan?',
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: 'Aceptamos Yape, Plin, transferencia bancaria (BCP, BBVA, Interbank), tarjeta de crédito/débito y pago contraentrega. Consulta condiciones por WhatsApp.'
+              }
+            },
+            {
+              '@type': 'Question',
+              name: '¿Cuánto duran las esponjas?',
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: 'Nuestras esponjas están hechas para rendir. Con uso diario mantienen su forma y poder de limpieza por mucho tiempo. La línea de acero es ideal para limpieza profunda y su durabilidad es aún mayor. Calidad que se siente en cada uso.'
+              }
+            }
+          ]
+        }) }}
+      />
 
       {/* ===== CONTACTO ===== */}
       <section id="contacto" className="py-20 bg-gradient-to-br from-ink-900 to-ink-800 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-textile-pattern opacity-10" />
-        <div className="max-w-4xl mx-auto px-4 text-center relative">
-          <h2 className="font-display text-4xl md:text-5xl font-bold mb-6">
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-60px' }}
+          variants={staggerReveal}
+          className="max-w-4xl mx-auto px-4 text-center relative"
+        >
+          <motion.h2 variants={slideUp} className="font-display text-4xl md:text-5xl font-bold mb-6">
             ¿Quieres hacer un pedido?
-          </h2>
-          <p className="text-ink-300 text-lg mb-8 max-w-2xl mx-auto">
+          </motion.h2>
+          <motion.p variants={slideUp} className="text-ink-300 text-lg mb-8 max-w-2xl mx-auto">
             Contáctanos directo por WhatsApp o pide desde nuestra web con Yape o Plin.
             Delivery a todo Lima.
-          </p>
+          </motion.p>
           <div className="flex flex-wrap justify-center gap-4 mb-10">
             <a href="#productos" className="btn-secondary text-lg inline-flex items-center gap-2">
               <ShoppingCart size={22} /> Comprar ahora
@@ -670,7 +877,7 @@ export default function LandingPage() {
             <Image src="/img/bbva-logo.svg" alt="BBVA" width={28} height={28} className="h-7 w-auto object-contain brightness-0 invert opacity-80" />
             <Image src="/img/interbank-logo.svg" alt="Interbank" width={28} height={28} className="h-7 w-auto object-contain brightness-0 invert opacity-80" />
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* ===== AUDIO TOGGLE ===== */}
@@ -699,13 +906,12 @@ export default function LandingPage() {
                 <MaquiMaryLogoLight size={56} variant="full" />
               </div>
               <p className="text-sm leading-relaxed text-ink-400">
-                Fabricantes de esponjas de limpieza en Ate Vitarte, Lima. Calidad peruana para tu hogar. 🇵🇪
+                Fabricantes de esponjas de limpieza en Lurigancho, Lima. Calidad peruana para tu hogar. 🇵🇪
               </p>
             </div>
             <div>
               <h4 className="font-heading font-semibold text-accent-cream mb-4">Contacto</h4>
               <ul className="space-y-2 text-sm">
-                <li className="flex items-center gap-1.5"><MapPin size={14} className="text-accent-gold" /> {empresaData.direccion_display}</li>
                 <li><a href={`https://wa.me/${empresaData.whatsapp_clientes}`} target="_blank" rel="noopener noreferrer" className="hover:text-accent-gold transition-colors flex items-center gap-1.5"><MessageCircle size={14} className="text-green-500" /> WhatsApp</a></li>
                 <li className="flex items-center gap-1.5"><Clock size={14} className="text-accent-gold" /> {empresaData.horario}</li>
               </ul>
@@ -724,10 +930,12 @@ export default function LandingPage() {
           <div className="border-t border-ink-800 mt-8 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-ink-500">
             <p>&copy; {new Date().getFullYear()} Esponjas Maqui Mary Perú. Todos los derechos reservados.</p>
             <div className="flex items-center gap-4">
-              <span className="flex items-center gap-1">
-                <Star size={12} className="fill-accent-gold text-accent-gold" />
-                5.0 (12.8k)
-              </span>
+              {estadisticas.clientes_satisfechos > 0 && (
+                <span className="flex items-center gap-1">
+                  <Star size={12} className="fill-accent-gold text-accent-gold" />
+                  5.0 ({estadisticas.clientes_satisfechos >= 1000 ? `${(estadisticas.clientes_satisfechos / 1000).toFixed(1)}k` : estadisticas.clientes_satisfechos})
+                </span>
+              )}
               <a href="/crm/login" className="flex items-center gap-1.5 hover:text-accent-gold transition-colors text-ink-400">
                 <Lock size={12} /> Área de Empleados
               </a>
@@ -751,6 +959,123 @@ export default function LandingPage() {
           <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
         </svg>
       </a>
+
+      {/* Schema HowTo: Cómo limpiar ollas quemadas */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'HowTo',
+          name: 'Cómo limpiar ollas quemadas con esponja de acero',
+          description: 'Guía paso a paso para eliminar grasa quemada de ollas usando esponjas de limpieza de Maqui Mary.',
+          image: 'https://maquimary.vercel.app/img/lana_de_acero.png',
+          totalTime: 'PT15M',
+          supply: [
+            { '@type': 'HowToSupply', name: 'Lana de acero o esponja doble uso Maqui Mary' },
+            { '@type': 'HowToSupply', name: 'Jabón líquido para platos' },
+            { '@type': 'HowToSupply', name: 'Agua caliente' },
+          ],
+          tool: [
+            { '@type': 'HowToTool', name: 'Olla con grasa quemada' },
+          ],
+          step: [
+            {
+              '@type': 'HowToStep',
+              name: 'Remoja la olla',
+              text: 'Llena la olla con agua caliente y jabón. Déjala reposar 30 minutos para ablandar la grasa carbonizada.',
+              url: 'https://maquimary.vercel.app/#como-limpiar-ollas',
+            },
+            {
+              '@type': 'HowToStep',
+              name: 'Usa la esponja abrasiva',
+              text: 'Toma la esponja doble uso de Maqui Mary y usa la cara abrasiva. Frota en círculos sobre la zona con grasa quemada.',
+              url: 'https://maquimary.vercel.app/#como-limpiar-ollas',
+            },
+            {
+              '@type': 'HowToStep',
+              name: 'Refuerza con lana de acero',
+              text: 'Para grasa muy carbonizada, usa lana de acero Maqui Mary con presión moderada. No raya el acero inoxidable.',
+              url: 'https://maquimary.vercel.app/#como-limpiar-ollas',
+            },
+            {
+              '@type': 'HowToStep',
+              name: 'Enjuaga y seca',
+              text: 'Lava con agua tibia y seca con un paño absorbente amarillo para evitar manchas de agua.',
+              url: 'https://maquimary.vercel.app/#como-limpiar-ollas',
+            },
+          ],
+        }) }}
+      />
+
+      {/* Schema Productos Destacados */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify([
+          {
+            '@context': 'https://schema.org',
+            '@type': 'Product',
+            name: 'Esponjas de Colores Mix x10 - Maqui Mary',
+            image: 'https://maquimary.vercel.app/img/esponjas-colores.png',
+            description: 'Pack de 10 esponjas de colores variados. Suaves para limpieza general de vajilla y superficies delicadas.',
+            brand: { '@type': 'Brand', name: 'Maqui Mary' },
+            offers: {
+              '@type': 'Offer',
+              url: 'https://maquimary.vercel.app',
+              priceCurrency: 'PEN',
+              availability: 'https://schema.org/InStock',
+              itemCondition: 'https://schema.org/NewCondition',
+              seller: { '@type': 'Organization', name: 'Maqui Mary' }
+            },
+            aggregateRating: {
+              '@type': 'AggregateRating',
+              ratingValue: '5.0',
+              reviewCount: '1'
+            }
+          },
+          {
+            '@context': 'https://schema.org',
+            '@type': 'Product',
+            name: 'Esponja Doble Uso - Maqui Mary',
+            image: 'https://maquimary.vercel.app/img/esponja_doble_uso_cuadrada.png',
+            description: 'Un lado suave para delicados, otro lado abrasivo para suciedad difícil. Perfecta para ollas y sartenes.',
+            brand: { '@type': 'Brand', name: 'Maqui Mary' },
+            offers: {
+              '@type': 'Offer',
+              url: 'https://maquimary.vercel.app',
+              priceCurrency: 'PEN',
+              availability: 'https://schema.org/InStock',
+              itemCondition: 'https://schema.org/NewCondition',
+              seller: { '@type': 'Organization', name: 'Maqui Mary' }
+            },
+            aggregateRating: {
+              '@type': 'AggregateRating',
+              ratingValue: '5.0',
+              reviewCount: '1'
+            }
+          },
+          {
+            '@context': 'https://schema.org',
+            '@type': 'Product',
+            name: 'Paño Absorbente Amarillo - Maqui Mary',
+            image: 'https://maquimary.vercel.app/img/paño_amarillo.png',
+            description: 'Paño de microfibra super absorbente. Ideal para secar, limpiar vidrios y pulir superficies sin dejar pelusa.',
+            brand: { '@type': 'Brand', name: 'Maqui Mary' },
+            offers: {
+              '@type': 'Offer',
+              url: 'https://maquimary.vercel.app',
+              priceCurrency: 'PEN',
+              availability: 'https://schema.org/InStock',
+              itemCondition: 'https://schema.org/NewCondition',
+              seller: { '@type': 'Organization', name: 'Maqui Mary' }
+            },
+            aggregateRating: {
+              '@type': 'AggregateRating',
+              ratingValue: '5.0',
+              reviewCount: '1'
+            }
+          }
+        ]) }}
+      />
     </div>
   )
 }

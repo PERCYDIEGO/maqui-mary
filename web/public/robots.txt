@@ -1,0 +1,22 @@
+User-agent: *
+Allow: /
+Disallow: /crm/
+Disallow: /api/
+
+Sitemap: https://maquimary.vercel.app/sitemap.xml
+
+# Crawl-delay no es soportado por Google, pero si por Bing
+User-agent: Bingbot
+Crawl-delay: 1
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /

@@ -8,12 +8,14 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Edit2, Truck, User, Building2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { useApp } from '@/context/AppContext';
 import toast from 'react-hot-toast';
 
 type Modalidad = 'privado' | 'publico';
 
 type Transportista = {
   id: number;
+  codigo?: string;
   modalidad: Modalidad;
   nombres: string;
   apellidos: string;
@@ -23,6 +25,7 @@ type Transportista = {
   numero_placa: string;
   ruc: string;
   numero_registro_mtc: string;
+  direccion?: string;
   activo: boolean;
   created_at: string;
 };
@@ -39,6 +42,7 @@ type FormData = {
   razon_social: string;  // va a nombres
   ruc: string;
   numero_registro_mtc: string;
+  direccion: string;
   activo: boolean;
 };
 
@@ -52,10 +56,12 @@ const FORM_DEFAULT: FormData = {
   razon_social: '',
   ruc: '',
   numero_registro_mtc: '',
+  direccion: '',
   activo: true,
 };
 
 export default function TransportistasPage() {
+  const { refreshTransportistas: refreshAppTransportistas } = useApp();
   const [transportistas, setTransportistas] = useState<Transportista[]>([]);
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState('');
@@ -135,6 +141,7 @@ export default function TransportistasPage() {
               numero_placa: '',
               ruc: formData.ruc.trim(),
               numero_registro_mtc: formData.numero_registro_mtc.trim().toUpperCase(),
+              direccion: formData.direccion.trim(),
               activo: formData.activo,
             };
 
@@ -166,7 +173,8 @@ export default function TransportistasPage() {
         );
       }
       cerrarModal();
-      loadTransportistas();
+      await loadTransportistas();
+      refreshAppTransportistas();
     } catch (err: any) {
       toast.error(err.message || 'Error al guardar');
     } finally {
@@ -193,6 +201,7 @@ export default function TransportistasPage() {
       razon_social: modalidad === 'publico' ? t.nombres : '',
       ruc: t.ruc || '',
       numero_registro_mtc: t.numero_registro_mtc || '',
+      direccion: t.direccion || '',
       activo: t.activo,
     });
     setModalAbierto(true);
@@ -278,10 +287,12 @@ export default function TransportistasPage() {
           <table className="w-full">
             <thead className="bg-primary-50 border-b border-primary-200">
               <tr>
+                <th className="px-4 py-4 text-left text-xs font-semibold text-primary-600 uppercase">Código</th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-primary-600 uppercase">Transportista</th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-primary-600 uppercase">Tipo</th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-primary-600 uppercase">Identificación</th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-primary-600 uppercase">Vehículo / MTC</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-primary-600 uppercase">Dirección</th>
                 <th className="px-6 py-4 text-center text-xs font-semibold text-primary-600 uppercase">Estado</th>
                 <th className="px-6 py-4 text-center text-xs font-semibold text-primary-600 uppercase">Acciones</th>
               </tr>
@@ -291,6 +302,9 @@ export default function TransportistasPage() {
                 const esPublico = t.modalidad === 'publico';
                 return (
                   <tr key={t.id} className="hover:bg-primary-50/50 transition-colors">
+                    <td className="px-4 py-4">
+                      <span className="px-2 py-1 bg-slate-100 text-slate-600 rounded text-xs font-mono font-medium">{t.codigo || '—'}</span>
+                    </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center ${esPublico ? 'bg-amber-100' : 'bg-primary-100'}`}>
@@ -323,6 +337,11 @@ export default function TransportistasPage() {
                           {t.numero_placa || '—'}
                         </span>
                       )}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-slate-600 truncate max-w-[200px] block" title={t.direccion || ''}>
+                        {t.direccion || '—'}
+                      </span>
                     </td>
                     <td className="px-6 py-4 text-center">
                       <span className={`px-2 py-1 rounded-lg text-xs font-medium ${
@@ -500,6 +519,18 @@ export default function TransportistasPage() {
                       placeholder="15117368CNG"
                     />
                     <p className="text-xs text-slate-500 mt-1">Número de inscripción en el Ministerio de Transportes</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-primary-700 mb-1">Dirección Fiscal</label>
+                    <input
+                      type="text"
+                      value={formData.direccion || ''}
+                      onChange={e => setFormData({ ...formData, direccion: e.target.value })}
+                      className="input-field"
+                      placeholder="AV. SAN LUIS NRO. 505 LIMA - LIMA - LA VICTORIA"
+                    />
+                    <p className="text-xs text-slate-500 mt-1">Dirección fiscal registrada en SUNAT</p>
                   </div>
                 </>
               )}

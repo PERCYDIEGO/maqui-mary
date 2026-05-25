@@ -2,14 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Send, CheckCircle, XCircle, Clock, FileText, AlertTriangle, Eye, X, Code, User } from 'lucide-react';
+import { Send, CheckCircle, XCircle, Clock, FileText, AlertTriangle, Eye, X, Code, User, Trash2, RotateCcw, Stethoscope } from 'lucide-react';
+import Link from 'next/link';
 import { useApp } from '@/context/AppContext';
 import { formatearMoneda } from '@/lib/calculos';
 import { EMPRESA_DATA } from '@/types/documentos';
 import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
 
-type TipoDocumento = 'boleta' | 'factura';
+type TipoDocumento = 'boleta' | 'factura' | 'guia';
 
 interface DocumentoPendiente {
   id: string;
@@ -32,7 +33,7 @@ interface DocumentoPendiente {
 }
 
 export default function SunatPage() {
-  const { boletas, facturas, enviarDocumentoSUNAT, aprobarDocumento, rechazarDocumento } = useApp();
+  const { boletas, facturas, guias, enviarDocumentoSUNAT, enviarGuiaSUNAT, aprobarDocumento, rechazarDocumento, eliminarDocumentoRechazado } = useApp();
   const router = useRouter();
   const [procesando, setProcesando] = useState<string | null>(null);
   const [motivoRechazo, setMotivoRechazo] = useState('');
@@ -40,6 +41,8 @@ export default function SunatPage() {
   const [vistaPrevia, setVistaPrevia] = useState<DocumentoPendiente | null>(null);
   const [mostrarXML, setMostrarXML] = useState(false);
   const [userMap, setUserMap] = useState<Record<string, string>>({});
+  const [eliminando, setEliminando] = useState<string | null>(null);
+  const [confirmarEliminar, setConfirmarEliminar] = useState<DocumentoPendiente | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -65,6 +68,33 @@ export default function SunatPage() {
 
   // Generar XML UBL que se enviará a SUNAT
   const generarXMLUBL = (doc: DocumentoPendiente): string => {
+    if (doc.tipo === 'guia') {
+      return `<?xml version="1.0" encoding="UTF-8"?>
+<DespatchAdvice xmlns="urn:oasis:names:specification:ubl:schema:xsd:DespatchAdvice-2" 
+  xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+  xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+  <cbc:UBLVersionID>2.1</cbc:UBLVersionID>
+  <cbc:CustomizationID>2.0</cbc:CustomizationID>
+  <cbc:ID>${doc.serie}-${String(doc.numero).padStart(8, '0')}</cbc:ID>
+  <cbc:IssueDate>${new Date(doc.fechaEmision).toISOString().split('T')[0]}</cbc:IssueDate>
+  <cbc:DespatchAdviceTypeCode>09</cbc:DespatchAdviceTypeCode>
+  <!-- Documento simplificado para vista previa -->
+  <cac:DespatchSupplierParty>
+    <cac:Party>
+      <cac:PartyLegalEntity>
+        <cbc:RegistrationName>${EMPRESA_DATA.razonSocial}</cbc:RegistrationName>
+      </cac:PartyLegalEntity>
+    </cac:Party>
+  </cac:DespatchSupplierParty>
+  <cac:DeliveryCustomerParty>
+    <cac:Party>
+      <cac:PartyLegalEntity>
+        <cbc:RegistrationName>${doc.cliente.nombre}</cbc:RegistrationName>
+      </cac:PartyLegalEntity>
+    </cac:Party>
+  </cac:DeliveryCustomerParty>
+</DespatchAdvice>`;
+    }
     const tipoDoc = doc.tipo === 'boleta' ? '03' : '01';
     const tipoDocTexto = doc.tipo === 'boleta' ? 'Boleta de Venta' : 'Factura';
     
@@ -109,7 +139,7 @@ export default function SunatPage() {
          xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
   
   <!-- CABECERA DEL DOCUMENTO -->
-  <cbc:UBLVersionID>2.1</cbc:UBLVersionID>
+  <cbc:UBLVersionID>2.0</cbc:UBLVersionID>
   <cbc:CustomizationID>2.0</cbc:CustomizationID>
   <cbc:ID>${doc.numeroCompleto}</cbc:ID>
   <cbc:IssueDate>${new Date(doc.fechaEmision).toISOString().split('T')[0]}</cbc:IssueDate>
@@ -193,6 +223,69 @@ export default function SunatPage() {
   const sortDesc = (a: DocumentoPendiente, b: DocumentoPendiente) =>
     new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
 
+  // Mapear guías al formato DocumentoPendiente
+  const guiasPendientes: DocumentoPendiente[] = guias
+    .filter(g => g.estado === 'borrador' || g.estado === 'pendiente_envio')
+    .map(g => ({
+      id: g.id,
+      tipo: 'guia' as TipoDocumento,
+      numeroCompleto: g.numeroCompleto,
+      serie: g.serie,
+      numero: g.numero,
+      cliente: { 
+        nombre: g.destinatarioNombre, 
+        ruc: g.destinatarioDniRuc?.length === 11 ? g.destinatarioDniRuc : undefined,
+        dni: g.destinatarioDniRuc?.length === 8 ? g.destinatarioDniRuc : undefined,
+        direccion: g.puntoLlegada 
+      },
+      fechaEmision: g.fechaEmision,
+      createdAt: g.createdAt,
+      importeTotal: 0,
+      moneda: 'PEN' as 'PEN' | 'USD',
+      estado: g.estado,
+      items: g.bienes?.map((b: any) => ({
+        descripcion: b.descripcion,
+        cantidad: b.cantidad,
+        unidadMedida: b.unidadMedida || 'NIU',
+        valorVenta: 0,
+        importeTotal: 0,
+        igv: 0,
+      })),
+      igvTotal: 0,
+      operacionGravada: 0,
+    }));
+
+  const guiasEnviadas: DocumentoPendiente[] = guias
+    .filter(g => g.estado === 'enviado' || g.estado === 'aprobado' || g.estado === 'rechazado')
+    .map(g => ({
+      id: g.id,
+      tipo: 'guia' as TipoDocumento,
+      numeroCompleto: g.numeroCompleto,
+      serie: g.serie,
+      numero: g.numero,
+      cliente: { 
+        nombre: g.destinatarioNombre, 
+        ruc: g.destinatarioDniRuc?.length === 11 ? g.destinatarioDniRuc : undefined,
+        dni: g.destinatarioDniRuc?.length === 8 ? g.destinatarioDniRuc : undefined,
+        direccion: g.puntoLlegada 
+      },
+      fechaEmision: g.fechaEmision,
+      createdAt: g.createdAt,
+      importeTotal: 0,
+      moneda: 'PEN' as 'PEN' | 'USD',
+      estado: g.estado,
+      items: g.bienes?.map((b: any) => ({
+        descripcion: b.descripcion,
+        cantidad: b.cantidad,
+        unidadMedida: b.unidadMedida || 'NIU',
+        valorVenta: 0,
+        importeTotal: 0,
+        igv: 0,
+      })),
+      igvTotal: 0,
+      operacionGravada: 0,
+    }));
+
   // Documentos pendientes de envío (borrador o pendiente_envio)
   const documentosPendientes: DocumentoPendiente[] = [
     ...boletas
@@ -201,6 +294,7 @@ export default function SunatPage() {
     ...facturas
       .filter(f => f.estado === 'borrador' || f.estado === 'pendiente_envio')
       .map(f => ({ ...f, tipo: 'factura' as TipoDocumento })),
+    ...guiasPendientes,
   ].sort(sortDesc);
 
   // Documentos enviados a SUNAT
@@ -211,16 +305,26 @@ export default function SunatPage() {
     ...facturas
       .filter(f => f.estado === 'enviado' || f.estado === 'aprobado' || f.estado === 'rechazado')
       .map(f => ({ ...f, tipo: 'factura' as TipoDocumento })),
+    ...guiasEnviadas,
   ].sort(sortDesc);
 
   const handleEnviar = async (doc: DocumentoPendiente) => {
     setProcesando(doc.id);
     try {
-      const resultado = await enviarDocumentoSUNAT(doc.id, doc.tipo);
-      if (resultado.success) {
-        toast.success(resultado.message);
+      if (doc.tipo === 'guia') {
+        const resultado = await enviarGuiaSUNAT(doc.id);
+        if (resultado.success) {
+          toast.success(resultado.message);
+        } else {
+          toast.error(resultado.message);
+        }
       } else {
-        toast.error(resultado.message);
+        const resultado = await enviarDocumentoSUNAT(doc.id, doc.tipo);
+        if (resultado.success) {
+          toast.success(resultado.message);
+        } else {
+          toast.error(resultado.message);
+        }
       }
     } catch (error) {
       toast.error('Error al enviar documento');
@@ -230,6 +334,10 @@ export default function SunatPage() {
   };
 
   const handleAprobar = async (doc: DocumentoPendiente) => {
+    if (doc.tipo === 'guia') {
+      toast.error('Las guías no se aprueban manualmente. Envíalas directamente a SUNAT.');
+      return;
+    }
     setProcesando(doc.id);
     try {
       await aprobarDocumento(doc.id, doc.tipo);
@@ -241,6 +349,10 @@ export default function SunatPage() {
   };
 
   const handleRechazar = async (doc: DocumentoPendiente) => {
+    if (doc.tipo === 'guia') {
+      toast.error('Las guías no se rechazan desde aquí. Usa la bandeja de guías.');
+      return;
+    }
     if (!motivoRechazo.trim()) {
       toast.error('Debe ingresar un motivo de rechazo');
       return;
@@ -252,6 +364,44 @@ export default function SunatPage() {
       setDocumentoRechazando(null);
     } catch (error) {
       toast.error('Error al rechazar documento');
+    } finally {
+      setProcesando(null);
+    }
+  };
+
+  const handleEliminar = async (doc: DocumentoPendiente) => {
+    setEliminando(doc.id);
+    try {
+      await eliminarDocumentoRechazado(doc.id, doc.tipo);
+      setConfirmarEliminar(null);
+      toast.success(`${doc.tipo === 'guia' ? 'Guía' : doc.tipo === 'boleta' ? 'Boleta' : 'Factura'} eliminada correctamente`);
+    } catch {
+      toast.error('Error al eliminar el documento');
+    } finally {
+      setEliminando(null);
+    }
+  };
+
+  const handleReenviar = async (doc: DocumentoPendiente) => {
+    setProcesando(doc.id);
+    try {
+      if (doc.tipo === 'guia') {
+        const resultado = await enviarGuiaSUNAT(doc.id);
+        if (resultado.success) {
+          toast.success(resultado.message);
+        } else {
+          toast.error(resultado.message);
+        }
+      } else {
+        const resultado = await enviarDocumentoSUNAT(doc.id, doc.tipo);
+        if (resultado.success) {
+          toast.success(resultado.message);
+        } else {
+          toast.error(resultado.message);
+        }
+      }
+    } catch {
+      toast.error('Error al re-enviar documento');
     } finally {
       setProcesando(null);
     }
@@ -288,13 +438,20 @@ export default function SunatPage() {
       <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
         <div className="flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5" />
-          <div>
+          <div className="flex-1">
             <h3 className="font-medium text-amber-800">Módulo de Envío a SUNAT</h3>
             <p className="text-sm text-amber-700 mt-1">
-              Desde aquí los administradores pueden enviar boletas y facturas a SUNAT para su validación. 
+              Desde aquí los administradores pueden enviar boletas y facturas a SUNAT para su validación.
               Los documentos deben estar en estado &quot;Pendiente&quot; para poder enviarse.
             </p>
           </div>
+          <Link
+            href="/crm/sunat/diagnostico"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-amber-300 text-amber-700 hover:bg-amber-100 rounded-lg text-xs font-medium transition-colors shrink-0"
+          >
+            <Stethoscope className="w-3.5 h-3.5" />
+            Diagnóstico
+          </Link>
         </div>
       </div>
 
@@ -327,8 +484,8 @@ export default function SunatPage() {
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${doc.tipo === 'boleta' ? 'bg-amber-100 text-amber-700' : 'bg-purple-100 text-purple-700'}`}>
-                          {doc.tipo === 'boleta' ? 'Boleta' : 'Factura'}
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${doc.tipo === 'boleta' ? 'bg-amber-100 text-amber-700' : doc.tipo === 'guia' ? 'bg-indigo-100 text-indigo-700' : 'bg-purple-100 text-purple-700'}`}>
+                          {doc.tipo === 'boleta' ? 'Boleta' : doc.tipo === 'guia' ? 'Guía' : 'Factura'}
                         </span>
                         <span className="font-mono font-medium text-ink-800">{doc.numeroCompleto}</span>
                         {getEstadoBadge(doc.estado)}
@@ -352,10 +509,14 @@ export default function SunatPage() {
 
                   <div className="flex items-center gap-3">
                     <div className="text-right">
-                      <p className="font-heading font-bold text-accent-terracotta">
-                        {formatearMoneda(doc.importeTotal, doc.moneda)}
-                      </p>
-                      <p className="text-xs text-ink-400">{doc.moneda === 'PEN' ? 'Soles' : 'Dólares'}</p>
+                      {doc.tipo !== 'guia' && (
+                        <>
+                          <p className="font-heading font-bold text-accent-terracotta">
+                            {formatearMoneda(doc.importeTotal, doc.moneda)}
+                          </p>
+                          <p className="text-xs text-ink-400">{doc.moneda === 'PEN' ? 'Soles' : 'Dólares'}</p>
+                        </>
+                      )}
                     </div>
                     <button
                       onClick={() => setVistaPrevia(doc)}
@@ -418,8 +579,8 @@ export default function SunatPage() {
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${doc.tipo === 'boleta' ? 'bg-amber-100 text-amber-700' : 'bg-purple-100 text-purple-700'}`}>
-                          {doc.tipo === 'boleta' ? 'Boleta' : 'Factura'}
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${doc.tipo === 'boleta' ? 'bg-amber-100 text-amber-700' : doc.tipo === 'guia' ? 'bg-indigo-100 text-indigo-700' : 'bg-purple-100 text-purple-700'}`}>
+                          {doc.tipo === 'boleta' ? 'Boleta' : doc.tipo === 'guia' ? 'Guía' : 'Factura'}
                         </span>
                         <span className="font-mono font-medium text-ink-800">{doc.numeroCompleto}</span>
                         {getEstadoBadge(doc.estado)}
@@ -448,11 +609,13 @@ export default function SunatPage() {
 
                   <div className="flex items-center gap-3">
                     <div className="text-right">
-                      <p className="font-heading font-bold text-accent-terracotta">
-                        {formatearMoneda(doc.importeTotal, doc.moneda)}
-                      </p>
+                      {doc.tipo !== 'guia' && (
+                        <p className="font-heading font-bold text-accent-terracotta">
+                          {formatearMoneda(doc.importeTotal, doc.moneda)}
+                        </p>
+                      )}
                     </div>
-                    
+
                     {doc.estado === 'enviado' && (
                       <div className="flex gap-2">
                         <button
@@ -473,8 +636,41 @@ export default function SunatPage() {
                         </button>
                       </div>
                     )}
+
+                    {doc.estado === 'rechazado' && (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleReenviar(doc)}
+                          disabled={procesando === doc.id}
+                          title="Reintentar envío a SUNAT con los mismos datos"
+                          className="inline-flex items-center gap-1.5 px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 text-sm"
+                        >
+                          {procesando === doc.id
+                            ? <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            : <RotateCcw className="w-3.5 h-3.5" />}
+                          Re-enviar
+                        </button>
+                        <button
+                          onClick={() => setConfirmarEliminar(doc)}
+                          disabled={eliminando === doc.id}
+                          title="Eliminar documento rechazado"
+                          className="inline-flex items-center gap-1.5 px-3 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg font-medium transition-colors disabled:opacity-50 text-sm"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          Eliminar
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
+
+                {/* Motivo de rechazo SUNAT */}
+                {doc.estado === 'rechazado' && ((doc as any).cdr?.mensaje || (doc as any).errorSUNAT) && (
+                  <div className="mt-3 ml-11 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-xs font-semibold text-red-700 mb-0.5">Motivo del rechazo:</p>
+                    <p className="text-xs text-red-600">{(doc as any).cdr?.mensaje || (doc as any).errorSUNAT || 'Error desconocido'}</p>
+                  </div>
+                )}
 
                 {/* Formulario de rechazo */}
                 {documentoRechazando === doc.id && (
@@ -550,6 +746,53 @@ export default function SunatPage() {
         </div>
       </div>
 
+      {/* Modal de confirmación de eliminación */}
+      {confirmarEliminar && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-900/50">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-elevated p-6 space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-red-100 rounded-xl">
+                <Trash2 className="w-5 h-5 text-red-600" />
+              </div>
+              <div>
+                <h3 className="font-heading font-semibold text-ink-800">
+                  ¿Eliminar {confirmarEliminar.tipo === 'guia' ? 'guía' : confirmarEliminar.tipo === 'boleta' ? 'boleta' : 'factura'} rechazada?
+                </h3>
+                <p className="text-sm text-ink-500 mt-1">
+                  Esto eliminará permanentemente{' '}
+                  <span className="font-medium text-ink-700">{confirmarEliminar.numeroCompleto}</span>
+                  {' '}de la base de datos.
+                </p>
+                <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-2">
+                  {confirmarEliminar.tipo === 'guia' 
+                    ? 'Si SUNAT no tiene registro de esta guía, podrás volver a emitir con el mismo número creando una nueva guía.'
+                    : 'Si SUNAT no tiene registro de este documento (fue rechazado antes de llegar a sus servidores), podrás volver a emitir con el mismo número creando un nuevo comprobante.'}
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-3 justify-end pt-2">
+              <button
+                onClick={() => setConfirmarEliminar(null)}
+                disabled={eliminando === confirmarEliminar.id}
+                className="px-4 py-2 border border-ink-200 text-ink-700 rounded-xl font-medium hover:bg-ink-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => handleEliminar(confirmarEliminar)}
+                disabled={eliminando === confirmarEliminar.id}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition-colors disabled:opacity-50"
+              >
+                {eliminando === confirmarEliminar.id
+                  ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  : <Trash2 className="w-4 h-4" />}
+                Sí, eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal de Vista Previa */}
       {vistaPrevia && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-900/50">
@@ -563,7 +806,7 @@ export default function SunatPage() {
                     Resumen: {vistaPrevia.numeroCompleto}
                   </h3>
                   <p className="text-xs text-ink-500">
-                    {vistaPrevia.tipo === 'boleta' ? 'Boleta de Venta' : 'Factura'} — revisa antes de enviar a SUNAT
+                    {vistaPrevia.tipo === 'boleta' ? 'Boleta de Venta' : vistaPrevia.tipo === 'guia' ? 'Guía de Remisión' : 'Factura'} — revisa antes de enviar a SUNAT
                   </p>
                 </div>
               </div>
@@ -600,7 +843,7 @@ export default function SunatPage() {
                   <div className="grid grid-cols-3 gap-4 text-sm">
                     <div>
                       <span className="text-ink-500">Tipo:</span>
-                      <p className="font-medium text-ink-800">{vistaPrevia.tipo === 'boleta' ? 'Boleta de Venta' : 'Factura'}</p>
+                      <p className="font-medium text-ink-800">{vistaPrevia.tipo === 'boleta' ? 'Boleta de Venta' : vistaPrevia.tipo === 'guia' ? 'Guía de Remisión' : 'Factura'}</p>
                     </div>
                     <div>
                       <span className="text-ink-500">Número:</span>
@@ -614,14 +857,18 @@ export default function SunatPage() {
                         {new Date(vistaPrevia.createdAt).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
-                    <div>
-                      <span className="text-ink-500">Moneda:</span>
-                      <p className="font-medium text-ink-800">{vistaPrevia.moneda === 'PEN' ? 'Soles (PEN)' : 'Dólares (USD)'}</p>
-                    </div>
-                    <div>
-                      <span className="text-ink-500">Total:</span>
-                      <p className="font-medium text-accent-terracotta">{formatearMoneda(vistaPrevia.importeTotal, vistaPrevia.moneda)}</p>
-                    </div>
+                    {vistaPrevia.tipo !== 'guia' && (
+                      <>
+                        <div>
+                          <span className="text-ink-500">Moneda:</span>
+                          <p className="font-medium text-ink-800">{vistaPrevia.moneda === 'PEN' ? 'Soles (PEN)' : 'Dólares (USD)'}</p>
+                        </div>
+                        <div>
+                          <span className="text-ink-500">Total:</span>
+                          <p className="font-medium text-accent-terracotta">{formatearMoneda(vistaPrevia.importeTotal, vistaPrevia.moneda)}</p>
+                        </div>
+                      </>
+                    )}
                     <div>
                       <span className="text-ink-500">Ítems:</span>
                       <p className="font-medium text-ink-800">{vistaPrevia.items?.length || 0}</p>
@@ -647,8 +894,12 @@ export default function SunatPage() {
                           <th className="px-3 py-2 text-left text-xs font-medium text-ink-600">N°</th>
                           <th className="px-3 py-2 text-left text-xs font-medium text-ink-600">Descripción</th>
                           <th className="px-3 py-2 text-center text-xs font-medium text-ink-600">Cant.</th>
-                          <th className="px-3 py-2 text-right text-xs font-medium text-ink-600">P. Unit.</th>
-                          <th className="px-3 py-2 text-right text-xs font-medium text-ink-600">Total</th>
+                          {vistaPrevia.tipo !== 'guia' && (
+                            <>
+                              <th className="px-3 py-2 text-right text-xs font-medium text-ink-600">P. Unit.</th>
+                              <th className="px-3 py-2 text-right text-xs font-medium text-ink-600">Total</th>
+                            </>
+                          )}
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-ink-100">
@@ -657,8 +908,12 @@ export default function SunatPage() {
                             <td className="px-3 py-2 text-ink-600">{idx + 1}</td>
                             <td className="px-3 py-2 text-ink-800">{item.descripcion}</td>
                             <td className="px-3 py-2 text-center text-ink-600">{item.cantidad}</td>
-                            <td className="px-3 py-2 text-right text-ink-600">{formatearMoneda(item.valorUnitario, vistaPrevia.moneda)}</td>
-                            <td className="px-3 py-2 text-right font-medium text-ink-800">{formatearMoneda(item.importeTotal, vistaPrevia.moneda)}</td>
+                            {vistaPrevia.tipo !== 'guia' && (
+                              <>
+                                <td className="px-3 py-2 text-right text-ink-600">{formatearMoneda(item.valorUnitario, vistaPrevia.moneda)}</td>
+                                <td className="px-3 py-2 text-right font-medium text-ink-800">{formatearMoneda(item.importeTotal, vistaPrevia.moneda)}</td>
+                              </>
+                            )}
                           </tr>
                         ))}
                       </tbody>

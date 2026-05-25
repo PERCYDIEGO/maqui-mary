@@ -29,8 +29,52 @@ const nunito = Nunito({
 })
 
 export const metadata: Metadata = {
-  title: 'Esponjas Maqui Mary Perú — Limpieza que Inspira Confianza',
-  description: 'Fabricación y venta de esponjas de limpieza en Ate Vitarte, Lima. Esponjas de colores, acero y doble uso. Venta al por mayor y menor.',
+  title: 'Esponjas de Limpieza en Lima | Maqui Mary — Fabricantes Peruanos',
+  description: 'INVERSIONES MAQUI MARY PERU E.I.R.L. — Fabricantes peruanos de esponjas de limpieza, estropajos, paños absorbentes y lana de acero en Lurigancho, Lima. Venta al por mayor y menor. Delivery a todo Lima. Paga con Yape, Plin, transferencia, tarjeta o contraentrega. Consulta precios por WhatsApp +51 916 165 543.',
+  keywords: ['esponjas de limpieza lima', 'fabricantes esponjas perú', 'esponjas doble uso', 'paños absorbentes', 'lana de acero', 'venta al por mayor lima', 'delivery esponjas lima', 'productos de limpieza', 'Maqui Mary'],
+  authors: [{ name: 'INVERSIONES MAQUI MARY PERU E.I.R.L.' }],
+  creator: 'Maqui Mary',
+  publisher: 'Maqui Mary',
+  metadataBase: new URL('https://maquimary.vercel.app'),
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: 'Esponjas de Limpieza en Lima | Maqui Mary — Fabricantes Peruanos',
+    description: 'Fabricantes peruanos de esponjas de limpieza, estropajos y paños absorbentes en Lurigancho, Lima. Venta al por mayor y menor. Delivery a todo Lima.',
+    url: 'https://maquimary.vercel.app',
+    siteName: 'Maqui Mary',
+    locale: 'es_PE',
+    type: 'website',
+    images: [
+      {
+        url: 'https://maquimary.vercel.app/img/logo_oficial.png',
+        width: 1200,
+        height: 630,
+        alt: 'Maqui Mary - Esponjas de Limpieza en Lima',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Esponjas de Limpieza en Lima | Maqui Mary',
+    description: 'Fabricantes peruanos de esponjas de limpieza en Lurigancho, Lima. Venta al por mayor y menor.',
+    images: ['https://maquimary.vercel.app/img/logo_oficial.png'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  verification: {
+    google: 'google-site-verification-code-here',
+  },
   icons: {
     icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🧽%3C/text%3E%3C/svg%3E",
   },
@@ -51,6 +95,94 @@ export default function RootLayout({
             if (t && t !== 'terracota') document.documentElement.setAttribute('data-theme', t);
           } catch(e) {}
         ` }} />
+        {/* Schema 1: LocalBusiness */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'LocalBusiness',
+            name: 'Maqui Mary - Esponjas de Limpieza',
+            image: 'https://maquimary.vercel.app/img/logo_oficial.png',
+            '@id': 'https://maquimary.vercel.app',
+            url: 'https://maquimary.vercel.app',
+            telephone: '+51916165543',
+            priceRange: 'S/',
+            address: {
+              '@type': 'PostalAddress',
+              streetAddress: 'PRO. QUINTA AVENIDA MZA. J LOTE. 17-B ASC. GANADEROS PORCINOS SARACO',
+              addressLocality: 'Lurigancho',
+              addressRegion: 'Lima',
+              postalCode: '150103',
+              addressCountry: 'PE'
+            },
+            geo: {
+              '@type': 'GeoCoordinates',
+              latitude: -11.989,
+              longitude: -76.854
+            },
+            openingHoursSpecification: [
+              {
+                '@type': 'OpeningHoursSpecification',
+                dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+                opens: '08:00',
+                closes: '18:00'
+              }
+            ],
+            aggregateRating: {
+              '@type': 'AggregateRating',
+              ratingValue: '5.0',
+              reviewCount: '1'
+            },
+            sameAs: [
+              'https://wa.me/51916165543'
+            ]
+          }) }}
+        />
+        {/* Schema 2: Organization */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Organization',
+            name: 'INVERSIONES MAQUI MARY PERU E.I.R.L.',
+            url: 'https://maquimary.vercel.app',
+            logo: 'https://maquimary.vercel.app/img/logo_oficial.png',
+            sameAs: [
+              'https://wa.me/51916165543'
+            ]
+          }) }}
+        />
+        {/* Schema 3: WebSite con SiteSearch */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'WebSite',
+            name: 'Maqui Mary - Esponjas de Limpieza',
+            url: 'https://maquimary.vercel.app',
+            potentialAction: {
+              '@type': 'SearchAction',
+              target: 'https://maquimary.vercel.app/?q={search_term_string}',
+              'query-input': 'required name=search_term_string'
+            }
+          }) }}
+        />
+        {/* Schema 4: BreadcrumbList */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              {
+                '@type': 'ListItem',
+                position: 1,
+                name: 'Inicio',
+                item: 'https://maquimary.vercel.app'
+              }
+            ]
+          }) }}
+        />
       </head>
       <body className="font-body antialiased">
         <AppProvider>

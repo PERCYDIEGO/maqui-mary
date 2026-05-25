@@ -24,7 +24,7 @@ const ZONAS = [
 
   // ─── Zona 1: Este Lima ──────────────────────────────────────
   { distrito: 'Ate',                     tarifa:  5.00, tiempo: 'Mismo día' },
-  { distrito: 'Ate Vitarte',             tarifa:  5.00, tiempo: 'Mismo día' },
+  { distrito: 'Ate',                     tarifa:  5.00, tiempo: 'Mismo día' },
   { distrito: 'San Juan de Lurigancho',  tarifa:  7.00, tiempo: 'Mismo día' },
   { distrito: 'Santa Anita',             tarifa:  7.00, tiempo: 'Mismo día' },
   { distrito: 'Cieneguilla',             tarifa:  8.00, tiempo: '1 día hábil' },

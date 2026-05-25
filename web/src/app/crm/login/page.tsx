@@ -14,17 +14,21 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [recordar, setRecordar] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
+  const [formReady, setFormReady] = useState(false)
   const router = useRouter()
   const mountedRef = useRef(true)
 
   useEffect(() => {
     setLoading(false)
     mountedRef.current = true
-    return () => { mountedRef.current = false }
+    // Esperar 1s antes de permitir submit para evitar auto-envío del password manager móvil
+    const t = setTimeout(() => setFormReady(true), 1000)
+    return () => { mountedRef.current = false; clearTimeout(t) }
   }, [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (!formReady) return
     setErrorMsg('')
 
     if (!email.trim() || !password.trim()) {
@@ -116,7 +120,6 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Correo o alias"
-                autoFocus
                 className="w-full px-4 py-3.5 pl-12 rounded-xl border border-ink-200 bg-ink-50/50 text-ink-800 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-accent-gold/30 focus:border-accent-gold transition-all duration-200"
               />
             </div>
@@ -186,7 +189,7 @@ export default function LoginPage() {
 
         <p className="text-center mt-6 text-xs text-ink-500/60">
           <Sparkles size={12} className="inline mr-1" />
-          ESPONJAS MAQUI MARY — Ate Vitarte, Lima
+          ESPONJAS MAQUI MARY — Lurigancho, Lima
         </p>
       </div>
     </div>

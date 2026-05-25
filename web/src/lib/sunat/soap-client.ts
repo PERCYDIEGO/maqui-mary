@@ -21,9 +21,24 @@ interface SoapResult {
  * @returns ZIP en base64
  */
 export async function zipXml(filename: string, xmlContent: string): Promise<string> {
+  // Usar JSZip con STORE (sin compresión) para compatibilidad con SUNAT
   const zip = new JSZip()
-  zip.file(`${filename}.xml`, xmlContent)
-  const zipBlob = await zip.generateAsync({ type: 'base64' })
+  zip.file(`${filename}.xml`, xmlContent, { compression: 'STORE' })
+  const zipBlob = await zip.generateAsync({ type: 'base64', compression: 'STORE', compressionOptions: { level: 0 } })
+
+  // Verificar que el ZIP se puede leer correctamente
+  try {
+    const verifyZip = await JSZip.loadAsync(zipBlob, { base64: true })
+    const file = verifyZip.files[`${filename}.xml`]
+    if (!file) throw new Error(`Archivo ${filename}.xml no encontrado en ZIP`)
+    const content = await file.async('string')
+    if (content !== xmlContent) throw new Error('Contenido del ZIP no coincide con el XML original')
+    // ZIP verificado OK
+  } catch (e: any) {
+    console.error('[zipXml] Error verificando ZIP:', e.message)
+    throw new Error('Error verificando ZIP generado: ' + e.message)
+  }
+
   return zipBlob
 }
 
@@ -53,7 +68,7 @@ export async function sendToSunat(
     <wsse:Security>
       <wsse:UsernameToken>
         <wsse:Username>${escapeXml(solUser)}</wsse:Username>
-        <wsse:Password>${escapeXml(solPassword)}</wsse:Password>
+        <wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText">${escapeXml(solPassword)}</wsse:Password>
       </wsse:UsernameToken>
     </wsse:Security>
   </soapenv:Header>
@@ -66,14 +81,38 @@ export async function sendToSunat(
 </soapenv:Envelope>`
 
   try {
-    const res = await fetch(finalEndpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'text/xml; charset=utf-8',
-        'SOAPAction': '"urn:sendBill"',
-      },
-      body: soapXml,
-    })
+    // Timeout de 30 segundos para SUNAT
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 30000)
+
+    let res: Response
+    let retries = 0
+    const maxRetries = 2
+
+    while (true) {
+      try {
+        res = await fetch(finalEndpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'text/xml; charset=utf-8',
+            'SOAPAction': '"urn:sendBill"',
+          },
+          body: soapXml,
+          signal: controller.signal,
+        })
+        clearTimeout(timeoutId)
+        break
+      } catch (fetchErr: any) {
+        clearTimeout(timeoutId)
+        retries++
+        console.error(`[soap-client] Fetch error (intento ${retries}/${maxRetries}):`, fetchErr.message || fetchErr)
+        if (retries >= maxRetries) {
+          return { success: false, error: `Error de conexión con SUNAT: ${fetchErr.message || fetchErr}. Posibles causas: (1) SUNAT bloquea conexiones desde servidores cloud, (2) Certificado SSL no reconocido, (3) Timeout de red. Recomendación: usar OSE (Nubefact).` }
+        }
+        // Esperar 2 segundos antes de reintentar
+        await new Promise(r => setTimeout(r, 2000))
+      }
+    }
 
     const responseText = await res.text()
 
@@ -93,7 +132,9 @@ export async function sendToSunat(
         const responseCode = extractTag(cdrXml || '', 'cbc:ResponseCode') || extractTag(cdrXml || '', 'ResponseCode')
         const description = extractTag(cdrXml || '', 'cbc:Description') || extractTag(cdrXml || '', 'Description')
 
-        const isAccepted = responseCode === '0'
+        // 0 = aceptado sin observaciones; 2xxx = aceptado con observaciones (también válido)
+        const codeNum = parseInt(responseCode || '-1', 10)
+        const isAccepted = responseCode === '0' || (codeNum >= 2000 && codeNum < 4000)
 
         return {
           success: isAccepted,
@@ -147,7 +188,7 @@ export async function checkStatus(
     <wsse:Security>
       <wsse:UsernameToken>
         <wsse:Username>${escapeXml(solUser)}</wsse:Username>
-        <wsse:Password>${escapeXml(solPassword)}</wsse:Password>
+        <wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText">${escapeXml(solPassword)}</wsse:Password>
       </wsse:UsernameToken>
     </wsse:Security>
   </soapenv:Header>

@@ -4,9 +4,9 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Plus, Search, Truck, Pencil } from 'lucide-react';
+import { Plus, Search, Truck, Pencil, Send, Loader2 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import PDFGenerator from '@/components/pdf/PDFGenerator';
 
@@ -18,8 +18,31 @@ const ESTADO_CONFIG = {
 } as const;
 
 export default function GuiasPage() {
-  const { guias, boletas, facturas } = useApp();
+  const { guias, boletas, facturas, enviarGuiaSUNAT, refreshDocuments } = useApp();
   const [busqueda, setBusqueda] = useState('');
+  const [enviando, setEnviando] = useState<string | null>(null);
+
+  useEffect(() => {
+    refreshDocuments();
+  }, []);
+
+  const handleEnviarSUNAT = async (guiaId: string) => {
+    setEnviando(guiaId);
+    try {
+      const result = await enviarGuiaSUNAT(guiaId);
+      if (result.success) {
+        alert('✅ Guía enviada a SUNAT: ' + result.message);
+        await refreshDocuments(); // Recargar lista
+      } else {
+        alert('❌ Error al enviar guía: ' + result.message);
+      }
+    } catch (error: any) {
+      console.error('[GUIA] Error:', error);
+      alert('❌ Error: ' + (error.message || 'Error desconocido'));
+    } finally {
+      setEnviando(null);
+    }
+  };
 
   const guiasFiltradas = guias
     .filter(g =>
@@ -116,6 +139,20 @@ export default function GuiasPage() {
                         >
                           <Pencil className="w-4 h-4" />
                         </Link>
+                      )}
+                      {(guia.estado === 'borrador' || guia.estado === 'pendiente_envio') && (
+                        <button
+                          onClick={() => handleEnviarSUNAT(guia.id)}
+                          disabled={enviando === guia.id}
+                          className="p-1.5 hover:bg-green-100 text-green-600 rounded-lg transition-colors disabled:opacity-50"
+                          title="Enviar a SUNAT"
+                        >
+                          {enviando === guia.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Send className="w-4 h-4" />
+                          )}
+                        </button>
                       )}
                       <PDFGenerator documento={guia} tipo="guia" />
                     </div>

@@ -3,10 +3,12 @@ import { createClient } from '@supabase/supabase-js'
 import { verifyAuth } from '@/lib/api-auth'
 
 const DEFAULTS = {
-  whatsapp_clientes: '51916165543',
-  whatsapp_negocio:  '51916165543',
-  horario:           'Lun–Sáb: 8:00 am – 6:00 pm',
-  direccion_display: 'Ate Vitarte, Lima',
+  whatsapp_clientes:    '51916165543',
+  whatsapp_negocio:     '51916165543',
+  horario:              'Lun–Sáb: 8:00 am – 6:00 pm',
+  direccion_display:    'Lurigancho, Lima',
+  clientes_satisfechos: 12800,
+  fecha_constitucion:   '',   // YYYY-MM-DD — para calcular años de experiencia
 }
 
 function adminSb() {
@@ -25,10 +27,11 @@ export async function GET() {
       sb.from('sunat_config').select('address,distrito,provincia,departamento').eq('id', 1).single(),
     ])
     const empresa = cfg?.settings?.empresa || {}
+    const merged = { ...DEFAULTS, ...empresa }
     return NextResponse.json({
       ok: true,
-      ...DEFAULTS,
-      ...empresa,
+      ...merged,
+      clientes_satisfechos: Number(merged.clientes_satisfechos) || DEFAULTS.clientes_satisfechos,
       // dirección desde sunat_config si está completa
       direccion_sunat: sunat
         ? [sunat.address, sunat.distrito, sunat.provincia].filter(Boolean).join(', ')

@@ -81,17 +81,16 @@ export function generateInvoiceXML(data: SunatInvoiceRequest): string {
   }).join('\n')
 
   // ─── XML completo ───
+  // Notas:
+  // - CustomizationID es 2.0 para Factura (01) y Boleta (03) según SUNAT.
+  // - La firma digital va SOLO dentro de ext:ExtensionContent, NO como cac:Signature.
+  // - languageLocaleID="1000" en Note para total en letras es requerido por SUNAT.
   return `<?xml version="1.0" encoding="UTF-8"?>
 <Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
   xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
   xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
-  xmlns:ccts="urn:un:unece:uncefact:documentation:2"
   xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
-  xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2"
-  xmlns:qdt="urn:oasis:names:specification:ubl:schema:xsd:QualifiedDataTypes-2"
-  xmlns:sac="urn:sunat:names:specification:ubl:peru:schema:xsd:SunatAggregateComponents-1"
-  xmlns:udt="urn:un:unece:uncefact:data:specification:UnqualifiedDataTypesSchemaModule:2"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2">
   <ext:UBLExtensions>
     <ext:UBLExtension>
       <ext:ExtensionContent/>
@@ -102,27 +101,10 @@ export function generateInvoiceXML(data: SunatInvoiceRequest): string {
   <cbc:ID>${invoiceId}</cbc:ID>
   <cbc:IssueDate>${fechaEmision}</cbc:IssueDate>
   <cbc:IssueTime>${horaEmision}</cbc:IssueTime>
-  <cbc:InvoiceTypeCode listAgencyName="PE:SUNAT" listName="Tipo de Documento" listURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo01">${docTypeCode}</cbc:InvoiceTypeCode>
-  <cbc:DocumentCurrencyCode listID="ISO 4217 Alpha" listName="Currency" listURI="urn:un:unece:uncefact:codelist:standard:5:ISO4217:2010">${moneda}</cbc:DocumentCurrencyCode>
-  ${nota ? `<cbc:Note><![CDATA[${nota}]]></cbc:Note>` : ''}
+  <cbc:InvoiceTypeCode listID="0101" listAgencyName="PE:SUNAT" listName="Tipo de Documento" listURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo01">${docTypeCode}</cbc:InvoiceTypeCode>
   ${totalLetras ? `<cbc:Note languageLocaleID="1000"><![CDATA[${totalLetras}]]></cbc:Note>` : ''}
-
-  <cac:Signature>
-    <cbc:ID>SignatureMaquiMary</cbc:ID>
-    <cac:SignatoryParty>
-      <cac:PartyIdentification>
-        <cbc:ID>${config.ruc}</cbc:ID>
-      </cac:PartyIdentification>
-      <cac:PartyName>
-        <cbc:Name><![CDATA[${config.razonSocial}]]></cbc:Name>
-      </cac:PartyName>
-    </cac:SignatoryParty>
-    <cac:DigitalSignatureAttachment>
-      <cac:ExternalReference>
-        <cbc:URI>#SignatureMaquiMary</cbc:URI>
-      </cac:ExternalReference>
-    </cac:DigitalSignatureAttachment>
-  </cac:Signature>
+  ${nota ? `<cbc:Note><![CDATA[${nota}]]></cbc:Note>` : ''}
+  <cbc:DocumentCurrencyCode listID="ISO 4217 Alpha" listName="Currency" listURI="urn:un:unece:uncefact:codelist:standard:5:ISO4217:2010">${moneda}</cbc:DocumentCurrencyCode>
 
   <cac:AccountingSupplierParty>
     <cac:Party>
@@ -169,6 +151,7 @@ export function generateInvoiceXML(data: SunatInvoiceRequest): string {
       <cbc:TaxAmount currencyID="${moneda}">${igv.toFixed(2)}</cbc:TaxAmount>
       <cac:TaxCategory>
         <cbc:ID schemeAgencyName="United Nations Economic Commission for Europe" schemeID="UN/ECE 5305" schemeName="Tax Category Identifier">S</cbc:ID>
+        <cbc:Percent>18.00</cbc:Percent>
         <cac:TaxScheme>
           <cbc:ID schemeAgencyName="PE:SUNAT" schemeID="UN/ECE 5153" schemeName="Codigo de tributos">1000</cbc:ID>
           <cbc:Name>IGV</cbc:Name>
@@ -180,6 +163,7 @@ export function generateInvoiceXML(data: SunatInvoiceRequest): string {
 
   <cac:LegalMonetaryTotal>
     <cbc:LineExtensionAmount currencyID="${moneda}">${lineExtensionAmount.toFixed(2)}</cbc:LineExtensionAmount>
+    <cbc:TaxExclusiveAmount currencyID="${moneda}">${lineExtensionAmount.toFixed(2)}</cbc:TaxExclusiveAmount>
     <cbc:TaxInclusiveAmount currencyID="${moneda}">${taxInclusiveAmount.toFixed(2)}</cbc:TaxInclusiveAmount>
     <cbc:PayableAmount currencyID="${moneda}">${total.toFixed(2)}</cbc:PayableAmount>
   </cac:LegalMonetaryTotal>

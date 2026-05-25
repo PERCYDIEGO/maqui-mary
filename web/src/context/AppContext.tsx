@@ -14,7 +14,9 @@ import {
   Cliente, 
   Transportista,
   Producto,
-  ConfiguracionSerie
+  ConfiguracionSerie,
+  CATALOGO_MOTIVOS_TRASLADO,
+  EMPRESA_DATA
 } from '@/types/documentos';
 
 // ============================================
@@ -75,9 +77,11 @@ interface AppContextType extends AppState {
   refreshDocuments: () => Promise<void>;
 
   // SUNAT - Envío de documentos
-    enviarDocumentoSUNAT: (documentoId: string, tipo: 'boleta' | 'factura') => Promise<{ success: boolean; message: string }>;
+  enviarDocumentoSUNAT: (documentoId: string, tipo: 'boleta' | 'factura') => Promise<{ success: boolean; message: string }>;
+  enviarGuiaSUNAT: (guiaId: string) => Promise<{ success: boolean; message: string }>;
   aprobarDocumento: (documentoId: string, tipo: 'boleta' | 'factura') => Promise<void>;
   rechazarDocumento: (documentoId: string, tipo: 'boleta' | 'factura', motivo: string) => Promise<void>;
+  eliminarDocumentoRechazado: (documentoId: string, tipo: 'boleta' | 'factura' | 'guia') => Promise<void>;
 
   // Carga bajo demanda para CRM
   loadCrmData: () => Promise<void>;
@@ -162,7 +166,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [series, setSeries] = useState<ConfiguracionSerie[]>([
     { tipo: 'boleta', serie: 'EB01', numeroActual: 134, activo: true },
     { tipo: 'factura', serie: 'E001', numeroActual: 882, activo: true },
-    { tipo: 'guia', serie: 'EG07', numeroActual: 293, activo: true },
+    { tipo: 'guia', serie: 'T001', numeroActual: 294, activo: true },
   ]);
   
   const [isLoading, setIsLoading] = useState(false);
@@ -221,6 +225,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (data) {
         setClientesState(data.map((row: any): Cliente => ({
           id: String(row.id),
+          codigo: row.codigo || undefined,
           tipo: row.tipo_documento === '6' ? 'juridica' : 'natural',
           nombre: row.name,
           razonSocial: row.tipo_documento === '6' ? row.name : undefined,
@@ -255,6 +260,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             : row.nombre_completo || `${row.apellidos}, ${row.nombres}`;
           return {
             id: String(row.id),
+            codigo: row.codigo || undefined,
             modalidad,
             nombres: row.nombres,
             apellidos: row.apellidos || '',
@@ -264,6 +270,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             numeroPlaca: row.numero_placa || undefined,
             ruc: row.ruc || undefined,
             numeroRegistroMTC: row.numero_registro_mtc || undefined,
+            direccion: row.direccion || undefined,
             activo: row.activo,
             createdAt: new Date(row.created_at),
             updatedAt: new Date(row.updated_at || row.created_at),
@@ -311,6 +318,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // ============================================
   const loadDocuments = useCallback(async () => {
     try {
+      // Cargar facturas y boletas
       const { data, error } = await supabase
         .from('facturas')
         .select('*')
@@ -339,6 +347,36 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
       if (boletasBD.length > 0) setBoletasState(boletasBD)
       if (facturasBD.length > 0) setFacturasState(facturasBD)
+
+      // Cargar guías
+      const { data: guiasData, error: guiasError } = await supabase
+        .from('guias')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (guiasError) { console.error('Error cargando guías:', guiasError); return }
+
+      if (guiasData && guiasData.length > 0) {
+        const guiasBD: GuiaRemision[] = guiasData.map((row: any) => {
+          const dataJson = reviveDates(row.data_json || {})
+          return {
+            ...dataJson,
+            id: row.id,
+            estado: row.estado || 'borrador',
+            estadoSUNAT: row.estado_sunat,
+            hashSUNAT: row.ticket_sunat,
+            cdrSUNAT: row.cdr_sunat,
+            xmlSUNAT: row.xml_sunat,
+            pdfSUNAT: row.pdf_ticket_sunat,
+            errorSUNAT: row.error_sunat,
+            enviadoPor: row.enviado_por,
+            enviadoAt: row.enviado_at ? new Date(row.enviado_at) : undefined,
+            createdAt: new Date(row.created_at),
+            updatedAt: new Date(row.updated_at),
+          } as GuiaRemision
+        })
+        setGuiasState(guiasBD)
+      }
     } catch (err) {
       console.error('Error cargando documentos:', err)
     }
@@ -354,6 +392,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     })
   }, []);
 
+  // BUG-14: sincronizar series desde sunat_config para que el número preview coincida con SUNAT
+  const loadSeries = useCallback(async () => {
+    try {
+      const { data } = await supabase.from('sunat_config').select('series_boleta,series_factura,next_number_boleta,next_number_factura').eq('id', 1).single()
+      if (!data) return
+      setSeries(prev => prev.map(s => {
+        if (s.tipo === 'boleta') return { ...s, serie: data.series_boleta || s.serie, numeroActual: Math.max(0, (data.next_number_boleta || 1) - 1) }
+        if (s.tipo === 'factura') return { ...s, serie: data.series_factura || s.serie, numeroActual: Math.max(0, (data.next_number_factura || 1) - 1) }
+        return s
+      }))
+    } catch {
+      // mantener valores locales si falla la carga
+    }
+  }, [])
+
   // Cargar clientes, transportistas y documentos solo si estamos en CRM
   const loadCrmData = useCallback(async () => {
     await Promise.all([
@@ -361,8 +414,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       loadTransportistas(),
       loadDocuments(),
       loadProductos(),
+      loadSeries(),
     ])
-  }, [loadClientes, loadTransportistas, loadDocuments, loadProductos])
+  }, [loadClientes, loadTransportistas, loadDocuments, loadProductos, loadSeries])
 
   // ============================================
   // ACTIONS - BOLETAS
@@ -539,12 +593,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }
 
       // Transformar items al formato de la API
+      // unit_price debe ser SIN IGV: valorVenta es el total de la línea sin IGV,
+      // dividido entre cantidad da el precio unitario sin IGV que espera el XML-builder.
       const items = documento.items.map(item => ({
         producto_id: item.productoId || null,
         codigo: item.productoId || `ITEM-${item.numeroOrden}`,
         description: item.descripcion,
         quantity: item.cantidad,
-        unit_price: item.valorUnitario,
+        unit_price: item.cantidad > 0 ? item.valorVenta / item.cantidad : item.valorUnitario / 1.18,
       }));
 
       // Determinar tipo de comprobante
@@ -559,10 +615,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const cliente_tipo_doc = documento.cliente.ruc ? '6' : '1';
       const cliente_direccion = documento.cliente.direccion || '';
 
-      // Llamar a la API de SUNAT
+      // BUG-03: incluir token en Authorization header para que la ruta API pueda verificar sesión
+      const { data: { session } } = await supabase.auth.getSession()
+      const authHeaders: HeadersInit = { 'Content-Type': 'application/json' }
+      if (session?.access_token) authHeaders['Authorization'] = `Bearer ${session.access_token}`
+
+      // BUG-01: enviar serie y número del documento para que SUNAT use el mismo que ve el usuario
       const response = await fetch('/api/sunat/emit', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders,
         body: JSON.stringify({
           cliente_id,
           cliente_nombre,
@@ -574,6 +635,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           notes: documento.observacion || '',
           origen: 'crm',
           moneda: documento.moneda,
+          serie_override: documento.serie,
+          numero_override: documento.numero,
         }),
       });
 
@@ -628,11 +691,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         estado: nuevoEstado,
         enviadoPor: userId,
         enviadoAt: ahora,
-        cdr: nuevoEstado === 'aprobado' ? {
-          codigo: result.factura?.ticket_sunat || '0',
-          mensaje: result.mensaje || 'Documento aceptado por SUNAT',
+        cdr: {
+          codigo: nuevoEstado === 'aprobado'
+            ? (result.factura?.ticket_sunat || result.factura?.cdr_codigo || '0')
+            : (result.factura?.cdr_codigo || result.estado_sunat || 'ERROR'),
+          mensaje: nuevoEstado === 'aprobado'
+            ? (result.mensaje || 'Documento aceptado por SUNAT')
+            : (result.error_ose || result.factura?.cdr_descripcion || result.mensaje || 'Documento rechazado por SUNAT'),
           fechaRecepcion: ahora,
-        } : undefined,
+        },
       }
 
       if (tipo === 'boleta') {
@@ -653,8 +720,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       })
 
       return {
-        success: true,
-        message: result.mensaje || 'Documento procesado correctamente'
+        success: nuevoEstado === 'aprobado',
+        message: nuevoEstado === 'aprobado'
+          ? (result.mensaje || 'Documento aceptado por SUNAT')
+          : (result.error_ose || result.factura?.cdr_descripcion || result.mensaje || 'Documento rechazado o con error'),
       };
     } catch (error: any) {
       console.error('Error enviando a SUNAT:', error);
@@ -662,7 +731,156 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, [boletas, facturas, userId]);
 
+  const enviarGuiaSUNAT = useCallback(async (guiaId: string): Promise<{ success: boolean; message: string }> => {
+    try {
+      const guia = guias.find(g => g.id === guiaId);
+      if (!guia) {
+        return { success: false, message: 'Guía no encontrada' };
+      }
+
+      const tipoGuia = guia.tipoGuia === 'transportista' ? '31' : '09';
+      // Usar la serie y numero REALES de la guía, no de sunat_config
+      const serie = guia.serie || 'T001';
+      const numero = guia.numero || 1;
+
+      // Usar la fecha de emisión de la guía (no la fecha actual) para cumplir con SUNAT
+      // SUNAT permite: hoy o hasta 3 días previos
+      const fechaGuia = guia.fechaEmision ? new Date(guia.fechaEmision) : new Date();
+      const fechaEmision = fechaGuia.toISOString().split('T')[0];
+      const horaEmision = fechaGuia.toTimeString().slice(0, 8);
+
+      // Preparar datos del destinatario
+      const destTipoDoc = guia.destinatarioDniRuc?.length === 11 ? '6' : '1';
+      
+      // Preparar datos del transportista (APISUNAT espera object)
+      let transportistaRuc: string | undefined;
+      let transportistaDenominacion: string | undefined;
+      let transportistaRegistroMTC: string | undefined;
+
+      // Preparar conductores y vehículos (APISUNAT espera arrays)
+      const conductores: any[] = [];
+      const vehiculos: any[] = [];
+
+      if (guia.transportista) {
+        const t = guia.transportista;
+        if (t.modalidad === 'publico') {
+          // Transportista público: va en object transportista
+          transportistaRuc = t.ruc || '';
+          transportistaDenominacion = t.nombreCompleto;
+          transportistaRegistroMTC = t.numeroRegistroMTC || '';
+        } else {
+          // Transportista privado: va en arrays conductores + vehiculos
+          conductores.push({
+            tipo_de_documento: '1',
+            numero_de_documento: t.dni || '',
+            nombres: t.nombres || '',
+            apellidos: t.apellidos || '',
+            numero_licencia_conducir: t.licenciaConducir || '',
+          });
+          vehiculos.push({
+            numero_de_placa: t.numeroPlaca || '',
+          });
+        }
+      }
+
+      // Documentos relacionados (APISUNAT espera: documento, serie, numero, ruc_emisor)
+      const docsRelacionados = guia.documentosRelacionados?.map(d => {
+        // Extraer serie y número del númeroCompleto (ej: "F001-000123" -> serie=F001, numero=000123)
+        const parts = d.numero.split('-');
+        const docSerie = parts[0] || '';
+        const docNumero = parts[1] || d.numero;
+        return {
+          tipo: d.tipo === 'factura' ? 'factura' : d.tipo === 'boleta' ? 'boleta' : 'guia',
+          serie: docSerie,
+          numero: docNumero,
+          ruc_emisor: EMPRESA_DATA.ruc,
+        };
+      }) || [];
+
+      // BUG-03: incluir token en Authorization header
+      const { data: { session: guiaSession } } = await supabase.auth.getSession()
+      const guiaHeaders: HeadersInit = { 'Content-Type': 'application/json' }
+      if (guiaSession?.access_token) guiaHeaders['Authorization'] = `Bearer ${guiaSession.access_token}`
+
+      const response = await fetch('/api/sunat/guia', {
+        method: 'POST',
+        headers: guiaHeaders,
+        body: JSON.stringify({
+          guia_id: guiaId,
+          tipo_guia: tipoGuia,
+          serie,
+          numero,
+          fecha_emision: fechaEmision,
+          hora_emision: horaEmision,
+          moneda: 'PEN',
+          modalidad_traslado: guia.modalidadTraslado,
+          motivo_traslado: guia.motivoTraslado,
+          descripcion_motivo: CATALOGO_MOTIVOS_TRASLADO.find(m => m.value === guia.motivoTraslado)?.label || '',
+          fecha_inicio_traslado: new Date(guia.fechaInicioTraslado).toISOString().split('T')[0],
+          destinatario_tipo_doc: destTipoDoc,
+          destinatario_num_doc: guia.destinatarioDniRuc || '',
+          destinatario_nombre: guia.destinatarioNombre,
+          destinatario_direccion: guia.puntoLlegada,
+          punto_partida_ubigeo: '150118', // Lurigancho (Chosica)
+          punto_partida: guia.puntoPartida,
+          punto_llegada_ubigeo: '150122', // Default, se puede mejorar
+          punto_llegada: guia.puntoLlegada,
+          peso_total: guia.pesoTotal,
+          unidad_peso: guia.unidadMedidaPeso,
+          numero_bultos: guia.bienes?.length || 1,
+          observaciones: guia.observacion || null,
+          transportista_ruc: transportistaRuc,
+          transportista_denominacion: transportistaDenominacion,
+          transportista_registro_mtc: transportistaRegistroMTC,
+          conductores,
+          vehiculos,
+          bienes: guia.bienes.map(b => ({
+            codigo_interno: b.productoId || '0001',
+            descripcion: b.descripcion,
+            unidad_de_medida: b.unidadMedida || 'NIU',
+            cantidad: b.cantidad,
+          })),
+          documentos_relacionados: docsRelacionados,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.ok) {
+        const errorMsg = result.error || 'Error al enviar guía a SUNAT';
+        
+        setGuiasState(prev => prev.map(g =>
+          g.id === guiaId ? { ...g, estado: 'rechazado' as any, errorSUNAT: errorMsg } : g
+        ));
+
+        return { success: false, message: errorMsg };
+      }
+
+      setGuiasState(prev => prev.map(g =>
+        g.id === guiaId ? { 
+          ...g, 
+          estado: 'aprobado' as any,
+          hashSUNAT: result.hash,
+          cdrSUNAT: result.cdr,
+        } : g
+      ));
+
+      return {
+        success: true,
+        message: result.message || 'Guía aceptada por SUNAT',
+      };
+
+    } catch (error: any) {
+      console.error('Error enviando guía a SUNAT:', error);
+      return { success: false, message: error.message || 'Error al enviar guía a SUNAT' };
+    }
+  }, [guias, series]);
+
   const aprobarDocumento = useCallback(async (documentoId: string, tipo: 'boleta' | 'factura') => {
+    const docExistente = tipo === 'boleta'
+      ? boletas.find(b => b.id === documentoId)
+      : facturas.find(f => f.id === documentoId);
+
     const cdrData = {
       codigo: '0',
       mensaje: 'La Boleta de Venta o Factura ha sido aceptada',
@@ -681,17 +899,66 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       ));
     }
 
+    const docCompleto = docExistente ? { ...docExistente, ...docActualizado } : docActualizado;
     supabase.from('facturas').update({
       estado_sunat: 'ACEPTADO',
-      data_json: JSON.parse(JSON.stringify(docActualizado)),
+      data_json: JSON.parse(JSON.stringify(docCompleto)),
     }).eq('data_json->>id', documentoId).then(({ error }) => {
       if (error) console.error('Error persistiendo aprobacion:', error)
     })
 
     showNotificacion('success', 'Documento aprobado por SUNAT');
-  }, [showNotificacion, userId]);
+  }, [boletas, facturas, showNotificacion]);
+
+  const eliminarDocumentoRechazado = useCallback(async (documentoId: string, tipo: 'boleta' | 'factura' | 'guia') => {
+    // Para guías, usar tabla guias
+    if (tipo === 'guia') {
+      const { error } = await supabase
+        .from('guias')
+        .delete()
+        .eq('id', documentoId)
+
+      if (error) {
+        console.error('Error eliminando guía:', error)
+        showNotificacion('error', 'No se pudo eliminar la guía')
+        return
+      }
+
+      setGuiasState(prev => prev.filter(g => g.id !== documentoId))
+      showNotificacion('success', 'Guía eliminada correctamente')
+      return
+    }
+
+    // Para boletas/facturas, usar tabla facturas
+    const lista = tipo === 'boleta' ? boletas : facturas
+    const doc = lista.find(d => d.id === documentoId)
+    if (!doc) return
+
+    const { error } = await supabase
+      .from('facturas')
+      .delete()
+      .eq('data_json->>id', documentoId)
+
+    if (error) {
+      console.error('Error eliminando documento:', error)
+      showNotificacion('error', 'No se pudo eliminar el documento')
+      return
+    }
+
+    if (tipo === 'boleta') {
+      setBoletasState(prev => prev.filter(b => b.id !== documentoId))
+    } else {
+      setFacturasState(prev => prev.filter(f => f.id !== documentoId))
+    }
+
+    showNotificacion('success', 'Documento eliminado correctamente')
+  }, [boletas, facturas, guias, showNotificacion])
 
   const rechazarDocumento = useCallback(async (documentoId: string, tipo: 'boleta' | 'factura', motivo: string) => {
+    const docExistente = tipo === 'boleta'
+      ? boletas.find(b => b.id === documentoId)
+      : facturas.find(f => f.id === documentoId);
+
     const cdrData = {
       codigo: 'ERROR',
       mensaje: motivo,
@@ -710,15 +977,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       ));
     }
 
+    const docCompleto = docExistente ? { ...docExistente, ...docActualizado } : docActualizado;
     supabase.from('facturas').update({
       estado_sunat: 'RECHAZADO',
-      data_json: JSON.parse(JSON.stringify(docActualizado)),
+      data_json: JSON.parse(JSON.stringify(docCompleto)),
     }).eq('data_json->>id', documentoId).then(({ error }) => {
       if (error) console.error('Error persistiendo rechazo:', error)
     })
 
     showNotificacion('error', `Documento rechazado: ${motivo}`);
-  }, [showNotificacion, userId]);
+  }, [boletas, facturas, showNotificacion]);
 
   // ============================================
   // UTILIDADES (continuación)
@@ -778,8 +1046,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     refreshTransportistas: loadTransportistas,
     refreshDocuments,
     enviarDocumentoSUNAT,
+    enviarGuiaSUNAT,
     aprobarDocumento,
     rechazarDocumento,
+    eliminarDocumentoRechazado,
     showNotificacion,
     hideNotificacion,
     setLoading,

@@ -1,13 +1,17 @@
 export type SunatEnviroment = 'demo' | 'beta' | 'produccion'
 
-export type TipoComprobante = '01' | '03' | '07' | '08'
+export type TipoComprobante = '01' | '03' | '07' | '08' | '09' | '31'
 
 export const TIPO_COMPROBANTE = {
   FACTURA: '01' as TipoComprobante,
   BOLETA: '03' as TipoComprobante,
   NOTA_CREDITO: '07' as TipoComprobante,
   NOTA_DEBITO: '08' as TipoComprobante,
+  GRE_REMITENTE: '09' as TipoComprobante,
+  GRE_TRANSPORTISTA: '31' as TipoComprobante,
 }
+
+export type TipoGuia = 'remitente' | 'transportista'
 
 export interface SunatConfig {
   environment: SunatEnviroment
@@ -141,10 +145,20 @@ export interface SunatConfigDB {
   sol_password: string
   cert_path: string
   cert_password: string
+  cert_base64: string
+  ose_token: string
+  ose_url: string
+  ose_endpoint: string
+  apisunat_token: string
+  apisunat_environment: string
   series_factura: string
   series_boleta: string
   series_nc: string
   series_nd: string
+  series_guia: string
+  next_number_factura: number
+  next_number_boleta: number
+  next_number_guia: number
   updated_at: string
 }
 

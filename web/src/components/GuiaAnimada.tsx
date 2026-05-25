@@ -14,7 +14,7 @@ interface Tip {
 
 const MESSAGES_POOL: Record<SectionKey, Tip[]> = {
   hero: [
-    { icon: '👋', title: '¡Bienvenido a Maqui Mary! 🧽', message: 'Somos fabricantes peruanos de esponjas en Ate Vitarte. Calidad de fábrica, precio justo. Desliza para ver productos o toca "Comprar ahora" 🚀', mood: 'wave' },
+    { icon: '👋', title: '¡Bienvenido a Maqui Mary! 🧽', message: 'Somos fabricantes peruanos de esponjas en Lurigancho. Calidad de fábrica, precio justo. Desliza para ver productos o toca "Comprar ahora" 🚀', mood: 'wave' },
     { icon: '🇵🇪', title: 'Hecho en Perú, con orgullo', message: 'Fabricamos todo aquí en Lima. Sin intermediarios = mejores precios para ti. ¿Sabías que ya somos más de 12,800 clientes? ⭐', mood: 'celebrate' },
     { icon: '💡', title: '¿Primera vez por aquí?', message: 'Agrega productos al carrito, paga con Yape o Plin, y sube tu comprobante. ¡Así de fácil! O si prefieres, pregúntanos por WhatsApp.', mood: 'point' },
   ],
@@ -36,7 +36,7 @@ const MESSAGES_POOL: Record<SectionKey, Tip[]> = {
     { icon: '📱', title: 'Paga como quieras', message: 'Aceptamos Yape, Plin y transferencia bancaria. ¿No tienes esas apps? También puedes pagar contraentrega en Lima.', mood: 'wave' },
   ],
   footer: [
-    { icon: '🧽', title: '¿Aún con dudas?', message: 'No hay problema. Escríbenos al 949 324 254 y te enviamos fotos reales, precios y opciones de envío. Atendemos de lun-sáb 8am-6pm.', mood: 'wave' },
+    { icon: '🧽', title: '¿Aún con dudas?', message: 'No hay problema. Escríbenos al 916 165 543 y te enviamos fotos reales, precios y opciones de envío. Atendemos de lun-sáb 8am-6pm.', mood: 'wave' },
     { icon: '🎯', title: 'Tu opinión nos importa', message: '¿Ya compraste? Déjanos tu reseña. ¿Aún no? ¿Qué esperas? Calidad peruana al mejor precio. ¡Te esperamos!', mood: 'celebrate' },
   ],
   cart: [

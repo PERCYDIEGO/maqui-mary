@@ -90,8 +90,9 @@ export function calcularTotalesBoleta(
     items.reduce((sum, item) => sum + item.icbper, 0)
   );
   
-  const igvTotal = redondear(operacionGravada * TASAS.IGV);
-  
+  // Sumar IGVs individuales (no recalcular desde la base) evita discrepancias de redondeo centavo a centavo
+  const igvTotal = redondear(items.reduce((sum, item) => sum + item.igv, 0));
+
   const importeSinRedondeo = operacionGravada + igvTotal + icbperTotal + otrosCargos - descuentoTotal;
   
   const importeTotal = redondear(importeSinRedondeo);
@@ -135,7 +136,8 @@ export interface TotalesFactura {
 export function calcularTotalesFactura(
   items: ItemDocumento[],
   otrosCargos: number = 0,
-  operacionesGratuitas: number = 0
+  operacionesGratuitas: number = 0,
+  anticipoGlobal: number = 0
 ): TotalesFactura {
   const subTotal = redondear(
     items.reduce((sum, item) => sum + (item.cantidad * item.valorUnitario), 0)
@@ -150,14 +152,15 @@ export function calcularTotalesFactura(
   );
   
   const anticiposTotal = redondear(
-    items.reduce((sum, item) => sum + item.anticipos, 0)
+    items.reduce((sum, item) => sum + item.anticipos, 0) + anticipoGlobal
   );
   
   const icbperTotal = redondear(
     items.reduce((sum, item) => sum + item.icbper, 0)
   );
   
-  const igvTotal = redondear(valorVenta * TASAS.IGV);
+  // Sumar IGVs individuales (no recalcular desde la base) evita discrepancias de redondeo centavo a centavo
+  const igvTotal = redondear(items.reduce((sum, item) => sum + item.igv, 0));
   const isc = 0; // Si aplica
   
   const importeSinRedondeo = valorVenta + igvTotal + isc + icbperTotal + otrosCargos - descuentoTotal - anticiposTotal;
@@ -340,26 +343,32 @@ export function formatearDNI(dni: string): string {
 // GENERACIÓN DE HASH Y QR
 // ============================================
 
-export function generarHashCPE(documento: {
+export async function generarHashCPE(documento: {
   rucEmisor: string;
   tipoDocumento: string;
   serie: string;
   numero: number;
   importeTotal: number;
   fechaEmision: Date;
-}): string {
-  // Hash simplificado - en producción usar algoritmo oficial de SUNAT
+}): Promise<string> {
   const data = `${documento.rucEmisor}|${documento.tipoDocumento}|${documento.serie}|${documento.numero}|${documento.importeTotal.toFixed(2)}|${documento.fechaEmision.toISOString().split('T')[0]}`;
-  
-  // Simulación de hash - en producción usar crypto
-  let hash = 0;
-  for (let i = 0; i < data.length; i++) {
-    const char = data.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash;
+
+  try {
+    const encoder = new TextEncoder();
+    const encodedData = encoder.encode(data);
+    const cryptoApi = typeof window !== 'undefined' ? window.crypto : (await import('crypto')).webcrypto as any;
+    const hashBuffer = await cryptoApi.subtle.digest('SHA-256', encodedData);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+  } catch {
+    let hash = 0;
+    for (let i = 0; i < data.length; i++) {
+      const char = data.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+    }
+    return Math.abs(hash).toString(16).toUpperCase().padStart(8, '0');
   }
-  
-  return Math.abs(hash).toString(16).toUpperCase().padStart(8, '0');
 }
 
 export function generarDatosQR(documento: {
@@ -375,5 +384,21 @@ export function generarDatosQR(documento: {
     ? window.location.origin
     : (process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') || 'https://maquimary.vercel.app')
   const numPadded = documento.numero.toString().padStart(8, '0')
-  return `${baseUrl}/doc/${documento.serie}-${numPadded}`
+  
+  // Según SUNAT, el QR debe contener los datos para validación del CPE
+  // Formato: RUC|TipoDoc|Serie|Numero|ImporteTotal|FechaEmision|Hash
+  const datosValidacion = `${documento.rucEmisor}|${documento.tipoDocumento}|${documento.serie}|${numPadded}|${documento.importeTotal.toFixed(2)}|${documento.fechaEmision.toISOString().split('T')[0]}|${documento.hashCPE}`;
+  
+  // Generar URL de consulta interna con datos de validación
+  const params = new URLSearchParams({
+    ruc: documento.rucEmisor,
+    tipo: documento.tipoDocumento,
+    serie: documento.serie,
+    numero: numPadded,
+    monto: documento.importeTotal.toFixed(2),
+    fecha: documento.fechaEmision.toISOString().split('T')[0],
+    hash: documento.hashCPE,
+  });
+  
+  return `${baseUrl}/doc/${documento.serie}-${numPadded}?${params.toString()}`
 }

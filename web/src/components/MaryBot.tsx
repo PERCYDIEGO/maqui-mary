@@ -158,7 +158,7 @@ function matchKeywords(input: string, ctx: ProductContext): ChatMessage {
   if (words_some(q, ['empresa', 'quienes', 'maqui', 'donde', 'ubicacion'])) {
     return {
       role: 'bot',
-      text: `🧼 **Maqui Mary** — Fabricantes peruanos de esponjas 🇵🇪\n📍 Ate Vitarte, Lima\n⭐ +12,800 clientes · 4 años de experiencia\n\nDel fabricante a tu hogar — calidad garantizada.`,
+      text: `🧼 **Maqui Mary** — Fabricantes peruanos de esponjas 🇵🇪\n📍 Lurigancho, Lima\n⭐ +12,800 clientes · 4 años de experiencia\n\nDel fabricante a tu hogar — calidad garantizada.`,
       quickReplies: [{ label: '🛒 Comprar', value: 'a' }, { label: '← Menú', value: 'menu' }],
     }
   }
@@ -177,7 +177,7 @@ export default function MaryBot() {
   const [input, setInput] = useState('')
   const [ctx, setCtx] = useState<ProductContext | null>(null)
   const [thinking, setThinking] = useState(false)
-  const [waPhone, setWaPhone] = useState('51949324254')
+  const [waPhone, setWaPhone] = useState('51916165543')
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 

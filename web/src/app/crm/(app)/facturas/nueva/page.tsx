@@ -24,7 +24,7 @@ import toast from 'react-hot-toast';
 
 export default function NuevaFacturaPage() {
   const router = useRouter();
-  const { addFactura, updateFactura, facturas, clientes, productos, getSiguienteNumero } = useApp();
+  const { addFactura, updateFactura, facturas, clientes, productos, series, getSiguienteNumero } = useApp();
 
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -97,11 +97,12 @@ export default function NuevaFacturaPage() {
   );
   
   // Calcular totales
-  const totales = calcularTotalesFactura(items, otrosCargos, 0);
+  const totales = calcularTotalesFactura(items, otrosCargos, 0, anticipoGlobal);
   
-  // Siguiente número
+  const serieActiva = series.find(s => s.tipo === 'factura' && s.activo);
+  const serieFactura = serieActiva?.serie || 'E001';
   const siguienteNumero = getSiguienteNumero('factura');
-  const numeroCompleto = formatearNumeroDocumento('E001', siguienteNumero);
+  const numeroCompleto = formatearNumeroDocumento(serieFactura, siguienteNumero);
   
   const handleSelectCliente = (c: Cliente) => {
     if (!c.ruc) {
@@ -178,56 +179,58 @@ export default function NuevaFacturaPage() {
       return;
     }
 
+    let hashCPE = '';
     try {
-      const hashCPE = generarHashCPE({
+      hashCPE = await generarHashCPE({
         rucEmisor: EMPRESA_DATA.ruc,
         tipoDocumento: '01',
-        serie: 'E001',
+        serie: serieFactura,
         numero: siguienteNumero,
         importeTotal: totales.importeTotal,
         fechaEmision: new Date(fechaEmision),
       });
-      
-      const qrData = generarDatosQR({
-        rucEmisor: EMPRESA_DATA.ruc,
-        tipoDocumento: '01',
-        serie: 'E001',
-        numero: siguienteNumero,
-        importeTotal: totales.importeTotal,
-        fechaEmision: new Date(fechaEmision),
-        hashCPE,
-      });
-      
-      const factura: Factura = {
-        id: Math.random().toString(36).substr(2, 9),
-        tipo: 'factura',
-        serie: 'E001',
-        numero: siguienteNumero,
-        numeroCompleto,
-        fechaEmision: new Date(fechaEmision),
-        fechaVencimiento: formaPago === 'credito' && fechaVencimiento ? new Date(fechaVencimiento) : undefined,
-        clienteId: cliente.id,
-        cliente,
-        moneda,
-        formaPago,
-        items,
-        observacion,
-        estado: 'borrador',
-        hashCpe: hashCPE,
-        qrCode: qrData,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        ...totales,
-      };
+    } catch {
+      hashCPE = '';
+    }
+    
+    const qrData = generarDatosQR({
+      rucEmisor: EMPRESA_DATA.ruc,
+      tipoDocumento: '01',
+      serie: serieFactura,
+      numero: siguienteNumero,
+      importeTotal: totales.importeTotal,
+      fechaEmision: new Date(fechaEmision),
+      hashCPE,
+    });
+    
+    const factura: Factura = {
+      id: Math.random().toString(36).substr(2, 9),
+      tipo: 'factura',
+      serie: serieFactura,
+      numero: siguienteNumero,
+      numeroCompleto,
+      fechaEmision: new Date(fechaEmision),
+      fechaVencimiento: formaPago === 'credito' && fechaVencimiento ? new Date(fechaVencimiento) : undefined,
+      clienteId: cliente.id,
+      cliente,
+      moneda,
+      formaPago,
+      formaPagoSunat: formaPago === 'credito' ? '002' : '001',
+      tipoOperacion: '0101',
+      items,
+      observacion,
+      estado: 'borrador',
+      hashCpe: hashCPE,
+      qrCode: qrData,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ...totales,
+    };
       
       addFactura(factura);
       toast.success('Factura guardada. Pendiente de envío a SUNAT.');
-      router.push('/crm/facturas');
-    } catch (error) {
-      toast.error('Error al emitir la factura');
-    } finally {
       setLoading(false);
-    }
+      router.push('/crm/facturas');
   };
   
   return (
@@ -507,17 +510,21 @@ export default function NuevaFacturaPage() {
                           <input
                             type="text"
                             inputMode="numeric"
-                            value={getRaw(index, 'qty') ?? String(item.cantidad)}
+                            value={getRaw(index, 'qty') ?? (item.cantidad === 0 ? '' : String(item.cantidad))}
                             onChange={(e) => {
                               const raw = e.target.value;
                               if (raw !== '' && !/^\d+$/.test(raw)) return;
                               setRaw(index, 'qty', raw);
-                              const val = parseInt(raw);
-                              if (val > 0) handleActualizarItem(index, 'cantidad', val);
+                              if (raw !== '') {
+                                const val = parseInt(raw);
+                                if (val > 0) handleActualizarItem(index, 'cantidad', val);
+                              }
                             }}
                             onBlur={() => {
-                              if (!item.cantidad || item.cantidad < 1) handleActualizarItem(index, 'cantidad', 1);
+                              const rawVal = getRaw(index, 'qty');
                               clearRaw(index, 'qty');
+                              if (rawVal === '') handleActualizarItem(index, 'cantidad', 0);
+                              else if (!item.cantidad || item.cantidad < 1) handleActualizarItem(index, 'cantidad', 1);
                             }}
                             className="w-full px-3 py-2 border rounded-lg text-sm"
                           />
@@ -545,10 +552,16 @@ export default function NuevaFacturaPage() {
                               const raw = e.target.value.replace(',', '.');
                               if (raw !== '' && !/^\d*\.?\d*$/.test(raw)) return;
                               setRaw(index, 'precio', raw);
-                              const val = parseFloat(raw);
-                              handleActualizarItem(index, 'valorUnitario', isNaN(val) ? 0 : val);
+                              if (raw !== '') {
+                                const val = parseFloat(raw);
+                                handleActualizarItem(index, 'valorUnitario', isNaN(val) ? 0 : val);
+                              }
                             }}
-                            onBlur={() => clearRaw(index, 'precio')}
+                            onBlur={() => {
+                              const rawVal = getRaw(index, 'precio');
+                              clearRaw(index, 'precio');
+                              if (rawVal === '') handleActualizarItem(index, 'valorUnitario', 0);
+                            }}
                             placeholder="0.00"
                             className="w-full px-3 py-2 border rounded-lg text-sm"
                           />
@@ -637,6 +650,47 @@ export default function NuevaFacturaPage() {
               </div>
             </div>
             
+            {/* Anticipos y otros cargos — desplegable */}
+            <details className="p-4 border border-slate-200 rounded-xl">
+              <summary className="text-sm font-medium text-slate-700 cursor-pointer select-none">
+                Anticipos y Otros Cargos <span className="text-slate-400 font-normal">(opcional)</span>
+              </summary>
+              <div className="grid grid-cols-2 gap-4 mt-4">
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Anticipo Global</label>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={anticipoGlobal > 0 ? String(anticipoGlobal) : ''}
+                    onChange={e => {
+                      const raw = e.target.value.replace(',', '.');
+                      if (raw !== '' && !/^\d*\.?\d*$/.test(raw)) return;
+                      setAnticipoGlobal(raw === '' ? 0 : parseFloat(raw));
+                    }}
+                    placeholder="0.00"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                  <p className="text-xs text-slate-400 mt-1">Monto anticipado que descuenta del total</p>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Otros Cargos</label>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={otrosCargos > 0 ? String(otrosCargos) : ''}
+                    onChange={e => {
+                      const raw = e.target.value.replace(',', '.');
+                      if (raw !== '' && !/^\d*\.?\d*$/.test(raw)) return;
+                      setOtrosCargos(raw === '' ? 0 : parseFloat(raw));
+                    }}
+                    placeholder="0.00"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                  <p className="text-xs text-slate-400 mt-1">Cargos adicionales al total (flete, seguro, etc.)</p>
+                </div>
+              </div>
+            </details>
+
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Observación (opcional)</label>
               <textarea

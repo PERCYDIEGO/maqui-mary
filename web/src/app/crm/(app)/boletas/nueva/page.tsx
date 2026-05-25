@@ -43,7 +43,7 @@ import toast from 'react-hot-toast';
 
 export default function NuevaBoletaPage() {
   const router = useRouter();
-  const { addBoleta, updateBoleta, boletas, clientes, productos, getSiguienteNumero } = useApp();
+  const { addBoleta, updateBoleta, boletas, clientes, productos, series, getSiguienteNumero } = useApp();
 
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -84,6 +84,7 @@ export default function NuevaBoletaPage() {
     setClienteBusqueda(boleta.cliente.nombre);
     setFechaEmision(new Date(boleta.fechaEmision).toISOString().split('T')[0]);
     if (boleta.fechaVencimiento) setFechaVencimiento(new Date(boleta.fechaVencimiento).toISOString().split('T')[0]);
+    setFormaPago(boleta.formaPago || 'contado');
     setMoneda(boleta.moneda);
     setItems(boleta.items);
     setObservacion(boleta.observacion || '');
@@ -92,6 +93,7 @@ export default function NuevaBoletaPage() {
   
   const [fechaEmision, setFechaEmision] = useState(new Date().toISOString().split('T')[0]);
   const [fechaVencimiento, setFechaVencimiento] = useState('');
+  const [formaPago, setFormaPago] = useState<'contado' | 'credito'>('contado');
   const [moneda, setMoneda] = useState<'PEN' | 'USD'>('PEN');
   const [observacion, setObservacion] = useState('');
   
@@ -115,9 +117,10 @@ export default function NuevaBoletaPage() {
   // Calcular totales
   const totales = calcularTotalesBoleta(items, otrosCargos);
   
-  // Siguiente número
+  const serieActiva = series.find(s => s.tipo === 'boleta' && s.activo);
+  const serieBoleta = serieActiva?.serie || 'EB01';
   const siguienteNumero = getSiguienteNumero('boleta');
-  const numeroCompleto = formatearNumeroDocumento('EB01', siguienteNumero);
+  const numeroCompleto = formatearNumeroDocumento(serieBoleta, siguienteNumero);
   
   // ============================================
   // HANDLERS
@@ -192,7 +195,7 @@ export default function NuevaBoletaPage() {
     if (isEditing && editingId) {
       const original = boletas.find(b => b.id === editingId);
       if (original) {
-        updateBoleta({ ...original, cliente: cliente!, clienteId: cliente!.id, fechaEmision: new Date(fechaEmision), fechaVencimiento: fechaVencimiento ? new Date(fechaVencimiento) : undefined, moneda, items, observacion, updatedAt: new Date(), ...totales });
+        updateBoleta({ ...original, cliente: cliente!, clienteId: cliente!.id, fechaEmision: new Date(fechaEmision), fechaVencimiento: fechaVencimiento ? new Date(fechaVencimiento) : undefined, formaPago, formaPagoSunat: formaPago === 'credito' ? '002' : '001', moneda, items, observacion, updatedAt: new Date(), ...totales });
         toast.success('Boleta actualizada correctamente');
         router.push('/crm/boletas');
       }
@@ -200,55 +203,57 @@ export default function NuevaBoletaPage() {
       return;
     }
 
+    let hashCPE = '';
     try {
-      const hashCPE = generarHashCPE({
+      hashCPE = await generarHashCPE({
         rucEmisor: EMPRESA_DATA.ruc,
         tipoDocumento: '03',
-        serie: 'EB01',
+        serie: serieBoleta,
         numero: siguienteNumero,
         importeTotal: totales.importeTotal,
         fechaEmision: new Date(fechaEmision),
       });
-      
-      const qrData = generarDatosQR({
-        rucEmisor: EMPRESA_DATA.ruc,
-        tipoDocumento: '03',
-        serie: 'EB01',
-        numero: siguienteNumero,
-        importeTotal: totales.importeTotal,
-        fechaEmision: new Date(fechaEmision),
-        hashCPE,
-      });
-      
-      const boleta: Boleta = {
-        id: Math.random().toString(36).substr(2, 9),
-        tipo: 'boleta',
-        serie: 'EB01',
-        numero: siguienteNumero,
-        numeroCompleto,
-        fechaEmision: new Date(fechaEmision),
-        fechaVencimiento: fechaVencimiento ? new Date(fechaVencimiento) : undefined,
-        clienteId: cliente.id,
+    } catch {
+      hashCPE = '';
+    }
+    
+    const qrData = generarDatosQR({
+      rucEmisor: EMPRESA_DATA.ruc,
+      tipoDocumento: '03',
+      serie: serieBoleta,
+      numero: siguienteNumero,
+      importeTotal: totales.importeTotal,
+      fechaEmision: new Date(fechaEmision),
+      hashCPE,
+    });
+    
+    const boleta: Boleta = {
+      id: Math.random().toString(36).substr(2, 9),
+      tipo: 'boleta',
+      serie: serieBoleta,
+      numero: siguienteNumero,
+      numeroCompleto,
+      fechaEmision: new Date(fechaEmision),
+      fechaVencimiento: fechaVencimiento ? new Date(fechaVencimiento) : undefined,
+      clienteId: cliente.id,
         cliente,
         moneda,
+        formaPago,
+        formaPagoSunat: formaPago === 'credito' ? '002' : '001',
         items,
         observacion,
-        estado: 'borrador',
-        hashCpe: hashCPE,
-        qrCode: qrData,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        ...totales,
-      };
+      estado: 'borrador',
+      hashCpe: hashCPE,
+      qrCode: qrData,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ...totales,
+    };
 
-      addBoleta(boleta);
-      toast.success('Boleta guardada. Pendiente de envío a SUNAT.');
-      router.push('/crm/boletas');
-    } catch (error) {
-      toast.error('Error al emitir la boleta');
-    } finally {
-      setLoading(false);
-    }
+    addBoleta(boleta);
+    toast.success('Boleta guardada. Pendiente de envío a SUNAT.');
+    setLoading(false);
+    router.push('/crm/boletas');
   };
   
   // ============================================
@@ -353,7 +358,31 @@ export default function NuevaBoletaPage() {
                 )}
               </div>
               
-              {/* Datos del cliente seleccionado */}
+              {/* Opción rápida: Consumidor Final (sin DNI) */}
+              <button
+                type="button"
+                onClick={() => {
+                  const cf: Cliente = {
+                    id: 'consumidor-final',
+                    tipo: 'natural',
+                    nombre: 'CONSUMIDOR FINAL',
+                    dni: '00000000',
+                    direccion: '-',
+                    esFrecuente: false,
+                    totalCompras: 0,
+                    createdAt: new Date(),
+                  };
+                  setCliente(cf);
+                  setClienteBusqueda('CONSUMIDOR FINAL');
+                  setMostrarClientes(false);
+                }}
+                className="w-full p-3 border-2 border-dashed border-amber-300 rounded-xl text-amber-700 hover:bg-amber-50 font-medium text-sm transition-colors flex items-center justify-center gap-2"
+              >
+                <User className="w-4 h-4" />
+                Venta sin DNI — Consumidor Final
+              </button>
+
+               {/* Datos del cliente seleccionado */}
               {cliente && (
                 <div className="p-4 bg-amber-50 rounded-xl border border-amber-100">
                   <div className="flex items-center justify-between">
@@ -375,8 +404,8 @@ export default function NuevaBoletaPage() {
                 </div>
               )}
               
-              {/* Fechas */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+               {/* Fechas y forma de pago */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
                     Fecha de Emisión
@@ -387,6 +416,19 @@ export default function NuevaBoletaPage() {
                     onChange={(e) => setFechaEmision(e.target.value)}
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none"
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Forma de Pago
+                  </label>
+                  <select
+                    value={formaPago}
+                    onChange={(e) => setFormaPago(e.target.value as 'contado' | 'credito')}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none"
+                  >
+                    <option value="contado">Contado</option>
+                    <option value="credito">Crédito</option>
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -585,18 +627,22 @@ export default function NuevaBoletaPage() {
                            <input
                              type="text"
                              inputMode="numeric"
-                             value={getRaw(index, 'qty') ?? String(item.cantidad)}
-                             onChange={(e) => {
-                               const raw = e.target.value;
-                               if (raw !== '' && !/^\d+$/.test(raw)) return;
-                               setRaw(index, 'qty', raw);
-                               const val = parseInt(raw);
-                               if (val > 0) handleActualizarItem(index, 'cantidad', val);
-                             }}
-                             onBlur={() => {
-                               if (!item.cantidad || item.cantidad < 1) handleActualizarItem(index, 'cantidad', 1);
-                               clearRaw(index, 'qty');
-                             }}
+                              value={getRaw(index, 'qty') ?? (item.cantidad === 0 ? '' : String(item.cantidad))}
+                              onChange={(e) => {
+                                const raw = e.target.value;
+                                if (raw !== '' && !/^\d+$/.test(raw)) return;
+                                setRaw(index, 'qty', raw);
+                                if (raw !== '') {
+                                  const val = parseInt(raw);
+                                  if (val > 0) handleActualizarItem(index, 'cantidad', val);
+                                }
+                              }}
+                              onBlur={() => {
+                                const rawVal = getRaw(index, 'qty');
+                                clearRaw(index, 'qty');
+                                if (rawVal === '') handleActualizarItem(index, 'cantidad', 0);
+                                else if (!item.cantidad || item.cantidad < 1) handleActualizarItem(index, 'cantidad', 1);
+                              }}
                              className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none text-sm"
                            />
                          </div>
@@ -627,15 +673,21 @@ export default function NuevaBoletaPage() {
                            <input
                              type="text"
                              inputMode="decimal"
-                             value={getRaw(index, 'precio') ?? (item.valorUnitario === 0 ? '' : String(item.valorUnitario))}
-                             onChange={(e) => {
-                               const raw = e.target.value.replace(',', '.');
-                               if (raw !== '' && !/^\d*\.?\d*$/.test(raw)) return;
-                               setRaw(index, 'precio', raw);
-                               const val = parseFloat(raw);
-                               handleActualizarItem(index, 'valorUnitario', isNaN(val) ? 0 : val);
-                             }}
-                             onBlur={() => clearRaw(index, 'precio')}
+                              value={getRaw(index, 'precio') ?? (item.valorUnitario === 0 ? '' : String(item.valorUnitario))}
+                              onChange={(e) => {
+                                const raw = e.target.value.replace(',', '.');
+                                if (raw !== '' && !/^\d*\.?\d*$/.test(raw)) return;
+                                setRaw(index, 'precio', raw);
+                                if (raw !== '') {
+                                  const val = parseFloat(raw);
+                                  handleActualizarItem(index, 'valorUnitario', isNaN(val) ? 0 : val);
+                                }
+                              }}
+                              onBlur={() => {
+                                const rawVal = getRaw(index, 'precio');
+                                clearRaw(index, 'precio');
+                                if (rawVal === '') handleActualizarItem(index, 'valorUnitario', 0);
+                              }}
                              placeholder="0.00"
                              className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none text-sm"
                            />

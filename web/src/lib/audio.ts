@@ -5,29 +5,63 @@ export type TrackPreset = {
 }
 
 export const TRACK_PRESETS: Record<string, TrackPreset> = {
-  'top-gear-title': { label: '🏁 Título Top Gear', src: '/audio/topgear-01-title.mp3', scene: 'menu' },
-  'top-gear-las-vegas': { label: '🎰 Las Vegas', src: '/audio/topgear-02-las-vegas.mp3', scene: 'crm' },
-  'top-gear-hiroshima': { label: '🏯 Hiroshima', src: '/audio/topgear-03-hiroshima.mp3', scene: 'crm' },
-  'top-gear-bordeaux': { label: '🍷 Bordeaux', src: '/audio/topgear-04-bordeaux.mp3', scene: 'crm' },
-  'top-gear-frankfurt': { label: '🏎️ Frankfurt', src: '/audio/topgear-05-frankfurt.mp3', scene: 'crm' },
-  'top-gear-qualified': { label: '🏆 Qualified', src: '/audio/topgear-06-qualified.mp3', scene: 'success' },
-  'top-gear-ending': { label: '🌅 Ending Theme', src: '/audio/topgear-07-ending-theme.mp3', scene: 'landing' },
-  'gunbound-lobby': { label: '🎮 Lobby Gunbound', src: '/audio/gunbound-01-lobby.mp3', scene: 'menu' },
-  'gunbound-now-loading': { label: '⏳ Now Loading', src: '/audio/gunbound-02-now-loading.mp3', scene: 'login' },
-  'gunbound-battle-1': { label: '⚔️ Batalla #1', src: '/audio/gunbound-03-battle-1.mp3', scene: 'crm' },
-  'gunbound-battle-2': { label: '🔥 Batalla #2', src: '/audio/gunbound-04-battle-2.mp3', scene: 'crm' },
-  'gunbound-battle-3': { label: '💥 Batalla #3', src: '/audio/gunbound-05-battle-3.mp3', scene: 'crm' },
-  'gunbound-battle-4': { label: '🌪️ Batalla #4', src: '/audio/gunbound-06-battle-4.mp3', scene: 'crm' },
-  'gunbound-battle-5': { label: '🎯 Batalla #5', src: '/audio/gunbound-07-battle-5.mp3', scene: 'crm' },
-  'gunbound-battle-6': { label: '🚀 Batalla #6', src: '/audio/gunbound-08-battle-6.mp3', scene: 'crm' },
-  'gunbound-battle-7': { label: '🛡️ Batalla #7', src: '/audio/gunbound-09-battle-7.mp3', scene: 'crm' },
-  'gunbound-battle-8': { label: '⚡ Batalla #8', src: '/audio/gunbound-10-battle-8.mp3', scene: 'crm' },
-  'gunbound-battle-9': { label: '🏰 Batalla #9', src: '/audio/gunbound-11-battle-9.mp3', scene: 'crm' },
-  'gunbound-battle-10': { label: '🎪 Batalla #10', src: '/audio/gunbound-12-battle-10.mp3', scene: 'crm' },
-  'gunbound-battle-11': { label: '🌋 Batalla #11', src: '/audio/gunbound-13-battle-11.mp3', scene: 'crm' },
-  'gunbound-battle-12': { label: '🏆 Batalla #12', src: '/audio/gunbound-14-battle-12.mp3', scene: 'crm' },
-  'gunbound-sudden-death': { label: '💀 Sudden Death', src: '/audio/gunbound-15-sudden-death.mp3', scene: 'success' },
+  // ─── Top Gear OST ───
+  'top-gear-title':    { label: '🏁 Título',       src: '/audio/topgear-01-title.mp3',        scene: 'menu'    },
+  'top-gear-las-vegas':{ label: '🎰 Las Vegas',    src: '/audio/topgear-02-las-vegas.mp3',    scene: 'crm'     },
+  'top-gear-hiroshima':{ label: '🏯 Hiroshima',    src: '/audio/topgear-03-hiroshima.mp3',    scene: 'crm'     },
+  'top-gear-bordeaux': { label: '🍷 Bordeaux',     src: '/audio/topgear-04-bordeaux.mp3',     scene: 'crm'     },
+  'top-gear-frankfurt':{ label: '🏎️ Frankfurt',    src: '/audio/topgear-05-frankfurt.mp3',    scene: 'crm'     },
+  'top-gear-qualified':{ label: '🏆 Qualified',    src: '/audio/topgear-06-qualified.mp3',    scene: 'success' },
+  'top-gear-ending':   { label: '🌅 Ending Theme', src: '/audio/topgear-07-ending-theme.mp3', scene: 'landing' },
+
+  // ─── Gunbound OST ───
+  'gunbound-lobby':       { label: '🎮 Lobby',       src: '/audio/gunbound-01-lobby.mp3',       scene: 'menu'    },
+  'gunbound-now-loading': { label: '⏳ Now Loading', src: '/audio/gunbound-02-now-loading.mp3',  scene: 'login'   },
+  'gunbound-battle-1':    { label: '⚔️ Batalla #1',  src: '/audio/gunbound-03-battle-1.mp3',    scene: 'crm'     },
+  'gunbound-battle-2':    { label: '🔥 Batalla #2',  src: '/audio/gunbound-04-battle-2.mp3',    scene: 'crm'     },
+  'gunbound-battle-3':    { label: '💥 Batalla #3',  src: '/audio/gunbound-05-battle-3.mp3',    scene: 'crm'     },
+  'gunbound-battle-4':    { label: '🌪️ Batalla #4',  src: '/audio/gunbound-06-battle-4.mp3',    scene: 'crm'     },
+  'gunbound-battle-5':    { label: '🎯 Batalla #5',  src: '/audio/gunbound-07-battle-5.mp3',    scene: 'crm'     },
+  'gunbound-battle-6':    { label: '🚀 Batalla #6',  src: '/audio/gunbound-08-battle-6.mp3',    scene: 'crm'     },
+  'gunbound-battle-7':    { label: '🛡️ Batalla #7',  src: '/audio/gunbound-09-battle-7.mp3',    scene: 'crm'     },
+  'gunbound-battle-8':    { label: '⚡ Batalla #8',  src: '/audio/gunbound-10-battle-8.mp3',    scene: 'crm'     },
+  'gunbound-battle-9':    { label: '🏰 Batalla #9',  src: '/audio/gunbound-11-battle-9.mp3',    scene: 'crm'     },
+  'gunbound-battle-10':   { label: '🎪 Batalla #10', src: '/audio/gunbound-12-battle-10.mp3',   scene: 'crm'     },
+  'gunbound-battle-11':   { label: '🌋 Batalla #11', src: '/audio/gunbound-13-battle-11.mp3',   scene: 'crm'     },
+  'gunbound-battle-12':   { label: '🏆 Batalla #12', src: '/audio/gunbound-14-battle-12.mp3',   scene: 'crm'     },
+  'gunbound-sudden-death':{ label: '💀 Sudden Death',src: '/audio/gunbound-15-sudden-death.mp3', scene: 'success' },
 }
+
+export type TrackGroup = {
+  key: string
+  label: string
+  emoji: string
+  ids: string[]
+}
+
+export const TRACK_GROUPS: TrackGroup[] = [
+  {
+    key: 'top-gear',
+    label: 'Top Gear OST',
+    emoji: '🏁',
+    ids: [
+      'top-gear-title', 'top-gear-las-vegas', 'top-gear-hiroshima',
+      'top-gear-bordeaux', 'top-gear-frankfurt', 'top-gear-qualified', 'top-gear-ending',
+    ],
+  },
+  {
+    key: 'gunbound',
+    label: 'Gunbound OST',
+    emoji: '🎮',
+    ids: [
+      'gunbound-lobby', 'gunbound-now-loading',
+      'gunbound-battle-1', 'gunbound-battle-2', 'gunbound-battle-3', 'gunbound-battle-4',
+      'gunbound-battle-5', 'gunbound-battle-6', 'gunbound-battle-7', 'gunbound-battle-8',
+      'gunbound-battle-9', 'gunbound-battle-10', 'gunbound-battle-11', 'gunbound-battle-12',
+      'gunbound-sudden-death',
+    ],
+  },
+]
 
 class AudioEngine {
   private ctx: AudioContext | null = null

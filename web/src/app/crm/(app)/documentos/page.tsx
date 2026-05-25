@@ -17,7 +17,7 @@ type TipoDocumento = 'boletas' | 'facturas' | 'guias';
 const tabs = [
   { id: 'boletas' as TipoDocumento, label: 'Boletas de Venta', icon: Receipt, color: 'amber', serie: 'EB01' },
   { id: 'facturas' as TipoDocumento, label: 'Facturas', icon: FileText, color: 'purple', serie: 'E001' },
-  { id: 'guias' as TipoDocumento, label: 'Guías de Remisión', icon: Truck, color: 'indigo', serie: 'EG07' },
+  { id: 'guias' as TipoDocumento, label: 'Guías de Remisión', icon: Truck, color: 'indigo', serie: 'T001' },
 ];
 
 const colorClasses: Record<string, { bg: string; text: string; light: string }> = {

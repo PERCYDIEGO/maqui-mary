@@ -208,7 +208,7 @@ export const onboardingSteps: OnboardingStep[] = [
     id: 'landing-hero',
     page: '/',
     title: 'Hecho en Perú 🇵🇪',
-    message: 'Somos fabricantes de esponjas en Ate Vitarte, Lima. Calidad peruana directo a tu hogar. Puedes cotizar por WhatsApp o comprar directo aquí.',
+    message: 'Somos fabricantes de esponjas en Lurigancho, Lima. Calidad peruana directo a tu hogar. Puedes cotizar por WhatsApp o comprar directo aquí.',
     position: 'bottom-right',
     roles: ['admin', 'editor', 'viewer'],
     icon: 'point',

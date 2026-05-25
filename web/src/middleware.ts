@@ -1,8 +1,9 @@
 // ============================================
 // MIDDLEWARE DE SEGURIDAD
-// Protege todas las rutas del CRM
+// Protege todas las rutas del CRM con verificación server-side
 // ============================================
 
+import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
@@ -12,37 +13,58 @@ const PUBLIC_CRM_ROUTES = [
   '/crm/cambiar-contrasena',
 ]
 
-// Rutas de API que deben ser públicas
+// Rutas de API que deben ser públicas (landing, contacto, etc.)
 const PUBLIC_API_ROUTES = [
   '/api/auth',
   '/api/config',
   '/api/setup',
+  '/api/contact',
+  '/api/notify',
+  '/api/payment',
+  '/api/productos',
+  '/api/geocode',
 ]
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Verificar si es una ruta del CRM
+  // BUG-09: verificar sesión server-side para rutas CRM con @supabase/ssr
   if (pathname.startsWith('/crm')) {
-    // Permitir rutas públicas del CRM
     if (PUBLIC_CRM_ROUTES.some(route => pathname.startsWith(route))) {
       return NextResponse.next()
     }
 
-    // Para el resto de rutas del CRM, permitir el acceso
-    // La protección real la hace el layout del CRM con verificación cliente-side
-    // Esto evita problemas con las cookies de Supabase SSR
-    return NextResponse.next()
+    const response = NextResponse.next({
+      request: { headers: request.headers },
+    })
+
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) { return request.cookies.get(name)?.value },
+          set(name: string, value: string, options: Record<string, unknown>) { response.cookies.set({ name, value, ...options } as any) },
+          remove(name: string, options: Record<string, unknown>) { response.cookies.set({ name, value: '', ...options } as any) },
+        },
+      }
+    )
+
+    const { data: { session } } = await supabase.auth.getSession()
+
+    if (!session) {
+      const loginUrl = new URL('/crm/login', request.url)
+      return NextResponse.redirect(loginUrl)
+    }
+
+    return response
   }
 
-  // Verificar rutas de API protegidas
+  // Rutas de API protegidas: la verificación la hacen las propias rutas con verifyAuth
   if (pathname.startsWith('/api/')) {
-    // Permitir rutas API públicas
     if (PUBLIC_API_ROUTES.some(route => pathname.startsWith(route))) {
       return NextResponse.next()
     }
-
-    // Las APIs del CRM deben verificar el token ellas mismas
     return NextResponse.next()
   }
 

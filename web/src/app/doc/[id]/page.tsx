@@ -125,7 +125,7 @@ export default async function DocVerificacionPage({ params }: { params: { id: st
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Emisor</p>
               <p className="font-semibold text-slate-800">INVERSIONES MAQUI MARY PERU E.I.R.L.</p>
               <p className="text-sm text-slate-500">RUC 20606218801</p>
-              <p className="text-sm text-slate-500">Ate Vitarte, Lima, Perú</p>
+              <p className="text-sm text-slate-500">Lurigancho, Lima, Perú</p>
             </div>
 
             {/* Cliente */}
@@ -226,7 +226,7 @@ export default async function DocVerificacionPage({ params }: { params: { id: st
           {/* Footer */}
           <p className="text-center text-xs text-slate-400 pb-4 print:hidden">
             🧽 Maqui Mary Perú · Fabricación de esponjas y accesorios de limpieza
-            <br />RUC 20606218801 · Ate Vitarte, Lima
+            <br />RUC 20606218801 · Lurigancho, Lima
           </p>
 
         </div>

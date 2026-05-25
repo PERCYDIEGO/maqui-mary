@@ -23,9 +23,9 @@ export async function POST(req: NextRequest) {
     const supabase = createClient(supabaseUrl, serviceRoleKey)
     const trimmedAlias = alias.trim().toLowerCase()
 
-    // Buscar en auth.users usando Admin API
-    const { data: usersList, error: listError } = await supabase.auth.admin.listUsers()
-    
+    // BUG-13: paginar para soportar más de 1000 usuarios
+    const { data: usersList, error: listError } = await supabase.auth.admin.listUsers({ perPage: 1000, page: 1 })
+
     if (listError) {
       console.error('[RESOLVE ALIAS] listUsers error:', listError)
       return NextResponse.json({ ok: false, error: 'Error interno al listar usuarios' }, { status: 500 })

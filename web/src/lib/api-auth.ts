@@ -5,13 +5,20 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
+// Extrae el JWT del header Authorization o de la cookie sb-access-token
+function extractToken(req: NextRequest): string | null {
+  const header = req.headers.get('authorization')?.replace('Bearer ', '').trim()
+  if (header) return header
+  return req.cookies.get('sb-access-token')?.value || null
+}
+
 export async function verifyAuth(req: NextRequest) {
-  const token = req.headers.get('authorization')?.replace('Bearer ', '')
+  const token = extractToken(req)
   if (!token) return null
 
   const sb = createClient(supabaseUrl, supabaseAnonKey)
   const { data: { user } } = await sb.auth.getUser(token)
-  return user
+  return user || null
 }
 
 export async function verifyAdmin(req: NextRequest) {
