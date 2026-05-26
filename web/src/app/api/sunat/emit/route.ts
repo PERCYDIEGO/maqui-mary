@@ -131,11 +131,18 @@ export async function POST(req: NextRequest) {
             sunatError = apiResult.message || 'Pendiente de aceptación SUNAT'
           }
         } else {
-          sunatStatus = 'ERROR'
-          sunatError = JSON.stringify({
-            msg: apiResult.message || 'Error en APISUNAT.pe',
-            sent: apiSunatReq,
-          })
+          // Detectar si SUNAT ya tenía el comprobante registrado (doble envío)
+          const yaEmitido = typeof apiResult.message === 'string' && /emitido anteriormente/i.test(apiResult.message)
+          if (yaEmitido) {
+            sunatStatus = 'ACEPTADO'
+            sunatError = ''
+          } else {
+            sunatStatus = 'ERROR'
+            sunatError = JSON.stringify({
+              msg: apiResult.message || 'Error en APISUNAT.pe',
+              sent: apiSunatReq,
+            })
+          }
         }
       } catch (e: any) {
         sunatStatus = 'ERROR'
