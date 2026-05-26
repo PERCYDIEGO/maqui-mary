@@ -743,11 +743,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const serie = guia.serie || 'T001';
       const numero = guia.numero || 1;
 
-      // Usar la fecha de emisión de la guía (no la fecha actual) para cumplir con SUNAT
-      // SUNAT permite: hoy o hasta 3 días previos
-      const fechaGuia = guia.fechaEmision ? new Date(guia.fechaEmision) : new Date();
-      const fechaEmision = fechaGuia.toISOString().split('T')[0];
-      const horaEmision = fechaGuia.toTimeString().slice(0, 8);
+      // SUNAT valida que fecha_emision sea hoy o hasta 3 días previos (hora Perú UTC-5).
+      // Usamos la hora actual en Perú — no la stored en DB que pudo grabarse en UTC.
+      const peruNow = new Date(Date.now() - 5 * 60 * 60 * 1000);
+      const fechaEmision = peruNow.toISOString().slice(0, 10);  // YYYY-MM-DD hora Perú
+      const horaEmision  = peruNow.toISOString().slice(11, 19); // HH:MM:SS hora Perú
 
       // Preparar datos del destinatario
       const destTipoDoc = guia.destinatarioDniRuc?.length === 11 ? '6' : '1';

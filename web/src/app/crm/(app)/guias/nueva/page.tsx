@@ -168,7 +168,9 @@ export default function NuevaGuiaPage() {
   const [puntoLlegadaBusqueda, setPuntoLlegadaBusqueda] = useState('');
   const [mostrarPuntosLlegada, setMostrarPuntosLlegada] = useState(false);
   const puntoLlegadaRef = useRef<HTMLDivElement>(null);
-  const [fechaInicioTraslado, setFechaInicioTraslado] = useState(new Date().toISOString().split('T')[0]);
+  const [fechaInicioTraslado, setFechaInicioTraslado] = useState(
+    new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString().slice(0, 10) // fecha Perú UTC-5
+  );
 
   // Documentos relacionados — múltiples boletas y/o facturas
   const [docsRelacionados, setDocsRelacionados] = useState<DocRelacionado[]>([]);
@@ -480,7 +482,7 @@ export default function NuevaGuiaPage() {
         serie: serieGuia,
         numero: siguienteNumero,
         tipo_guia: codTipoDoc,
-        fecha_emision: new Date().toISOString().split('T')[0],
+        fecha_emision: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString().slice(0, 10), // fecha Perú UTC-5
         fecha_inicio_traslado: fechaInicioTraslado,
         motivo_traslado: motivoTraslado,
         destinatario_id: destinatario.id,
