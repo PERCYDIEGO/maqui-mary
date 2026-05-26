@@ -77,8 +77,11 @@ export async function POST(req: NextRequest) {
     const total    = Math.round((subtotal + igv) * 100) / 100
 
     const now = new Date()
-    const fechaEmision = now.toISOString().slice(0, 10)
-    const horaEmision = now.toTimeString().slice(0, 8)
+    // Perú es UTC-5 sin horario de verano. El servidor Vercel corre en UTC,
+    // por lo que toISOString() devolvería la fecha UTC incorrecta tras las 7 PM Perú.
+    const peruNow = new Date(now.getTime() - 5 * 60 * 60 * 1000)
+    const fechaEmision = peruNow.toISOString().slice(0, 10)  // YYYY-MM-DD en hora Perú
+    const horaEmision  = peruNow.toISOString().slice(11, 19) // HH:MM:SS en hora Perú
 
     let sunatStatus = 'PENDIENTE'
     let sunatError = ''
