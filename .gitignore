@@ -8,6 +8,10 @@ dist/
 .env
 .env.local
 .env.*.local
+.env.production
+.env.staging
+.env.vercel
+.env.vercel.local
 
 # Logs
 *.log

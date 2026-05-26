@@ -1,8 +1,10 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
+import toast from 'react-hot-toast'
 import {
   TrendingUp, Users, ShoppingBag, AlertTriangle,
   FileText, Package, ArrowRight, Clock, CheckCircle,
@@ -251,6 +253,7 @@ function RangoTabs({ value, onChange }: { value: Rango; onChange: (r: Rango) => 
 
 // ─── Página principal ───
 export default function DashboardPage() {
+  const searchParams = useSearchParams()
   const [stats, setStats] = useState<DashStats>({
     ingresosMes: 0, ingresosMesAnterior: 0, documentosMes: 0,
     pedidosPendientes: 0, stockAlertas: 0, clientesTotal: 0,
@@ -263,6 +266,12 @@ export default function DashboardPage() {
   const [docsRecientes, setDocsRecientes] = useState<DocReciente[]>([])
   const [loading, setLoading] = useState(true)
   const [lastUpdate, setLastUpdate] = useState(new Date())
+
+  useEffect(() => {
+    if (searchParams.get('error') === 'sin_permiso') {
+      toast.error('No tienes permiso para acceder a esa sección')
+    }
+  }, [searchParams])
 
   const loadVentasGrafico = useCallback(async (r: Rango) => {
     setLoadingChart(true)

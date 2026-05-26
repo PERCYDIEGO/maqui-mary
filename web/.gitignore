@@ -8,3 +8,7 @@ next-env.d.ts
 
 .vercel
 .env*.local
+.env.production
+.env.staging
+.env.vercel
+.env.vercel.local

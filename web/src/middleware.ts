@@ -13,6 +13,13 @@ const PUBLIC_CRM_ROUTES = [
   '/crm/cambiar-contrasena',
 ]
 
+// Rutas exclusivas para rol admin — vendedor y almacen son redirigidos
+const ADMIN_ONLY_ROUTES = [
+  '/crm/usuarios',
+  '/crm/sunat',
+  '/crm/configuracion',
+]
+
 // Rutas de API que deben ser públicas (landing, contacto, etc.)
 const PUBLIC_API_ROUTES = [
   '/api/auth',
@@ -28,7 +35,6 @@ const PUBLIC_API_ROUTES = [
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // BUG-09: verificar sesión server-side para rutas CRM con @supabase/ssr
   if (pathname.startsWith('/crm')) {
     if (PUBLIC_CRM_ROUTES.some(route => pathname.startsWith(route))) {
       return NextResponse.next()
@@ -55,6 +61,22 @@ export async function middleware(request: NextRequest) {
     if (!session) {
       const loginUrl = new URL('/crm/login', request.url)
       return NextResponse.redirect(loginUrl)
+    }
+
+    // Verificar rol para rutas exclusivas de admin
+    const isAdminRoute = ADMIN_ONLY_ROUTES.some(route => pathname.startsWith(route))
+    if (isAdminRoute) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', session.user.id)
+        .single()
+
+      if (profile?.role !== 'admin') {
+        const dashboardUrl = new URL('/crm', request.url)
+        dashboardUrl.searchParams.set('error', 'sin_permiso')
+        return NextResponse.redirect(dashboardUrl)
+      }
     }
 
     return response
