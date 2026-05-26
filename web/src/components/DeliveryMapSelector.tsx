@@ -175,7 +175,7 @@ export default function DeliveryMapSelector({ onConfirm, onCancel }: Props) {
     calcAndLookup(lat, lng)
   }
 
-  async function useMyLocation() {
+  async function handleMyLocation() {
     if (!navigator.geolocation) {
       setLocationError('Tu navegador no soporta GPS. Busca tu dirección en el buscador.')
       return
@@ -246,7 +246,7 @@ export default function DeliveryMapSelector({ onConfirm, onCancel }: Props) {
           </div>
         )}
 
-        <button onClick={useMyLocation} disabled={gettingLocation}
+        <button onClick={handleMyLocation} disabled={gettingLocation}
           className="flex items-center gap-1.5 text-xs text-accent-terracotta font-medium hover:underline disabled:opacity-50">
           <Navigation size={12} />
           {gettingLocation ? 'Obteniendo ubicación...' : 'Usar mi ubicación actual (GPS)'}
@@ -269,7 +269,7 @@ export default function DeliveryMapSelector({ onConfirm, onCancel }: Props) {
               </div>
               <div className="flex gap-2 pt-0.5">
                 <button
-                  onClick={() => { setLocationError(''); useMyLocation() }}
+                  onClick={() => { setLocationError(''); handleMyLocation() }}
                   className="text-xs font-semibold text-white bg-red-600 rounded-lg px-3 py-1.5 hover:bg-red-700"
                 >
                   ↺ Reintentar GPS
@@ -286,7 +286,7 @@ export default function DeliveryMapSelector({ onConfirm, onCancel }: Props) {
             <div className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-xl px-3 py-2 leading-snug space-y-1.5">
               <p>⚠️ {locationError}</p>
               <button
-                onClick={() => { setLocationError(''); useMyLocation() }}
+                onClick={() => { setLocationError(''); handleMyLocation() }}
                 className="text-xs font-medium text-red-700 underline"
               >
                 Reintentar GPS
