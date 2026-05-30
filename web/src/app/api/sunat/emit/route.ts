@@ -210,31 +210,16 @@ export async function POST(req: NextRequest) {
     }
 
     // BUG-07: no descontar stock si el pedido web ya lo hizo al confirmarse
-    // BUG-04: TODO — reemplazar con RPC atómica (decrement_stock) para evitar race condition bajo concurrencia
+    // BUG-04: RPC atómica — UPDATE en una sola sentencia, sin race condition bajo concurrencia
     if (!stock_ya_descontado) {
       for (const it of items) {
         if (it.producto_id) {
-          await supabase.from('movimientos_stock').insert({
-            producto_id: it.producto_id,
-            tipo: 'salida',
-            cantidad: it.quantity,
-            motivo: `Venta ${tipo_comprobante === '01' ? 'Factura' : 'Boleta'} ${serie}-${String(numero).padStart(4, '0')}`,
-            factura_id: facturaId,
+          await supabase.rpc('decrement_stock', {
+            p_producto_id: it.producto_id,
+            p_cantidad: it.quantity,
+            p_motivo: `Venta ${tipo_comprobante === '01' ? 'Factura' : 'Boleta'} ${serie}-${String(numero).padStart(4, '0')}`,
+            p_factura_id: facturaId,
           })
-
-          const { data: prodData } = await supabase
-            .from('productos')
-            .select('stock')
-            .eq('id', it.producto_id)
-            .single()
-
-          const stockActual = (prodData?.stock || 0)
-          const nuevoStock = Math.max(0, stockActual - it.quantity)
-
-          await supabase
-            .from('productos')
-            .update({ stock: nuevoStock })
-            .eq('id', it.producto_id)
         }
       }
     }

@@ -73,20 +73,15 @@ export async function middleware(request: NextRequest) {
         .single()
 
       if (profile?.role !== 'admin') {
-        const dashboardUrl = new URL('/crm', request.url)
-        dashboardUrl.searchParams.set('error', 'sin_permiso')
-        return NextResponse.redirect(dashboardUrl)
+        return NextResponse.redirect(new URL('/crm/sin-permiso', request.url))
       }
     }
 
     return response
   }
 
-  // Rutas de API protegidas: la verificación la hacen las propias rutas con verifyAuth
+  // API routes: handlers are responsible for auth via verifyAuth/verifyAdmin
   if (pathname.startsWith('/api/')) {
-    if (PUBLIC_API_ROUTES.some(route => pathname.startsWith(route))) {
-      return NextResponse.next()
-    }
     return NextResponse.next()
   }
 
