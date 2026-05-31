@@ -94,13 +94,14 @@ export async function middleware(request: NextRequest) {
         userRole = rows[0]?.role || 'vendedor'
       } catch {}
 
-      const isAdmin = userRole === 'admin' || userRole === 'superusuario'
+      const isAdmin = ['admin', 'superusuario'].includes(userRole)
+      const isVendedor = ['vendedor', 'editor'].includes(userRole)
 
       if (isAdminRoute && !isAdmin) {
         return NextResponse.redirect(new URL('/crm/sin-permiso', request.url))
       }
 
-      if (isVendedorRoute && !isAdmin && userRole !== 'vendedor') {
+      if (isVendedorRoute && !isAdmin && !isVendedor) {
         return NextResponse.redirect(new URL('/crm/sin-permiso', request.url))
       }
     }

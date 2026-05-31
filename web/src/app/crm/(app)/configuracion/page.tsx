@@ -102,12 +102,8 @@ export default function MusicPlayerPage() {
     const seen = localStorage.getItem('mm-music-seen')
     if (seen) setFirstTime(false)
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        supabase.from('profiles').select('role').eq('id', session.user.id).single().then(({ data }) => {
-          if (data?.role === 'admin' || data?.role === 'editor') setEditor(true)
-        })
-      }
+    fetch('/api/auth/me').then(r => r.json()).then(({ profile }) => {
+      if (profile?.role === 'admin' || profile?.role === 'editor') setEditor(true)
     })
     fetch('/api/config').then(r => r.json()).then(data => {
       if (data.ok) {

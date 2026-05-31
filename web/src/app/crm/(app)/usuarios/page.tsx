@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
 import { Users, Plus, UserCog, Shield, Trash2, X, Search } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import toast from 'react-hot-toast'
@@ -16,18 +15,14 @@ type UserRow = {
   role?: string
 }
 
-const PASS_WORDS = ['esponja', 'paño', 'limpieza', 'maqui', 'mary', 'multiuso', 'acero', 'colores', 'vajilla', 'hogar', 'cocina', 'trapo']
-const PASS_SUFFIXES = ['123', '2024', '456', '789', '321', '999', '555', '777']
-
 function generarPass(): string {
-  const a = PASS_WORDS[Math.floor(Math.random() * PASS_WORDS.length)]
-  const b = PASS_WORDS[Math.floor(Math.random() * PASS_WORDS.length)]
-  const n = PASS_SUFFIXES[Math.floor(Math.random() * PASS_SUFFIXES.length)]
-  return a.charAt(0).toUpperCase() + a.slice(1) + b.charAt(0).toUpperCase() + b.slice(1) + n
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*'
+  const array = new Uint32Array(16)
+  crypto.getRandomValues(array)
+  return Array.from(array).map(v => chars[v % chars.length]).join('')
 }
 
 export default function UsuariosPage() {
-  const router = useRouter()
   const [users, setUsers] = useState<UserRow[]>([])
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
@@ -41,20 +36,14 @@ export default function UsuariosPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        setMyId(session.user.id)
-        supabase.from('profiles').select('role').eq('id', session.user.id).single().then(({ data }) => {
-          if (data?.role === 'admin') {
-            setIsAdmin(true)
-          } else {
-            router.replace('/crm')
-          }
-          setMyRole(data?.role || 'editor')
-        })
-      }
+      if (session?.user) setMyId(session.user.id)
+    })
+    fetch('/api/auth/me').then(r => r.json()).then(({ profile }) => {
+      if (profile?.role === 'admin') setIsAdmin(true)
+      setMyRole(profile?.role || 'editor')
     })
     loadUsers()
-  }, [router])
+  }, [])
 
   useEffect(() => {
     if (showModal === 'create') {
@@ -259,7 +248,7 @@ export default function UsuariosPage() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-primary-700 mb-1">Contraseña</label>
-                    <input type="text" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} placeholder="Ej: Maqui1234!" className="input-field font-mono text-sm" />
+                    <input type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} placeholder="Ej: Maqui1234!" className="input-field font-mono text-sm" />
                     <p className="text-xs text-primary-400 mt-1">Generada automáticamente, puedes cambiarla</p>
                   </div>
                   <div>
@@ -284,7 +273,7 @@ export default function UsuariosPage() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-primary-700 mb-1">{isAdmin ? 'Nueva contraseña' : 'Cambiar contraseña'} <span className="text-primary-400 font-normal">(dejar vacío para mantener)</span></label>
-                    <input type="text" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} placeholder="Si no cambia, dejar vacío" className="input-field" />
+                    <input type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} placeholder="Si no cambia, dejar vacío" className="input-field" />
                   </div>
                   {isAdmin && (
                     <>

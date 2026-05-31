@@ -439,7 +439,7 @@ export default function CRMLayout({
         setUserName(profile?.full_name || profile?.alias || '');
         const rol = (profile?.role as string) || '';
         if (rol === 'admin' || rol === 'superusuario') setUserRole('admin');
-        else if (rol === 'almacen' || rol === 'visor') setUserRole('almacen');
+        else if (['almacen', 'visor', 'viewer'].includes(rol)) setUserRole('almacen');
         else setUserRole('vendedor');
       };
 
