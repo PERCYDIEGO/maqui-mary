@@ -13,11 +13,21 @@ const PUBLIC_CRM_ROUTES = [
   '/crm/cambiar-contrasena',
 ]
 
-// Rutas exclusivas para rol admin — vendedor y almacen son redirigidos
+// Rutas exclusivas para admin
 const ADMIN_ONLY_ROUTES = [
   '/crm/usuarios',
   '/crm/sunat',
   '/crm/configuracion',
+]
+
+// Rutas vedadas para almacen (solo admin y vendedor)
+const VENDEDOR_ROUTES = [
+  '/crm/documentos',
+  '/crm/boletas',
+  '/crm/facturas',
+  '/crm/guias',
+  '/crm/clientes',
+  '/crm/transportistas',
 ]
 
 // Rutas de API que deben ser públicas (landing, contacto, etc.)
@@ -63,16 +73,34 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(loginUrl)
     }
 
-    // Verificar rol para rutas exclusivas de admin
+    // Verificar rol cuando la ruta lo requiere
     const isAdminRoute = ADMIN_ONLY_ROUTES.some(route => pathname.startsWith(route))
-    if (isAdminRoute) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', session.user.id)
-        .single()
+    const isVendedorRoute = VENDEDOR_ROUTES.some(route => pathname.startsWith(route))
 
-      if (profile?.role !== 'admin') {
+    if (isAdminRoute || isVendedorRoute) {
+      // Service role para bypass de RLS — garantiza que el query siempre funcione
+      let userRole = 'vendedor'
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/profiles?id=eq.${session.user.id}&select=role`,
+          {
+            headers: {
+              apikey: process.env.SUPABASE_SERVICE_ROLE_KEY!,
+              Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY!}`,
+            },
+          }
+        )
+        const rows = await res.json()
+        userRole = rows[0]?.role || 'vendedor'
+      } catch {}
+
+      const isAdmin = userRole === 'admin' || userRole === 'superusuario'
+
+      if (isAdminRoute && !isAdmin) {
+        return NextResponse.redirect(new URL('/crm/sin-permiso', request.url))
+      }
+
+      if (isVendedorRoute && !isAdmin && userRole !== 'vendedor') {
         return NextResponse.redirect(new URL('/crm/sin-permiso', request.url))
       }
     }

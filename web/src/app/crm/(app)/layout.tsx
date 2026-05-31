@@ -129,17 +129,22 @@ const PAGE_STEPS: Record<string, PageStepEntry[]> = {
 // ITEMS DE NAVEGACIÓN SIMPLIFICADOS
 // ============================================
 
-const menuItems = [
-  { href: '/crm',                label: 'Dashboard',       icon: BarChart3,  adminOnly: false },
-  { href: '/crm/documentos',     label: 'Documentos',      icon: FileText,   adminOnly: false, badge: 'BOL/FAC/GUI' },
-  { href: '/crm/pedidos',        label: 'Pedidos web',     icon: ShoppingCart, adminOnly: false },
-  { href: '/crm/sunat',          label: 'Envío SUNAT',     icon: Send,       adminOnly: true  },
-  { href: '/crm/clientes',       label: 'Clientes',        icon: Users,      adminOnly: false },
-  { href: '/crm/transportistas', label: 'Transportistas',  icon: Package,    adminOnly: false },
-  { href: '/crm/productos',      label: 'Productos',       icon: ShoppingBag, adminOnly: false },
-  { href: '/crm/inventario',     label: 'Inventario',      icon: Boxes,      adminOnly: false },
-  { href: '/crm/configuracion',  label: 'Configuración',   icon: Settings,   adminOnly: false },
-  { href: '/crm/usuarios',       label: 'Usuarios',        icon: User,       adminOnly: true  },
+type RoleKey = 'admin' | 'vendedor' | 'almacen'
+
+const menuItems: Array<{
+  href: string; label: string; icon: React.ElementType
+  allowedRoles: RoleKey[]; badge?: string
+}> = [
+  { href: '/crm',                label: 'Dashboard',      icon: BarChart3,   allowedRoles: ['admin', 'vendedor', 'almacen'] },
+  { href: '/crm/documentos',     label: 'Documentos',     icon: FileText,    allowedRoles: ['admin', 'vendedor'], badge: 'BOL/FAC/GUI' },
+  { href: '/crm/pedidos',        label: 'Pedidos web',    icon: ShoppingCart, allowedRoles: ['admin', 'vendedor', 'almacen'] },
+  { href: '/crm/sunat',          label: 'Envío SUNAT',    icon: Send,        allowedRoles: ['admin'] },
+  { href: '/crm/clientes',       label: 'Clientes',       icon: Users,       allowedRoles: ['admin', 'vendedor'] },
+  { href: '/crm/transportistas', label: 'Transportistas', icon: Package,     allowedRoles: ['admin', 'vendedor'] },
+  { href: '/crm/productos',      label: 'Productos',      icon: ShoppingBag, allowedRoles: ['admin', 'vendedor', 'almacen'] },
+  { href: '/crm/inventario',     label: 'Inventario',     icon: Boxes,       allowedRoles: ['admin', 'vendedor', 'almacen'] },
+  { href: '/crm/configuracion',  label: 'Configuración',  icon: Settings,    allowedRoles: ['admin'] },
+  { href: '/crm/usuarios',       label: 'Usuarios',       icon: User,        allowedRoles: ['admin'] },
 ];
 
 // ============================================
@@ -177,7 +182,9 @@ function Sidebar({
   userRole: UserRole;
 }) {
   const pathname = usePathname();
-  const visibleItems = menuItems.filter(item => !item.adminOnly || userRole === 'admin');
+  const visibleItems = menuItems.filter(item =>
+    userRole && item.allowedRoles.includes(userRole as RoleKey)
+  );
 
   return (
     <>
