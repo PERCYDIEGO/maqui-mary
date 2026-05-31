@@ -59,18 +59,33 @@ export async function middleware(request: NextRequest) {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
-          get(name: string) { return request.cookies.get(name)?.value },
-          set(name: string, value: string, options: Record<string, unknown>) { response.cookies.set({ name, value, ...options } as any) },
-          remove(name: string, options: Record<string, unknown>) { response.cookies.set({ name, value: '', ...options } as any) },
+          getAll() {
+            return request.cookies.getAll()
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              response.cookies.set(name, value, options as any)
+            })
+          },
         },
       }
     )
 
-    const { data: { session } } = await supabase.auth.getSession()
+    let session = null
+    try {
+      const { data } = await supabase.auth.getSession()
+      session = data?.session ?? null
+    } catch {}
 
     if (!session) {
-      const loginUrl = new URL('/crm/login', request.url)
-      return NextResponse.redirect(loginUrl)
+      try {
+        const { data: userData } = await supabase.auth.getUser()
+        if (userData?.user) session = { user: userData.user } as any
+      } catch {}
+    }
+
+    if (!session) {
+      return NextResponse.redirect(new URL('/crm/login', request.url))
     }
 
     // Verificar rol cuando la ruta lo requiere

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { CheckCircle, XCircle, RefreshCw, ArrowLeft, Loader2, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
@@ -38,18 +37,9 @@ const CHECK_LABELS: Record<string, string> = {
 };
 
 export default function DiagnosticoSunatPage() {
-  const router = useRouter();
   const [resultado, setResultado] = useState<DiagnosticoResult | null>(null);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (!session) { router.replace('/crm/login'); return; }
-      const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single();
-      if (profile?.role !== 'admin') router.replace('/crm');
-    });
-  }, [router]);
 
   const ejecutarDiagnostico = async () => {
     setCargando(true);
