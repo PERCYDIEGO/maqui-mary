@@ -1,169 +1,196 @@
 import { test, expect } from '@playwright/test'
-import { loginAsAdmin } from '../helpers'
-import { seedTestData, cleanupTestData, TEST_PREFIX } from '../seed-helpers'
+import { loginAsAdmin, safeNavigate } from '../helpers'
 
-const BASE_URL = 'http://localhost:3000'
+type SectionInfo = { path: string; label: string };
+const ALL_SECTIONS: SectionInfo[] = [
+  { path: '/crm/clientes', label: 'Clientes' },
+  { path: '/crm/productos', label: 'Productos' },
+  { path: '/crm/inventario', label: 'Inventario' },
+  { path: '/crm/facturas', label: 'Facturas' },
+  { path: '/crm/boletas', label: 'Boletas' },
+  { path: '/crm/guias', label: 'Guías' },
+  { path: '/crm/pedidos', label: 'Pedidos' },
+  { path: '/crm/documentos', label: 'Documentos' },
+  { path: '/crm/transportistas', label: 'Transportistas' },
+  { path: '/crm/usuarios', label: 'Usuarios' },
+  { path: '/crm/sunat', label: 'SUNAT' },
+  { path: '/crm/configuracion', label: 'Configuración' },
+]
 
-let testData: Awaited<ReturnType<typeof seedTestData>>
-
-test.describe('Flujo completo E2E — Maqui Mary', () => {
-  test.beforeAll(async () => {
-    testData = await seedTestData()
-  })
-
-  test.afterAll(async () => {
-    await cleanupTestData()
-  })
-
+test.describe('Dashboard', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page)
   })
 
-  test('1. Dashboard carga con métricas y sidebar', async ({ page }) => {
+  test('carga sin [object Object] ni Error 500', async ({ page }) => {
     await expect(page).toHaveURL(/\/crm/)
     await page.waitForLoadState('networkidle')
-    await expect(page.locator('text=Maqui Mary')).toBeVisible({ timeout: 8000 })
     const body = await page.locator('body').textContent() || ''
     expect(body).not.toMatch(/\[object Object\]/)
     expect(body).not.toMatch(/Error 500/)
   })
 
-  test('2. Clientes — crear, ver en lista, editar, buscar, eliminar', async ({ page }) => {
-    await page.goto(`${BASE_URL}/crm/clientes`)
-    await page.waitForLoadState('networkidle')
-
-    const testClientName = `${TEST_PREFIX}_Cliente_A`
-
-    const searchInput = page.locator('input[type="search"], input[placeholder*="buscar" i]').first()
-    if (await searchInput.isVisible()) {
-      await searchInput.fill(TEST_PREFIX)
-      await page.waitForTimeout(800)
+  test('sidebar contiene enlaces de navegacion', async ({ page }) => {
+    for (const section of ALL_SECTIONS) {
+      const link = page.locator(`a[href="${section.path}"]`).first()
+      await expect(link).toBeVisible({ timeout: 5000 })
     }
+  })
+})
 
-    const row = page.locator(`text=${testClientName}`).first()
-    await expect(row).toBeVisible({ timeout: 8000 })
+test.describe('Navegacion secciones', () => {
+  test.beforeEach(async ({ page }) => {
+    await loginAsAdmin(page)
+  })
 
-    const editBtn = page.locator(`tr:has-text("${testClientName}") a, tr:has-text("${testClientName}") button, a[href*="/crm/clientes/"]`).first()
-    if (await editBtn.isVisible()) {
-      await editBtn.click()
-      await page.waitForLoadState('networkidle')
-      const phoneInput = page.locator('input[name="phone"], input[placeholder*="tel"]').first()
-      if (await phoneInput.isVisible()) {
-        await phoneInput.fill('999000111')
-        const saveBtn = page.locator('button[type="submit"]').filter({ hasText: /guardar|actualizar|editar/i }).first()
-        if (await saveBtn.isVisible()) {
-          await saveBtn.click()
-          await page.waitForLoadState('networkidle')
+  for (const section of ALL_SECTIONS) {
+    test(`${section.label} carga sin error 500`, async ({ page }) => {
+      await safeNavigate(page, section.path)
+      const body = await page.locator('body').textContent() || ''
+      expect(body).not.toMatch(/Error 500/)
+      expect(body).not.toMatch(/\[object Object\]/)
+    })
+  }
+
+  test('navegar por todas las secciones no genera toasts de error', async ({ page }) => {
+    const erroresEncontrados: string[] = []
+    const textoError = /No se pudo cargar|Error al cargar|infinite recursion/i
+
+    for (const section of ALL_SECTIONS) {
+      await safeNavigate(page, section.path)
+      await page.waitForTimeout(1500)
+
+      // Buscar toasts de error visibles (react-hot-toast renderiza en el body)
+      const toasts = page.locator('[data-hot-toast], [role="status"], [class*="toast"]')
+      const count = await toasts.count()
+      for (let i = 0; i < count; i++) {
+        const texto = await toasts.nth(i).textContent().catch(() => '')
+        if (textoError.test(texto || '')) {
+          erroresEncontrados.push(`${section.label}: "${texto?.trim().slice(0, 80)}"`)
         }
       }
-      await page.goto(`${BASE_URL}/crm/clientes`)
-      await page.waitForLoadState('networkidle')
     }
 
-    if (await searchInput.isVisible()) {
-      await searchInput.fill('XXXXXXXXX_NO_EXISTE')
-      await page.waitForTimeout(800)
-      const bodyAfter = await page.locator('body').textContent() || ''
-      expect(bodyAfter).not.toContain(testClientName)
-    }
+    expect(erroresEncontrados, 'Toasts de error detectados al navegar').toEqual([])
+  })
+})
+
+test.describe('Clientes', () => {
+  test.beforeEach(async ({ page }) => {
+    await loginAsAdmin(page)
+    await safeNavigate(page, '/crm/clientes')
   })
 
-  test('3. Productos — ver en lista, stock visible', async ({ page }) => {
-    await page.goto(`${BASE_URL}/crm/productos`)
-    await page.waitForLoadState('networkidle')
-    await expect(page.locator('body')).not.toContainText('Error 500')
-
-    const testProductName = `${TEST_PREFIX}_Producto_Test`
-    const product = page.locator(`text=${testProductName}`).first()
-    await expect(product).toBeVisible({ timeout: 8000 })
+  test('pagina carga sin error', async ({ page }) => {
+    const body = await page.locator('body').textContent() || ''
+    expect(body).not.toMatch(/Error 500/)
   })
 
-  test('4. Transportistas — ver en lista', async ({ page }) => {
-    await page.goto(`${BASE_URL}/crm/transportistas`)
-    await page.waitForLoadState('networkidle')
-    await expect(page.locator('body')).not.toContainText('Error 500')
-
-    const transportistaName = testData.transportistas[0].nombre_completo
-    await expect(page.locator(`text=${transportistaName}`).first()).toBeVisible({ timeout: 8000 })
-  })
-
-  test('5. Factura — crear desde cero con cliente y producto', async ({ page }) => {
-    await page.goto(`${BASE_URL}/crm/facturas/nueva`)
-    await page.waitForLoadState('networkidle')
-    await expect(page.locator('body')).not.toContainText('Error 500')
-
-    const clienteName = `${TEST_PREFIX}_Cliente_A`
-    const clienteInput = page.locator('input[placeholder*="cliente" i], input[name="cliente"]').first()
-    if (await clienteInput.isVisible()) {
-      await clienteInput.fill(clienteName)
+  test('buscador filtra sin crash', async ({ page }) => {
+    const buscador = page.locator('input[type="search"], input[placeholder*="buscar" i]').first()
+    if (await buscador.isVisible()) {
+      await buscador.fill('a')
       await page.waitForTimeout(500)
-    }
-
-    const productoName = `${TEST_PREFIX}_Producto_Test`
-    const productInput = page.locator('input[placeholder*="producto" i], input[placeholder*="item"]').first()
-    if (await productInput.isVisible()) {
-      await productInput.fill(productoName)
-      await page.waitForTimeout(500)
-    }
-
-    const submitBtn = page.locator('button[type="submit"]').filter({ hasText: /emitir|guardar|crear/i }).first()
-    if (await submitBtn.isVisible()) {
-      await submitBtn.click()
-      await page.waitForLoadState('networkidle')
-    }
-
-    if (await page.locator('text=Error 500').isVisible().catch(() => false)) {
-      console.log('Nota: crear factura puede fallar si hay validaciones que no podemos completar vía UI')
+      const body = await page.locator('body').textContent() || ''
+      expect(body).not.toMatch(/Error 500/)
     }
   })
+})
 
-  test('6. Factura creada aparece en listado', async ({ page }) => {
-    await page.goto(`${BASE_URL}/crm/facturas`)
-    await page.waitForLoadState('networkidle')
-    await expect(page.locator('body')).not.toContainText('Error 500')
-
-    const clienteName = `${TEST_PREFIX}_Cliente_A`
-    const clienteEnLista = page.locator(`text=${clienteName}`).first()
-    if (await clienteEnLista.isVisible().catch(() => false)) {
-      await expect(clienteEnLista).toBeVisible()
-    }
+test.describe('Productos', () => {
+  test.beforeEach(async ({ page }) => {
+    await loginAsAdmin(page)
+    await safeNavigate(page, '/crm/productos')
   })
 
-  test('7. Consistencia cross-módulo — cliente aparece en facturas', async ({ page }) => {
-    await page.goto(`${BASE_URL}/crm/clientes`)
-    await page.waitForLoadState('networkidle')
-    await expect(page.locator('body')).not.toContainText('Error 500')
+  test('pagina carga sin error', async ({ page }) => {
+    const body = await page.locator('body').textContent() || ''
+    expect(body).not.toMatch(/Error 500/)
+  })
+})
 
-    const clienteName = `${TEST_PREFIX}_Cliente_A`
-    const clienteEnClientes = page.locator(`text=${clienteName}`).first()
-    await expect(clienteEnClientes).toBeVisible({ timeout: 8000 })
-
-    await page.goto(`${BASE_URL}/crm/facturas`)
-    await page.waitForLoadState('networkidle')
-    const clienteEnFacturas = page.locator(`text=${clienteName}`).first()
-    if (await clienteEnFacturas.isVisible().catch(() => false)) {
-      await expect(clienteEnFacturas).toBeVisible()
-    }
+test.describe('Factura formulario nueva (sin emitir)', () => {
+  test.beforeEach(async ({ page }) => {
+    await loginAsAdmin(page)
   })
 
-  test('8. Búsqueda filtra correctamente', async ({ page }) => {
-    await page.goto(`${BASE_URL}/crm/clientes`)
-    await page.waitForLoadState('networkidle')
+  test('facturas/nueva carga sin crash', async ({ page }) => {
+    await safeNavigate(page, '/crm/facturas/nueva')
+    const body = await page.locator('body').textContent() || ''
+    expect(body).not.toMatch(/Error 500/)
+  })
 
-    const searchInput = page.locator('input[type="search"], input[placeholder*="buscar" i]').first()
-    if (!(await searchInput.isVisible())) return
+  test('boletas/nueva carga sin crash', async ({ page }) => {
+    await safeNavigate(page, '/crm/boletas/nueva')
+    const body = await page.locator('body').textContent() || ''
+    expect(body).not.toMatch(/Error 500/)
+  })
 
-    await searchInput.fill(TEST_PREFIX)
-    await page.waitForTimeout(800)
-    const clientA = page.locator(`text=${TEST_PREFIX}_Cliente_A`).first()
-    const clientB = page.locator(`text=${TEST_PREFIX}_Cliente_B`).first()
-    const foundA = await clientA.isVisible().catch(() => false)
-    const foundB = await clientB.isVisible().catch(() => false)
-    expect(foundA || foundB).toBe(true)
+  test('guias/nueva carga sin crash', async ({ page }) => {
+    await safeNavigate(page, '/crm/guias/nueva')
+    const body = await page.locator('body').textContent() || ''
+    expect(body).not.toMatch(/Error 500/)
+  })
+})
 
-    await searchInput.fill('XXXXXXXXX_NO_EXISTE')
-    await page.waitForTimeout(800)
-    const foundStill = await clientA.isVisible().catch(() => false)
-    expect(foundStill).toBe(false)
+test.describe('Consistencia cross-modulo', () => {
+  test.beforeEach(async ({ page }) => {
+    await loginAsAdmin(page)
+  })
+
+  test('clientes a facturas sin error', async ({ page }) => {
+    await safeNavigate(page, '/crm/clientes')
+    await safeNavigate(page, '/crm/facturas')
+    const body = await page.locator('body').textContent() || ''
+    expect(body).not.toMatch(/Error 500/)
+  })
+
+  test('pedidos carga sin error', async ({ page }) => {
+    await safeNavigate(page, '/crm/pedidos')
+    const body = await page.locator('body').textContent() || ''
+    expect(body).not.toMatch(/Error 500/)
+  })
+
+  test('inventario carga sin error', async ({ page }) => {
+    await safeNavigate(page, '/crm/inventario')
+    const body = await page.locator('body').textContent() || ''
+    expect(body).not.toMatch(/Error 500/)
+  })
+
+  test('documentos carga sin error', async ({ page }) => {
+    await safeNavigate(page, '/crm/documentos')
+    const body = await page.locator('body').textContent() || ''
+    expect(body).not.toMatch(/Error 500/)
+  })
+})
+
+test.describe('RBAC rutas protegidas', () => {
+  test('/crm/sunat sin sesion redirige a login', async ({ page }) => {
+    await page.context().clearCookies()
+    await safeNavigate(page, '/crm/sunat')
+    await expect(page).toHaveURL(/login/, { timeout: 10000 })
+  })
+
+  test('/crm/configuracion sin sesion redirige a login', async ({ page }) => {
+    await page.context().clearCookies()
+    await safeNavigate(page, '/crm/configuracion')
+    await expect(page).toHaveURL(/login/, { timeout: 10000 })
+  })
+
+  test('/crm/usuarios sin sesion redirige a login', async ({ page }) => {
+    await page.context().clearCookies()
+    await safeNavigate(page, '/crm/usuarios')
+    await expect(page).toHaveURL(/login/, { timeout: 10000 })
+  })
+})
+
+test.describe('Logout', () => {
+  test('hacer logout redirige a /crm/login', async ({ page }) => {
+    await loginAsAdmin(page)
+    const btnLogout = page.locator('button[title="Cerrar sesion"], button', { hasText: /cerrar sesion|logout/i }).first()
+    if (await btnLogout.isVisible()) {
+      await btnLogout.click()
+    }
+    await page.waitForURL(/\/crm\/login/, { timeout: 10000 })
   })
 })

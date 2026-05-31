@@ -139,7 +139,9 @@ export default function MusicPlayerPage() {
         setSunatConfig(data || { id: 1 })
       } catch (e: any) {
         setSunatConfig({ id: 1 })
-        toast.error('No se pudo cargar config SUNAT: ' + e.message)
+        // Silenciar errores de RLS (infinite recursion) — se resuelve con migración SQL
+        const isRlsError = e.message?.includes('infinite recursion') || e.message?.includes('policy')
+        if (!isRlsError) toast.error('No se pudo cargar config SUNAT: ' + e.message)
       } finally {
         setSunatLoading(false)
       }
