@@ -453,12 +453,12 @@ export default function CRMLayout({
         }
       } catch {}
 
-      // 2. Siempre refrescar perfil desde Supabase en segundo plano
+      // 2. Refrescar perfil vía API (service role — bypass RLS garantizado)
       withTimeout(
-        supabase.from('profiles').select('role, full_name, alias').eq('id', userId).single(),
+        fetch('/api/auth/me').then(r => r.json()),
         6000
       ).then((result: any) => {
-        const profile = result?.data;
+        const profile = result?.profile;
         if (profile) {
           try { localStorage.setItem(cacheKey, JSON.stringify(profile)); } catch {}
           applyProfile(profile);
