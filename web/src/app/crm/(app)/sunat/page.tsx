@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { Send, CheckCircle, XCircle, Clock, FileText, AlertTriangle, Eye, X, Code, User, Trash2, RotateCcw, Stethoscope } from 'lucide-react';
 import Link from 'next/link';
 import { useApp } from '@/context/AppContext';
@@ -34,7 +33,6 @@ interface DocumentoPendiente {
 
 export default function SunatPage() {
   const { boletas, facturas, guias, enviarDocumentoSUNAT, enviarGuiaSUNAT, aprobarDocumento, rechazarDocumento, eliminarDocumentoRechazado } = useApp();
-  const router = useRouter();
   const [procesando, setProcesando] = useState<string | null>(null);
   const [motivoRechazo, setMotivoRechazo] = useState('');
   const [documentoRechazando, setDocumentoRechazando] = useState<string | null>(null);
@@ -43,16 +41,6 @@ export default function SunatPage() {
   const [userMap, setUserMap] = useState<Record<string, string>>({});
   const [eliminando, setEliminando] = useState<string | null>(null);
   const [confirmarEliminar, setConfirmarEliminar] = useState<DocumentoPendiente | null>(null);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (!session) return;
-      const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single();
-      if (profile?.role !== 'admin') {
-        router.replace('/crm');
-      }
-    });
-  }, [router]);
 
   useEffect(() => {
     supabase.from('profiles').select('id, full_name, alias').then(({ data }) => {

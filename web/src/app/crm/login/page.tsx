@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
 import { Lock, Eye, EyeOff, User, CheckSquare, Square, Sparkles } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
@@ -15,7 +14,6 @@ export default function LoginPage() {
   const [recordar, setRecordar] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
   const [formReady, setFormReady] = useState(false)
-  const router = useRouter()
   const mountedRef = useRef(true)
 
   useEffect(() => {
@@ -67,8 +65,7 @@ export default function LoginPage() {
           sessionStorage.removeItem('maqui_remember_pass')
         } catch {}
         toast.success('Bienvenido')
-        router.replace('/crm')
-        router.refresh()
+        window.location.href = '/crm'
       }
     } catch (err: any) {
       if (!window.navigator.onLine) {
