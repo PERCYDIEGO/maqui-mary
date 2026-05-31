@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { verifyAuth } from '@/lib/api-auth'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 
-const ALLOWED_PREFIXES = ['/rest/v1/', '/auth/v1/']
+const ALLOWED_PREFIXES = ['/rest/v1/']
 
 async function handler(req: NextRequest) {
+  const user = await verifyAuth(req)
+  if (!user) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+  }
   const path = req.nextUrl.searchParams.get('path')
   if (!path) return NextResponse.json({ error: 'Missing path' }, { status: 400 })
 

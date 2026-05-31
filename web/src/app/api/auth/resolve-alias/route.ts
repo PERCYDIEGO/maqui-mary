@@ -1,18 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { verifyAdmin } from '@/lib/api-auth'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
-/**
- * Busca un usuario por alias y devuelve su email.
- * Un alias es cualquier string que no contenga @.
- * Se busca match contra: 
- * 1. auth.users.email (parte antes del @)
- * 2. auth.users.user_metadata.alias
- * 3. auth.users.user_metadata.username
- */
 export async function POST(req: NextRequest) {
+  const admin = await verifyAdmin(req)
+  if (!admin) {
+    return NextResponse.json({ ok: false, error: 'No autorizado' }, { status: 401 })
+  }
   try {
     const { alias } = await req.json()
 

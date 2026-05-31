@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { verifyAuth } from '@/lib/api-auth'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -8,17 +9,9 @@ const adminSb = createClient(supabaseUrl, serviceRoleKey, {
   auth: { autoRefreshToken: false, persistSession: false },
 })
 
-async function verificarAuth(req: NextRequest): Promise<boolean> {
-  const token = req.headers.get('authorization')?.replace('Bearer ', '')
-  if (!token) return false
-  const sb = createClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
-  const { data: { user } } = await sb.auth.getUser(token)
-  return !!user
-}
-
 export async function POST(req: NextRequest) {
-  if (!await verificarAuth(req))
-    return NextResponse.json({ ok: false, error: 'No autorizado' }, { status: 401 })
+  const user = await verifyAuth(req)
+  if (!user) return NextResponse.json({ ok: false, error: 'No autorizado' }, { status: 401 })
 
   try {
     const payload = await req.json()
@@ -31,8 +24,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
-  if (!await verificarAuth(req))
-    return NextResponse.json({ ok: false, error: 'No autorizado' }, { status: 401 })
+  const user = await verifyAuth(req)
+  if (!user) return NextResponse.json({ ok: false, error: 'No autorizado' }, { status: 401 })
 
   try {
     const { id, ...payload } = await req.json()
@@ -45,8 +38,8 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  if (!await verificarAuth(req))
-    return NextResponse.json({ ok: false, error: 'No autorizado' }, { status: 401 })
+  const user = await verifyAuth(req)
+  if (!user) return NextResponse.json({ ok: false, error: 'No autorizado' }, { status: 401 })
 
   try {
     const { id } = await req.json()

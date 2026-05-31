@@ -8,13 +8,19 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "test": "playwright test --reporter=line",
+    "test:security": "playwright test tests/security.spec.ts --reporter=line",
+    "test:auth": "playwright test tests/auth.spec.ts --reporter=line",
+    "test:sunat": "playwright test tests/sunat.spec.ts --reporter=line",
+    "test:ui": "playwright test tests/ui.spec.ts --reporter=line",
     "db:clean": "node scripts/clean-database.mjs --confirm",
     "db:clean:dry": "node scripts/clean-database.mjs",
     "db:truncate": "node scripts/truncate-facturas-pedidos.mjs --confirm",
     "db:truncate:dry": "node scripts/truncate-facturas-pedidos.mjs",
     "db:status": "node scripts/check-db-status.mjs",
     "db:reset": "node scripts/reset-database.mjs",
-    "db:reset:confirm": "node scripts/reset-database.mjs --confirm"
+    "db:reset:confirm": "node scripts/reset-database.mjs --confirm",
+    "test:smoke": "playwright test tests/functional/ --reporter=line"
   },
   "dependencies": {
     "@supabase/ssr": "^0.1.0",
@@ -38,6 +44,7 @@
     "xml-crypto": "^2.1.5"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@types/node": "^20.11.0",
     "@types/node-forge": "^1.3.14",
     "@types/pg": "^8.20.0",

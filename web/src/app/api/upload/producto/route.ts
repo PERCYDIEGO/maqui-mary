@@ -1,23 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { verifyAuth } from '@/lib/api-auth'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
 export async function POST(req: NextRequest) {
   try {
-    // Verificar que el usuario esté autenticado
-    const authHeader = req.headers.get('authorization')
-    const token = authHeader?.replace('Bearer ', '')
-    if (!token) {
+    const user = await verifyAuth(req)
+    if (!user) {
       return NextResponse.json({ ok: false, error: 'No autorizado' }, { status: 401 })
-    }
-
-    // Validar token con cliente anon
-    const supabaseAnon = createClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
-    const { data: { user }, error: authError } = await supabaseAnon.auth.getUser(token)
-    if (authError || !user) {
-      return NextResponse.json({ ok: false, error: 'Sesión inválida' }, { status: 401 })
     }
 
     const formData = await req.formData()

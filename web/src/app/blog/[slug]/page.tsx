@@ -89,11 +89,33 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   if (!post) {
     return { title: 'Blog Maqui Mary' };
   }
+  const title = `${post.title} | Maqui Mary`;
+  const url = `https://maquimary.vercel.app/blog/${post.slug}`;
   return {
-    title: `${post.title} | Maqui Mary`,
+    title,
     description: post.desc,
-    alternates: {
-      canonical: `https://maquimary.vercel.app/blog/${post.slug}`,
+    alternates: { canonical: url },
+    openGraph: {
+      title,
+      description: post.desc,
+      url,
+      siteName: 'Maqui Mary',
+      locale: 'es_PE',
+      type: 'article',
+      publishedTime: '2026-05-24',
+      authors: ['Maqui Mary'],
+      images: [{
+        url: 'https://maquimary.vercel.app/img/logo_oficial.png',
+        width: 1200,
+        height: 630,
+        alt: post.title,
+      }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description: post.desc,
+      images: ['https://maquimary.vercel.app/img/logo_oficial.png'],
     },
   };
 }

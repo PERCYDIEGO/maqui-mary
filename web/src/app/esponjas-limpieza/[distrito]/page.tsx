@@ -84,11 +84,32 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: { distrito: string } }): Promise<Metadata> {
   const nombre = slugToNombre(params.distrito);
+  const title = `Esponjas de Limpieza en ${nombre} | Maqui Mary — Fabricantes Peruanos`;
+  const description = `Compra esponjas de limpieza en ${nombre}, Lima. Esponjas de colores, doble uso y paños absorbentes. Fabricación peruana en Lurigancho. Venta al por mayor y menor. Paga con Yape, Plin o contraentrega. Consulta precios por WhatsApp.`;
+  const url = `https://maquimary.vercel.app/esponjas-limpieza/${params.distrito}`;
   return {
-    title: `Esponjas de Limpieza en ${nombre} | Maqui Mary — Fabricantes Peruanos`,
-    description: `Compra esponjas de limpieza en ${nombre}, Lima. Esponjas de colores, doble uso y paños absorbentes. Fabricación peruana en Lurigancho. Venta al por mayor y menor. Paga con Yape, Plin o contraentrega. Consulta precios por WhatsApp.`,
-    alternates: {
-      canonical: `https://maquimary.vercel.app/esponjas-limpieza/${params.distrito}`,
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title,
+      description,
+      url,
+      siteName: 'Maqui Mary',
+      locale: 'es_PE',
+      type: 'website',
+      images: [{
+        url: 'https://maquimary.vercel.app/img/logo_oficial.png',
+        width: 1200,
+        height: 630,
+        alt: `Esponjas de Limpieza en ${nombre} | Maqui Mary`,
+      }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: ['https://maquimary.vercel.app/img/logo_oficial.png'],
     },
   };
 }

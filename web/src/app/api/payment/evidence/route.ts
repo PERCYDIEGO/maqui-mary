@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_SIZE } from '@/lib/constants'
+import { verifyAuth } from '@/lib/api-auth'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -10,6 +11,10 @@ const adminSb = createClient(supabaseUrl, serviceRoleKey, {
 })
 
 export async function POST(req: NextRequest) {
+  const user = await verifyAuth(req)
+  if (!user) {
+    return NextResponse.json({ ok: false, error: 'No autorizado' }, { status: 401 })
+  }
   try {
     const formData = await req.formData()
     const file = formData.get('file') as File | null

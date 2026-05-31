@@ -1,12 +1,14 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin as supabase } from '@/lib/supabase-server'
 import { extractFromPfx } from '@/lib/sunat/xml-signer'
+import { verifyAdmin } from '@/lib/api-auth'
 
-/**
- * GET /api/sunat/diagnostico
- * Verifica la configuración SUNAT sin emitir ningún comprobante.
- */
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const admin = await verifyAdmin(req)
+  if (!admin) {
+    return NextResponse.json({ ok: false, error: 'No autorizado' }, { status: 401 })
+  }
+
   const checks: Record<string, { ok: boolean; mensaje: string }> = {}
 
   // 1. Leer config desde Supabase

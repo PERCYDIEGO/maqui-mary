@@ -3,15 +3,16 @@ import { supabase } from '@/lib/supabase'
 import { generateInvoiceXML, getSunatFilename } from '@/lib/sunat/xml-builder'
 import { extractFromPfx, signXml } from '@/lib/sunat/xml-signer'
 import { zipXml } from '@/lib/sunat/soap-client'
+import { verifyAuth } from '@/lib/api-auth'
 import QRCode from 'qrcode'
 
-/**
- * Genera XML, firma y ZIP para previsualización / validación local.
- * NO envía a SUNAT. Devuelve el XML original, firmado y ZIP en base64.
- * POST /api/sunat/preview
- */
 export async function POST(req: NextRequest) {
   try {
+    const user = await verifyAuth(req)
+    if (!user) {
+      return NextResponse.json({ ok: false, error: 'No autorizado' }, { status: 401 })
+    }
+
     const body = await req.json()
     const {
       cliente_id,
