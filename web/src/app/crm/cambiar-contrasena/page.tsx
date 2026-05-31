@@ -47,10 +47,12 @@ export default function CambiarContrasenaPage() {
       const { error } = await supabase.auth.updateUser({ password: pass })
       if (error) { toast.error(error.message); return }
 
-      const user = (await supabase.auth.getSession()).data.session?.user
-      if (user) {
-        await supabase.from('profiles').update({ force_password_change: false }).eq('id', user.id)
-      }
+      // Marcar que ya no se requiere cambio de contraseña (vía API con service role)
+      await fetch('/api/auth/me', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ force_password_change: false }),
+      }).catch(() => {})
       toast.success('Contraseña actualizada ✅')
       router.push('/crm')
     } catch (e) { toast.error('Error al actualizar') }
