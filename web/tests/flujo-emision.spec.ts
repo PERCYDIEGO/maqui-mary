@@ -445,13 +445,9 @@ test.describe('F) Guía de remisión /api/sunat/guia', () => {
     expect(res.status()).not.toBe(500)
     const body = await res.json()
     console.log('[F] Guía sandbox respuesta:', JSON.stringify(body))
-    expect(body).toHaveProperty('ok')
-    if (!body.ok) {
-      expect(body.error).toBeTruthy()
-      console.log('[F] APISUNAT rechazó la guía:', body.error)
-    } else {
-      expect(body.message || body.hash).toBeTruthy()
-    }
+    expect(body.ok).toBe(true)
+    expect(body.message).toBeTruthy()
+    expect(body.hash || body.cdr).toBeTruthy() // CDR confirma aceptación SUNAT
   })
 
   test('guía sin sesión: devuelve 401', async ({ page }) => {

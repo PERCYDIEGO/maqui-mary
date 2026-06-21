@@ -75,7 +75,7 @@ export interface ApiSunatGuiaRequest {
   motivo_de_traslado: string
   motivo_traslado_descripcion?: string
   fecha_inicio_de_traslado: string
-  fecha_de_entrega_a_transportista: string
+  fecha_entrega_a_transportista: string  // APISUNAT usa este nombre (sin _de_)
   destinatario_tipo_de_documento: string
   destinatario_numero_de_documento: string
   destinatario_denominacion: string
@@ -239,7 +239,7 @@ export function buildApiSunatGuiaRequest(params: {
     modalidad_de_transporte: params.modalidadTraslado === 'publico' ? '01' : '02',
     motivo_de_traslado: params.motivoTraslado,
     fecha_inicio_de_traslado: params.fechaInicioTraslado,
-    fecha_de_entrega_a_transportista: params.fechaEntregaTransportista || params.fechaInicioTraslado,
+    fecha_entrega_a_transportista: params.fechaEntregaTransportista || params.fechaInicioTraslado,
     destinatario_tipo_de_documento: params.destinatarioTipoDoc,
     destinatario_numero_de_documento: params.destinatarioNumDoc,
     destinatario_denominacion: params.destinatarioNombre,
@@ -321,15 +321,22 @@ export async function sendToApiSunat(
     ? `${baseUrl}/api/v3/dispatches`
     : `${baseUrl}/api/v3/documents`
 
+  const bodyPayload = JSON.stringify(request)
+  if (isGuia) {
+    // eslint-disable-next-line no-console
+    console.log('[APISUNAT GUÍA REQUEST]', bodyPayload)
+  }
   const res = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify(request),
+    body: bodyPayload,
   })
 
   const body: ApiSunatResponse = await res.json()
+  // eslint-disable-next-line no-console
+  console.log('[APISUNAT GUÍA RESPONSE]', JSON.stringify(body))
   return body
 }
