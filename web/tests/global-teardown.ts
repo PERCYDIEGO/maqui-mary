@@ -21,6 +21,10 @@ export default async function globalTeardown() {
       auth: { autoRefreshToken: false, persistSession: false },
     })
 
+    // Eliminar guía de prueba
+    if (creds.guia?.id) {
+      await supabase.from('guias').delete().eq('id', creds.guia.id)
+    }
     await supabase.from('profiles').delete().eq('id', creds.userId)
     await supabase.auth.admin.deleteUser(creds.userId)
     fs.unlinkSync(CREDS_FILE)
