@@ -86,12 +86,22 @@ export default async function globalSetup() {
     .eq('activo', true)
     .limit(1)
 
+  // Ubigeo de la empresa (punto de partida de guías)
+  const { data: sunatConfig } = await supabase
+    .from('sunat_config')
+    .select('ubigeo, address')
+    .eq('id', 1)
+    .single()
+
   // ── 3. Crear guía de prueba en borrador ──────────────────────────────────
 
   const hoy = new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString().slice(0, 10)
   const transportista = transportistas?.[0]
   const clienteRUC = clientesRUC?.[0]
   const producto1 = productos?.[0]
+
+  const ubigeoEmpresa = sunatConfig?.ubigeo || '150103' // Lurigancho, Lima
+  const ubigeoDestino = '150101'                        // Lima Cercado (fallback genérico)
 
   const guiaPayload: Record<string, unknown> = {
     serie: 'T001',
@@ -104,7 +114,7 @@ export default async function globalSetup() {
     destinatario_tipo_doc: '6',
     destinatario_num_doc: clienteRUC?.num_documento ?? '20509146668',
     destinatario_direccion: clienteRUC?.address ?? 'Lima',
-    punto_partida: 'Av. Los Manzanos 123, Lurigancho, Lima',
+    punto_partida: sunatConfig?.address ?? 'Lurigancho, Lima',
     punto_llegada: clienteRUC?.address ?? 'Lima',
     modalidad_traslado: transportista?.modalidad ?? 'publico',
     peso_total: 10,
@@ -158,6 +168,9 @@ export default async function globalSetup() {
     productos: productos ?? [],
     transportista: transportista ?? null,
     guia: guiaCreada ?? null,
+    ubigeoEmpresa,
+    ubigeoDestino,
+    puntoPartida: sunatConfig?.address ?? 'Lurigancho, Lima',
   }, null, 2))
 
   console.log(`✓ Usuario de prueba creado: ${TEST_EMAIL}`)

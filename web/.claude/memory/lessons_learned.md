@@ -173,6 +173,26 @@ _Archivo inicial creado por project init._
 
 ---
 
+### [2026-06-21] Bot E2E — tests usaban datos hardcodeados inventados en vez de datos reales de BD
+
+- **CONTEXTO**: `tests/flujo-emision.spec.ts`, secciones A (API factura) y C (UI factura), plus ausencia de tests de guías
+- **SITUACIÓN**: El bot usaba RUC falso "20123456789" y nombre "EMPRESA TEST SAC" inventados. La sección C siempre hacía skip porque no había clientes con RUC según el campo `ruc` (que está vacío — el RUC real está en `num_documento` con `tipo_documento='6'`).
+- **CORRECCIÓN**: `global-setup.ts` consulta clientes reales (`tipo_documento='6'`), productos activos, transportistas y crea una guía borrador T001-9990. Todo se guarda en `.test-creds.json`. Los tests cargan el archivo con `loadCreds()` y usan los datos reales. Se añadió sección F de guías (3 tests).
+- **REGLA**: En tests E2E, cargar datos reales de la BD en global-setup y pasarlos a los tests. No inventar RUCs/nombres — las validaciones SUNAT pueden rechazar datos que no existen en SUNAT Consulta. El schema de clientes usa `num_documento` para el número de documento y `tipo_documento='6'` para RUC, no la columna `ruc` (que está vacía).
+
+---
+
+### [2026-06-21] Bot E2E — loginAs() fallaba silencioso: localStorage no viaja al middleware
+
+- **CONTEXTO**: `tests/helpers.ts`, función `loginAs()`, tests E2E de emisión SUNAT (flujo-emision.spec.ts)
+- **ERROR**: Login via formulario UI timing out; luego login via localStorage timeout en tests UI (secciones B, C, D) — middleware redirigía a `/crm/login` pese a la sesión inyectada
+- **CAUSA 1**: UI login fallaba porque la contraseña real de admin no era conocida (tests de bot necesitan credenciales propias)
+- **CAUSA 2**: Inyectar sesión en localStorage funciona para el browser client pero NO para el middleware `@supabase/ssr`. El middleware lee la sesión de cookies con el nombre `sb-{projectRef}-auth-token` (JSON completo de la sesión). Para `api-auth.ts` (API routes) se necesita la cookie `sb-access-token` (solo el access_token string).
+- **CORRECCIÓN**: `loginAs()` llama `supabase.auth.signInWithPassword()` en Node, luego inyecta tres cosas en el browser: (1) cookie `sb-{projectRef}-auth-token` = JSON del objeto session (para middleware @supabase/ssr), (2) cookie `sb-access-token` = access_token string (para api-auth.ts), (3) localStorage `sb-{projectRef}-auth-token` = JSON de session (para el cliente browser). El projectRef se extrae del SUPABASE_URL.
+- **REGLA**: Para tests E2E contra Next.js + Supabase SSR, nunca usar UI login. Usar `signInWithPassword()` en Node y propagar sesión vía cookies con los nombres exactos que usa `@supabase/ssr`. Sin cookie `sb-{ref}-auth-token`, el middleware ignora la sesión y redirige a login aunque localStorage esté seteado.
+
+---
+
 ### [2026-06-21] Campo precio en documentos no tenía indicador visual de modificación
 
 - **CONTEXTO**: Formularios `facturas/nueva/page.tsx` y `boletas/nueva/page.tsx`, paso 2 (ítems)

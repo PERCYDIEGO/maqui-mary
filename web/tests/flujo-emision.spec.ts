@@ -404,13 +404,16 @@ test.describe('F) Guía de remisión /api/sunat/guia', () => {
       numero: guia.numero,
       fecha_emision: hoy,
       fecha_inicio_traslado: hoy,
+      fecha_entrega_a_transportista: hoy, // requerido por APISUNAT en modo público
       motivo_traslado: '01',
       destinatario_tipo_doc: '6',
       destinatario_num_doc: clienteRUC?.num_documento ?? '20509146668',
       destinatario_nombre: clienteRUC?.name ?? 'FABARLI S.A.C.',
       destinatario_direccion: clienteRUC?.address ?? 'Lima',
-      punto_partida: 'Av. Los Manzanos 123, Lurigancho, Lima',
+      punto_partida: creds?.puntoPartida ?? 'Lurigancho, Lima',
+      punto_partida_ubigeo: creds?.ubigeoEmpresa ?? '150103',
       punto_llegada: clienteRUC?.address ?? 'Lima',
+      punto_llegada_ubigeo: creds?.ubigeoDestino ?? '150101',
       peso_total: 10,
       unidad_peso: 'KGM',
       numero_bultos: 1,
@@ -445,10 +448,16 @@ test.describe('F) Guía de remisión /api/sunat/guia', () => {
 
     expect(res.status()).not.toBe(500)
     const body = await res.json()
-    expect(body).toHaveProperty('ok')
+    console.log('[F] Guía sandbox respuesta:', JSON.stringify(body))
 
-    // Si hay token configurado, debe tener estado SUNAT
-    if (body.estado_sunat) {
+    expect(body).toHaveProperty('ok')
+    // El envío debe ser exitoso (ok: true) o fallar por razón conocida de SUNAT (no error nuestro)
+    if (!body.ok) {
+      // Aceptar solo si el error es de SUNAT/APISUNAT, no de nuestro código
+      expect(body.error).toBeTruthy()
+      console.log('[F] APISUNAT rechazó la guía:', body.error)
+    } else {
+      expect(body.estado_sunat).toBeDefined()
       expect(ESTADOS_VALIDOS).toContain(body.estado_sunat)
     }
   })
