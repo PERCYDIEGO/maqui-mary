@@ -91,6 +91,7 @@ export interface ItemDocumento {
   importeTotal: number;
   // Campos para vincular con producto
   productoId?: string;
+  precioCatalogo?: number; // Precio base del producto al momento de seleccionarlo
   // Campos adicionales para guías
   codigoBien?: string;
   codigoProductoSunat?: string;

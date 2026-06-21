@@ -282,8 +282,8 @@ export default function NuevaBoletaPage() {
           <div key={s} className="flex items-center gap-2">
             <div className={`
               w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm
-              ${step === s ? 'bg-amber-500 text-white' : 
-                step > s ? 'bg-green-500 text-white' : 'bg-slate-200 text-slate-600'}
+              ${step === s ? 'bg-amber-500 text-white' :
+                step > s ? 'bg-green-500 text-white' : 'border-2 border-slate-300 text-slate-700'}
             `}>
               {step > s ? '✓' : s}
             </div>
@@ -396,7 +396,7 @@ export default function NuevaBoletaPage() {
                         setCliente(null);
                         setClienteBusqueda('');
                       }}
-                      className="p-2 hover:bg-amber-100 rounded-lg text-slate-500"
+                      className="p-2 hover:bg-amber-100 rounded-lg text-amber-700"
                     >
                       <X className="w-5 h-5" />
                     </button>
@@ -518,7 +518,7 @@ export default function NuevaBoletaPage() {
                       <span className="text-sm font-medium text-slate-600">Ítem #{index + 1}</span>
                       <button
                         onClick={() => handleEliminarItem(index)}
-                        className="p-1.5 hover:bg-red-100 text-slate-400 hover:text-red-500 rounded-lg transition-colors"
+                        className="p-1.5 hover:bg-red-100 text-rose-400 hover:text-rose-600 rounded-lg transition-colors"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -558,6 +558,7 @@ export default function NuevaBoletaPage() {
                                   descripcion: producto.descripcion,
                                   detalle: producto.detalle || '',
                                   valorUnitario: producto.precioUnitario,
+                                  precioCatalogo: producto.precioUnitario,
                                   unidadMedida: producto.unidadMedida,
                                 };
                                 const calculado = calcularItem(
@@ -669,6 +670,9 @@ export default function NuevaBoletaPage() {
                          <div className="md:col-span-2">
                            <label className="block text-xs font-medium text-slate-600 mb-1">
                              P. Unit. (c/IGV)
+                             {item.precioCatalogo !== undefined && item.valorUnitario !== item.precioCatalogo && (
+                               <span className="ml-1 text-amber-600 font-semibold">· Precio especial</span>
+                             )}
                            </label>
                            <input
                              type="text"
@@ -689,8 +693,21 @@ export default function NuevaBoletaPage() {
                                 if (rawVal === '') handleActualizarItem(index, 'valorUnitario', 0);
                               }}
                              placeholder="0.00"
-                             className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none text-sm"
+                             className={`w-full px-3 py-2 border rounded-lg text-sm ${
+                               item.precioCatalogo !== undefined && item.valorUnitario !== item.precioCatalogo
+                                 ? 'border-amber-400 bg-amber-50 focus:ring-amber-400'
+                                 : 'border-slate-200 focus:ring-amber-500'
+                             } focus:ring-2 outline-none`}
                            />
+                           {item.precioCatalogo !== undefined && item.valorUnitario !== item.precioCatalogo && (
+                             <button
+                               type="button"
+                               onClick={() => handleActualizarItem(index, 'valorUnitario', item.precioCatalogo!)}
+                               className="mt-1 text-xs text-slate-500 hover:text-amber-600 underline"
+                             >
+                               Base: S/ {item.precioCatalogo.toFixed(2)} · Restaurar
+                             </button>
+                           )}
                          </div>
                          
                          {/* Total */}
@@ -782,7 +799,7 @@ export default function NuevaBoletaPage() {
                   <span className="text-lg font-bold text-slate-800">Total a pagar</span>
                   <span className="text-2xl font-bold text-amber-600">{formatearMoneda(totales.importeTotal, moneda)}</span>
                 </div>
-                <p className="text-sm text-slate-500 mt-1">{totales.importeEnLetras}</p>
+                <p className="text-sm text-slate-700 mt-1">{totales.importeEnLetras}</p>
               </div>
             </div>
             
@@ -801,7 +818,7 @@ export default function NuevaBoletaPage() {
             </div>
             
             {/* Leyenda SUNAT */}
-            <div className="p-4 bg-amber-50 rounded-xl border border-amber-100 text-sm text-slate-600">
+            <div className="p-4 bg-amber-50 rounded-xl border border-amber-100 text-sm text-amber-800">
               <p className="font-medium text-amber-800 mb-1">Representación impresa de la Boleta de Venta Electrónica</p>
               <p>Generada en el Sistema de la SUNAT. Consulte su documento en www.sunat.gob.pe</p>
             </div>

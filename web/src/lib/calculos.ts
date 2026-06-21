@@ -195,7 +195,9 @@ export function redondear(valor: number, decimales: number = 2): number {
 
 export function formatearMoneda(valor: number, moneda: 'PEN' | 'USD' = 'PEN'): string {
   const simbolo = moneda === 'PEN' ? 'S/' : '$';
-  return `${simbolo} ${valor.toFixed(2)}`;
+  const parts = valor.toFixed(2).split('.');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return `${simbolo} ${parts.join('.')}`;
 }
 
 export function formatearNumeroDocumento(serie: string, numero: number): string {

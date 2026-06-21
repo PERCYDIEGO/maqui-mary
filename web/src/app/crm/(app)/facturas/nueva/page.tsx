@@ -250,7 +250,7 @@ export default function NuevaFacturaPage() {
         {[1, 2, 3].map((s) => (
           <div key={s} className="flex items-center gap-2">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm
-              ${step === s ? 'bg-purple-600 text-white' : step > s ? 'bg-green-500 text-white' : 'bg-slate-200 text-slate-600'}`}>
+              ${step === s ? 'bg-purple-600 text-white' : step > s ? 'bg-green-500 text-white' : 'border-2 border-slate-300 text-slate-700'}`}>
               {step > s ? '✓' : s}
             </div>
             <span className={`text-sm ${step === s ? 'text-purple-600 font-medium' : 'text-slate-500'}`}>
@@ -410,7 +410,7 @@ export default function NuevaFacturaPage() {
                   <div key={item.id} className="p-4 bg-slate-50 rounded-xl border border-slate-200">
                     <div className="flex justify-between mb-3">
                       <span className="text-sm font-medium text-slate-600">Ítem #{index + 1}</span>
-                      <button onClick={() => handleEliminarItem(index)} className="p-1.5 hover:bg-red-100 text-slate-400 hover:text-red-500 rounded-lg">
+                      <button onClick={() => handleEliminarItem(index)} className="p-1.5 hover:bg-red-100 text-rose-400 hover:text-rose-600 rounded-lg">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -448,6 +448,7 @@ export default function NuevaFacturaPage() {
                                 descripcion: producto.descripcion,
                                 detalle: producto.detalle || '',
                                 valorUnitario: producto.precioUnitario,
+                                precioCatalogo: producto.precioUnitario,
                                 unidadMedida: producto.unidadMedida,
                               };
                               const calculado = calcularItem(
@@ -543,7 +544,12 @@ export default function NuevaFacturaPage() {
                           </select>
                         </div>
                         <div className="md:col-span-2">
-                          <label className="block text-xs text-slate-600 mb-1">P. Unit. (c/IGV)</label>
+                          <label className="block text-xs text-slate-600 mb-1">
+                            P. Unit. (c/IGV)
+                            {item.precioCatalogo !== undefined && item.valorUnitario !== item.precioCatalogo && (
+                              <span className="ml-1 text-amber-600 font-semibold">· Precio especial</span>
+                            )}
+                          </label>
                           <input
                             type="text"
                             inputMode="decimal"
@@ -563,8 +569,21 @@ export default function NuevaFacturaPage() {
                               if (rawVal === '') handleActualizarItem(index, 'valorUnitario', 0);
                             }}
                             placeholder="0.00"
-                            className="w-full px-3 py-2 border rounded-lg text-sm"
+                            className={`w-full px-3 py-2 border rounded-lg text-sm ${
+                              item.precioCatalogo !== undefined && item.valorUnitario !== item.precioCatalogo
+                                ? 'border-amber-400 bg-amber-50 focus:ring-amber-400'
+                                : 'border-slate-200 focus:ring-purple-500'
+                            } focus:ring-2 outline-none`}
                           />
+                          {item.precioCatalogo !== undefined && item.valorUnitario !== item.precioCatalogo && (
+                            <button
+                              type="button"
+                              onClick={() => handleActualizarItem(index, 'valorUnitario', item.precioCatalogo!)}
+                              className="mt-1 text-xs text-slate-500 hover:text-purple-600 underline"
+                            >
+                              Base: S/ {item.precioCatalogo.toFixed(2)} · Restaurar
+                            </button>
+                          )}
                         </div>
                         <div className="md:col-span-1">
                           <label className="block text-xs text-slate-600 mb-1">Total</label>
@@ -701,7 +720,7 @@ export default function NuevaFacturaPage() {
               />
             </div>
             
-            <div className="p-4 bg-purple-50 rounded-xl border border-purple-100 text-sm text-slate-600">
+            <div className="p-4 bg-purple-50 rounded-xl border border-purple-100 text-sm text-purple-700">
               <p className="font-medium text-purple-800 mb-1">Representación impresa de la Factura Electrónica</p>
               <p>Consulte su documento en www.sunat.gob.pe</p>
             </div>
