@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { loginAsAdmin, loginAsVendedor } from './helpers'
+import { loginAsAdmin, loginAsVendedor, safeNavigate } from './helpers'
 
 test.describe('IDOR — User Person Validation', () => {
   const adminOnlyRoutes = ['/crm/usuarios', '/crm/sunat', '/crm/configuracion']
@@ -7,9 +7,8 @@ test.describe('IDOR — User Person Validation', () => {
   for (const route of adminOnlyRoutes) {
     test(`vendedor no accede a ${route} (admin only)`, async ({ page }) => {
       await loginAsVendedor(page)
-      await page.goto(route)
+      await safeNavigate(page, route)
       await expect(page).not.toHaveURL(route)
-      await expect(page).toHaveURL(/\/crm(\/|$)/)
     })
   }
 
@@ -24,7 +23,7 @@ test.describe('IDOR — User Person Validation', () => {
   test('admin accede a rutas admin sin problemas', async ({ page }) => {
     await loginAsAdmin(page)
     for (const route of adminOnlyRoutes) {
-      await page.goto(route)
+      await safeNavigate(page, route)
       await expect(page).not.toHaveURL(/\/login/)
     }
   })

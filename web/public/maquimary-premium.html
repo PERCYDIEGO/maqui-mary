@@ -1,0 +1,1557 @@
+<!DOCTYPE html>
+<html lang="es-PE">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maqui Mary — Esponjas de Limpieza en Lima</title>
+<meta name="description" content="Fabricación propia de esponjas, estropajos y accesorios de limpieza. Calidad peruana con delivery en Lima. Venta al por mayor y menor.">
+<meta property="og:title" content="Maqui Mary — Esponjas de Limpieza en Lima">
+<meta property="og:description" content="Fabricación propia de esponjas, estropajos y accesorios de limpieza. Calidad peruana con delivery en Lima.">
+<meta property="og:image" content="/img/logo_oficial.png">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://maquimary.pe">
+<meta property="og:locale" content="es_PE">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/img/logo_oficial.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Lora:ital,wght@0,400..700;1,400..700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --gold: #C89F5C;
+  --gold-light: #E0C392;
+  --terracotta: #C96B4E;
+  --terracotta-dark: #A8573E;
+  --sage: #7F9F7A;
+  --cream: #FBF7F2;
+  --cream-dark: #F5EEE6;
+  --navy: #1E2D3D;
+  --navy-light: #2A3F54;
+  --sand: #EDE4D6;
+  --ink-50: #FAF8F5;
+  --ink-100: #F0EBE4;
+  --ink-200: #E0D8CC;
+  --ink-300: #C4BAA9;
+  --ink-400: #7A7060;
+  --ink-500: #6A6255;
+  --ink-600: #5C5447;
+  --ink-700: #3D3830;
+  --ink-800: #262320;
+  --ink-900: #161412;
+  --font-display: 'DM Serif Display', Georgia, serif;
+  --font-heading: 'Lora', Georgia, serif;
+  --font-body: 'Nunito', system-ui, sans-serif;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  color: var(--ink-800);
+  background: var(--cream);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+::selection { background: rgba(200, 159, 92, 0.25); color: var(--ink-900); }
+
+:focus-visible { outline: 2px solid var(--terracotta); outline-offset: 3px; border-radius: 8px; }
+
+img { max-width: 100%; height: auto; display: block; }
+a { color: inherit; text-decoration: none; }
+
+.grain-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0.35;
+  background-image: repeating-conic-gradient(var(--sand) 0% 25%, transparent 0% 50%);
+  background-size: 2px 2px;
+  mix-blend-mode: multiply;
+}
+
+.container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+
+@media (min-width: 768px) {
+  .container { padding: 0 48px; }
+}
+
+/* ── Floating Nav ── */
+.nav-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  padding: 16px 24px 0;
+  pointer-events: none;
+}
+.nav-inner {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1200px;
+  padding: 10px 10px 10px 20px;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 100px;
+  transition: all 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.nav-inner.scrolled {
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.06);
+}
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.nav-logo img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.nav-logo span {
+  font-family: var(--font-display);
+  font-size: 18px;
+  letter-spacing: -0.01em;
+  color: var(--navy);
+}
+.nav-links {
+  display: none;
+  align-items: center;
+  gap: 32px;
+  list-style: none;
+}
+.nav-links a {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-500);
+  transition: color 0.3s ease;
+  letter-spacing: 0.01em;
+  position: relative;
+}
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1.5px;
+  background: var(--terracotta);
+  transition: width 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.nav-links a:hover { color: var(--ink-800); }
+.nav-links a:hover::after { width: 100%; }
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (min-width: 768px) {
+  .nav-links { display: flex; }
+  .nav-hamburger { display: none !important; }
+}
+
+/* ── Mobile Menu Overlay ── */
+.mobile-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(22, 20, 18, 0.88);
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.mobile-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.mobile-overlay a {
+  font-family: var(--font-display);
+  font-size: 28px;
+  color: white;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.mobile-overlay.open a { opacity: 0.8; transform: translateY(0); }
+.mobile-overlay.open a:nth-child(1) { transition-delay: 0.1s; }
+.mobile-overlay.open a:nth-child(2) { transition-delay: 0.15s; }
+.mobile-overlay.open a:nth-child(3) { transition-delay: 0.2s; }
+.mobile-overlay.open a:nth-child(4) { transition-delay: 0.25s; }
+.mobile-overlay.open a:nth-child(5) { transition-delay: 0.3s; }
+.mobile-overlay a:hover { opacity: 1; }
+.mobile-close {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.05);
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+.mobile-close:hover { background: rgba(255,255,255,0.12); }
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 100px;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 15px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+  position: relative;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary {
+  background: var(--terracotta);
+  color: white;
+}
+.btn-primary:hover {
+  background: var(--terracotta-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 28px rgba(201, 107, 78, 0.3);
+}
+.btn-secondary {
+  background: var(--gold);
+  color: white;
+}
+.btn-secondary:hover {
+  background: #B88D4A;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 28px rgba(200, 159, 92, 0.3);
+}
+.btn-outline {
+  background: transparent;
+  color: var(--ink-700);
+  border: 1.5px solid var(--sand);
+}
+.btn-outline:hover {
+  border-color: var(--ink-300);
+  background: rgba(255,255,255,0.5);
+}
+.btn-icon {
+  min-width: 44px;
+  min-height: 44px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--sand);
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: var(--ink-500);
+}
+.btn-icon:hover {
+  border-color: var(--ink-300);
+  color: var(--ink-800);
+  background: var(--cream-dark);
+}
+
+/* Button-in-Button pattern */
+.btn-arrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px 14px 28px;
+  border-radius: 100px;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 15px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+  background: var(--navy);
+  color: white;
+}
+.btn-arrow:hover {
+  background: var(--navy-light);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 32px rgba(30, 45, 61, 0.25);
+}
+.btn-arrow .icon-wrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+  font-size: 16px;
+}
+.btn-arrow:hover .icon-wrap {
+  background: rgba(255,255,255,0.2);
+  transform: translateX(2px) scale(1.05);
+}
+
+/* ── Section spacing ── */
+section { padding: 80px 0; }
+@media (min-width: 768px) {
+  section { padding: 120px 0; }
+}
+.section-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: rgba(200, 159, 92, 0.12);
+  color: var(--gold);
+  margin-bottom: 20px;
+}
+
+/* ── Hero ── */
+.hero {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  padding-top: 100px;
+  padding-bottom: 0;
+  position: relative;
+  overflow: hidden;
+}
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 48px;
+  align-items: center;
+}
+@media (min-width: 1024px) {
+  .hero-grid { grid-template-columns: 1fr 1fr; gap: 64px; }
+}
+.hero-content { position: relative; z-index: 2; }
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgba(30, 45, 61, 0.06);
+  color: var(--ink-500);
+  margin-bottom: 24px;
+}
+.hero-badge .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--sage);
+}
+.hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(38px, 6vw, 72px);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--navy);
+  margin-bottom: 20px;
+}
+.hero h1 em {
+  font-style: italic;
+  background: linear-gradient(135deg, var(--gold), var(--terracotta));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero p {
+  font-size: 17px;
+  line-height: 1.65;
+  color: var(--ink-500);
+  max-width: 48ch;
+  margin-bottom: 32px;
+}
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 40px;
+}
+.hero-metrics {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+.hero-metrics div span:first-child {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 24px;
+  color: var(--navy);
+  line-height: 1.2;
+}
+.hero-metrics div span:last-child {
+  font-size: 13px;
+  color: var(--ink-400);
+}
+
+/* Hero visual */
+.hero-visual {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.hero-visual .orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.15;
+  pointer-events: none;
+  will-change: transform;
+}
+.orb-1 {
+  width: 300px;
+  height: 300px;
+  background: var(--gold);
+  top: -40px;
+  right: -40px;
+  animation: float-slow 8s ease-in-out infinite;
+}
+.orb-2 {
+  width: 200px;
+  height: 200px;
+  background: var(--terracotta);
+  bottom: -30px;
+  left: -30px;
+  animation: float-slow 10s ease-in-out infinite reverse;
+}
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-16px) scale(1.03); }
+}
+
+/* Double-Bezel product showcase */
+.double-bezel {
+  padding: 8px;
+  border-radius: 32px;
+  background: rgba(30, 45, 61, 0.04);
+  border: 1px solid var(--sand);
+  position: relative;
+}
+.double-bezel-inner {
+  border-radius: calc(32px - 8px);
+  overflow: hidden;
+  background: white;
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.15);
+}
+.double-bezel-inner img {
+  width: 100%;
+  height: 480px;
+  object-fit: cover;
+  transition: transform 0.8s cubic-bezier(0.32, 0.72, 0, 1);
+}
+@media (max-width: 767px) {
+  .double-bezel-inner img { height: 320px; }
+}
+.double-bezel:hover .double-bezel-inner img { transform: scale(1.03); }
+
+.animated { will-change: transform; }
+
+/* ── Trust / Counters ── */
+.trust { background: var(--ink-50); }
+.trust-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+@media (min-width: 768px) {
+  .trust-grid { grid-template-columns: repeat(4, 1fr); gap: 12px; }
+}
+.trust-card {
+  padding: 32px 20px;
+  text-align: center;
+  background: white;
+  border-radius: 20px;
+  border: 1px solid var(--sand);
+  transition: all 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+  opacity: 0;
+  transform: translateY(24px);
+  will-change: transform, opacity;
+}
+.trust-card.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.trust-card:nth-child(2) { transition-delay: 0.08s; }
+.trust-card:nth-child(3) { transition-delay: 0.16s; }
+.trust-card:nth-child(4) { transition-delay: 0.24s; }
+.trust-card:hover {
+  border-color: var(--gold);
+  box-shadow: 0 12px 40px rgba(200, 159, 92, 0.08);
+  transform: translateY(-2px);
+}
+.trust-card .num {
+  font-family: var(--font-display);
+  font-size: 36px;
+  color: var(--terracotta);
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+@media (min-width: 768px) {
+  .trust-card .num { font-size: 44px; }
+}
+.trust-card .label {
+  font-size: 13px;
+  color: var(--ink-400);
+  font-weight: 500;
+}
+
+/* ── Products ── */
+.products-header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 48px;
+}
+@media (min-width: 768px) {
+  .products-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+}
+.products-header h2 {
+  font-family: var(--font-display);
+  font-size: clamp(32px, 4vw, 48px);
+  line-height: 1.08;
+  color: var(--navy);
+  max-width: 14ch;
+}
+.products-header p {
+  color: var(--ink-400);
+  font-size: 15px;
+  max-width: 36ch;
+  line-height: 1.6;
+}
+
+/* Bento grid */
+.bento {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+@media (min-width: 640px) {
+  .bento { grid-template-columns: 1fr 1fr; }
+}
+@media (min-width: 1024px) {
+  .bento {
+    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-rows: auto auto;
+  }
+  .bento-item:nth-child(1) { grid-column: 1; grid-row: 1 / 3; }
+  .bento-item:nth-child(2) { grid-column: 2; grid-row: 1; }
+  .bento-item:nth-child(3) { grid-column: 3; grid-row: 1; }
+  .bento-item:nth-child(4) { grid-column: 2; grid-row: 2; }
+  .bento-item:nth-child(5) { grid-column: 3; grid-row: 2; }
+}
+.bento-item {
+  border-radius: 24px;
+  overflow: hidden;
+  background: white;
+  border: 1px solid var(--sand);
+  transition: all 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+  opacity: 0;
+  transform: translateY(20px);
+  will-change: transform, opacity;
+}
+.bento-item:nth-child(1) { transition-delay: 0.05s; }
+.bento-item:nth-child(2) { transition-delay: 0.1s; }
+.bento-item:nth-child(3) { transition-delay: 0.15s; }
+.bento-item:nth-child(4) { transition-delay: 0.2s; }
+.bento-item:nth-child(5) { transition-delay: 0.25s; }
+
+.bento-item.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.bento-item:hover {
+  border-color: var(--gold);
+  box-shadow: 0 16px 48px rgba(200, 159, 92, 0.1);
+  transform: translateY(-3px);
+}
+.bento-item.visible:hover { transform: translateY(-3px); }
+.bento-item .img-wrap {
+  height: 200px;
+  overflow: hidden;
+  background: var(--cream);
+}
+.bento-item:nth-child(1) .img-wrap { height: 320px; }
+@media (max-width: 639px) {
+  .bento-item:nth-child(1) .img-wrap { height: 240px; }
+}
+.bento-item .img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.bento-item:hover .img-wrap img { transform: scale(1.06); }
+.bento-item .info {
+  padding: 16px 20px 20px;
+}
+.bento-item .info .tag {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+.bento-item .info h3 {
+  font-family: var(--font-heading);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--navy);
+  margin-bottom: 4px;
+}
+.bento-item .info p {
+  font-size: 13px;
+  color: var(--ink-400);
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+.bento-item .info .price {
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--terracotta);
+}
+.bento-item .info .price .old {
+  font-size: 13px;
+  color: var(--ink-300);
+  text-decoration: line-through;
+  font-weight: 400;
+  margin-right: 8px;
+}
+.bento-item .badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  padding: 4px 10px;
+  border-radius: 100px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.badge-bestseller { background: var(--gold); color: white; }
+.badge-oferta { background: var(--terracotta); color: white; }
+.wholesale-cta {
+  margin-top: 48px;
+  padding: 40px;
+  border-radius: 24px;
+  background: var(--navy);
+  color: white;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.6s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.wholesale-cta.visible { opacity: 1; transform: translateY(0); }
+.wholesale-cta h3 {
+  font-family: var(--font-display);
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+.wholesale-cta p {
+  color: rgba(255,255,255,0.6);
+  margin-bottom: 20px;
+  font-size: 15px;
+}
+
+/* ── Story/About ── */
+.story {
+  background: white;
+  overflow: hidden;
+}
+.story-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 48px;
+  align-items: center;
+}
+@media (min-width: 1024px) {
+  .story-grid { grid-template-columns: 1fr 1fr; gap: 80px; }
+}
+.story-text { position: relative; }
+.story-text h2 {
+  font-family: var(--font-display);
+  font-size: clamp(34px, 4.5vw, 56px);
+  line-height: 1.05;
+  color: var(--navy);
+  margin-bottom: 20px;
+  letter-spacing: -0.02em;
+}
+.story-text h2 em { font-style: italic; color: var(--terracotta); }
+.story-text p {
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--ink-500);
+  margin-bottom: 24px;
+}
+.story-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.story-tags span {
+  padding: 6px 14px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--cream-dark);
+  color: var(--ink-600);
+}
+.story-visual {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.story-visual .img-card {
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid var(--sand);
+  background: var(--cream);
+}
+.story-visual .img-card:first-child {
+  grid-column: 1 / -1;
+  height: 280px;
+}
+.story-visual .img-card:not(:first-child) {
+  height: 200px;
+}
+.story-visual .img-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.story-visual .img-card:hover img { transform: scale(1.05); }
+
+/* ── Testimonials ── */
+.testimonials { overflow: hidden; }
+.testimonials h2 {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 3.5vw, 42px);
+  color: var(--navy);
+  margin-bottom: 40px;
+  letter-spacing: -0.02em;
+}
+.testimonials-scroll {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 8px;
+}
+.testimonials-scroll::-webkit-scrollbar { height: 4px; }
+.testimonials-scroll::-webkit-scrollbar-track { background: var(--cream); border-radius: 4px; }
+.testimonials-scroll::-webkit-scrollbar-thumb { background: var(--sand); border-radius: 4px; }
+.testimonial-card {
+  min-width: 300px;
+  max-width: 360px;
+  flex-shrink: 0;
+  scroll-snap-align: start;
+  padding: 32px;
+  border-radius: 20px;
+  background: white;
+  border: 1px solid var(--sand);
+  transition: all 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+  opacity: 0;
+  transform: translateY(16px);
+  will-change: transform, opacity;
+}
+.testimonial-card.visible { opacity: 1; transform: translateY(0); }
+.testimonial-card:hover {
+  border-color: var(--gold);
+  box-shadow: 0 16px 48px rgba(200, 159, 92, 0.08);
+}
+.testimonial-card .stars {
+  color: var(--gold);
+  font-size: 14px;
+  letter-spacing: 2px;
+  margin-bottom: 16px;
+}
+.testimonial-card blockquote {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--ink-600);
+  margin-bottom: 20px;
+  font-style: italic;
+}
+.testimonial-card .author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.testimonial-card .author .avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 14px;
+  color: white;
+}
+.avatar-1 { background: var(--gold); }
+.avatar-2 { background: var(--sage); }
+.avatar-3 { background: var(--terracotta); }
+.testimonial-card .author .name {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink-800);
+}
+.testimonial-card .author .detail {
+  font-size: 12px;
+  color: var(--ink-400);
+}
+
+/* ── FAQ ── */
+.faq { background: var(--ink-50); }
+.faq-header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+.faq-header h2 {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 3.5vw, 42px);
+  color: var(--navy);
+  margin-bottom: 12px;
+  letter-spacing: -0.02em;
+}
+.faq-header p {
+  color: var(--ink-400);
+  font-size: 15px;
+  max-width: 40ch;
+  margin: 0 auto;
+}
+.faq-list {
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.faq-item {
+  border-radius: 16px;
+  overflow: hidden;
+  background: white;
+  border: 1px solid var(--sand);
+  transition: all 0.3s ease;
+}
+.faq-item.open {
+  border-color: var(--gold);
+}
+.faq-question {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink-800);
+  text-align: left;
+  transition: color 0.3s ease;
+}
+.faq-question:hover { color: var(--terracotta); }
+.faq-question .icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+  color: var(--ink-300);
+  flex-shrink: 0;
+}
+.faq-item.open .faq-question .icon { transform: rotate(45deg); color: var(--terracotta); }
+.faq-answer {
+  padding: 0 24px;
+  max-height: 0;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.faq-answer p {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--ink-500);
+  padding-bottom: 20px;
+}
+.faq-item.open .faq-answer { max-height: 300px; }
+
+/* ── Contact / CTA ── */
+.contact {
+  background: var(--navy);
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+.contact::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: rgba(200, 159, 92, 0.05);
+  filter: blur(80px);
+  pointer-events: none;
+}
+.contact-inner {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  max-width: 640px;
+  margin: 0 auto;
+}
+.contact-inner h2 {
+  font-family: var(--font-display);
+  font-size: clamp(30px, 4vw, 48px);
+  margin-bottom: 12px;
+  letter-spacing: -0.02em;
+}
+  .contact-inner p {
+    color: rgba(255,255,255,0.7);
+    font-size: 16px;
+    margin-bottom: 32px;
+    line-height: 1.6;
+  }
+.contact-payments {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 32px;
+}
+.contact-payments img {
+  height: 36px;
+  width: auto;
+  opacity: 0.4;
+  transition: opacity 0.3s ease;
+  filter: brightness(0) invert(1);
+}
+.contact-payments img:hover { opacity: 0.7; }
+
+/* ── Footer ── */
+footer {
+  background: var(--ink-900);
+  color: rgba(255,255,255,0.6);
+  padding: 48px 0 32px;
+  font-size: 13px;
+}
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+}
+@media (min-width: 768px) {
+  .footer-grid { grid-template-columns: 2fr 1fr 1fr; gap: 48px; }
+}
+footer h4 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  color: white;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+footer p {
+  line-height: 1.7;
+  max-width: 40ch;
+}
+footer a {
+  display: block;
+  color: rgba(255,255,255,0.45);
+  transition: color 0.3s ease;
+  margin-bottom: 8px;
+}
+footer a:hover { color: white; }
+.footer-bottom {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  text-align: center;
+  font-size: 12px;
+}
+
+/* ── WhatsApp FAB ── */
+.whatsapp-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 50;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #25D366;
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(37, 211, 102, 0.3);
+  transition: all 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+  font-size: 24px;
+}
+.whatsapp-fab:hover {
+  transform: scale(1.08);
+  box-shadow: 0 8px 32px rgba(37, 211, 102, 0.4);
+}
+
+/* ── Animations ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: all 0.7s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-left {
+  opacity: 0;
+  transform: translateX(-24px);
+  transition: all 0.7s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.reveal-left.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+.reveal-right {
+  opacity: 0;
+  transform: translateX(24px);
+  transition: all 0.7s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.reveal-right.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+.reveal-scale {
+  opacity: 0;
+  transform: scale(0.92);
+  transition: all 0.7s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.reveal-scale.visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .reveal, .reveal-left, .reveal-right, .reveal-scale,
+  .trust-card, .bento-item, .testimonial-card, .wholesale-cta {
+    opacity: 1;
+    transform: none;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="grain-overlay" aria-hidden="true"></div>
+
+<main>
+
+<!-- Mobile Menu Overlay -->
+<div class="mobile-overlay" id="mobileMenu">
+  <button class="mobile-close" onclick="closeMenu()" aria-label="Cerrar menu">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+  </button>
+  <a href="#productos" onclick="closeMenu()">Productos</a>
+  <a href="#nosotros" onclick="closeMenu()">Nosotros</a>
+  <a href="#testimonios" onclick="closeMenu()">Testimonios</a>
+  <a href="#faq" onclick="closeMenu()">Preguntas</a>
+  <a href="#wholesale" onclick="closeMenu()" style="color:var(--terracotta);">Distribuidores</a>
+  <a href="#contacto" onclick="closeMenu()" style="padding:12px 28px;border-radius:100px;background:var(--terracotta);color:white;font-family:var(--font-heading);font-size:16px;font-weight:600;">Contactar</a>
+</div>
+
+<!-- Nav -->
+<nav class="nav-wrapper">
+  <div class="nav-inner" id="navbar">
+    <a href="/" class="nav-logo">
+      <img src="/img/logo_oficial.png" alt="Maqui Mary" loading="lazy">
+      <span>Maqui Mary</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#productos">Productos</a></li>
+      <li><a href="#nosotros">Nosotros</a></li>
+      <li><a href="#testimonios">Testimonios</a></li>
+      <li><a href="#faq">Preguntas</a></li>
+      <li><a href="#wholesale" style="color:var(--terracotta);">Distribuidores</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="#contacto" class="btn btn-primary" style="padding:8px 20px;font-size:13px;">
+        Contactar
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+      <button class="btn-icon nav-hamburger" onclick="openMenu()" aria-label="Abrir menu" style="display:flex;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero" id="hero">
+  <div class="container" style="width:100%;">
+    <div class="hero-grid">
+      <div class="hero-content">
+        <div class="hero-badge">
+          <span class="dot"></span>
+          Empresa Peruana
+        </div>
+        <h1>Esponjas de limpieza <em>en Lima</em></h1>
+        <p>Fabricacion propia con calidad peruana. Precios directos de fabrica, sin intermediarios. Delivery en toda Lima.</p>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px;padding:8px 16px;border-radius:100px;background:rgba(201,107,78,0.08);width:fit-content;">
+          <span style="width:8px;height:8px;border-radius:50%;background:var(--sage);display:inline-block;"></span>
+          <span style="font-size:13px;font-weight:600;color:var(--terracotta);">Pedidos antes de 1 PM se entregan el mismo dia</span>
+        </div>
+        <div class="hero-actions">
+          <a href="https://wa.me/51999999999?text=Hola%2C%20quiero%20comprar%20esponjas" target="_blank" rel="noopener" class="btn-arrow">
+            Comprar por WhatsApp
+            <span class="icon-wrap">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </span>
+          </a>
+          <a href="#productos" class="btn btn-outline">Ver productos</a>
+        </div>
+        <div class="hero-metrics">
+          <div><span>+3,200</span><span>Clientes satisfechos</span></div>
+          <div><span>+15</span><span>Productos unicos</span></div>
+          <div><span>+8</span><span>Anos de experiencia</span></div>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="double-bezel">
+          <div class="double-bezel-inner">
+            <img src="/img/esponjas-colores.png" alt="Esponjas de colores para limpieza" loading="eager">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Trust -->
+<section class="trust">
+  <div class="container">
+    <div class="trust-grid">
+      <div class="trust-card" data-reveal><div class="num" data-count="3200">0</div><div class="label">Clientes satisfechos</div></div>
+      <div class="trust-card" data-reveal><div class="num" data-count="15">0</div><div class="label">Productos unicos</div></div>
+      <div class="trust-card" data-reveal><div class="num" data-count="8">0<div style="display:inline;font-family:var(--font-display);">+</div></div><div class="label">Anos de experiencia</div></div>
+      <div class="trust-card" data-reveal><div class="num">100%</div><div class="label">Calidad garantizada</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- Products -->
+<section class="container" id="productos" style="padding-top:120px;padding-bottom:120px;">
+  <div class="products-header">
+    <div>
+      <div class="section-badge">Catalogo</div>
+      <h2>Nuestros productos</h2>
+    </div>
+    <p>Esponjas para cada necesidad. Venta al por mayor y menor con precios directos de fabrica.</p>
+  </div>
+
+  <div class="bento">
+    <div class="bento-item" data-reveal style="position:relative;">
+      <div class="badge badge-bestseller">Mas vendido</div>
+      <div class="img-wrap"><img src="/img/esponjas-colores.png" alt="Esponjas de colores" loading="lazy"></div>
+      <div class="info">
+        <div class="tag">Esponjas</div>
+        <h3>Esponja multiusos</h3>
+        <p>Esponja de celulosa con fibra verde. Ideal para platos, superficies y bano.</p>
+        <div class="price">S/ 2.50</div>
+      </div>
+    </div>
+    <div class="bento-item" data-reveal style="position:relative;">
+      <div class="badge badge-oferta">-15%</div>
+      <div class="img-wrap"><img src="/img/esponja_doble_uso_cuadrada.png" alt="Esponja doble uso" loading="lazy"></div>
+      <div class="info">
+        <div class="tag">Esponjas</div>
+        <h3>Esponja doble uso</h3>
+        <p>Lado suave + lado abrasivo. Perfecta para ollas y sartenes.</p>
+        <div class="price"><span class="old">S/ 3.50</span>S/ 2.90</div>
+      </div>
+    </div>
+    <div class="bento-item" data-reveal>
+      <div class="img-wrap"><img src="/img/lana_de_acero.png" alt="Lana de acero" loading="lazy"></div>
+      <div class="info">
+        <div class="tag">Estropajos</div>
+        <h3>Lana de acero</h3>
+        <p>Rollo de lana de acero fina. Para limpieza profunda sin rayaduras.</p>
+        <div class="price">S/ 1.80</div>
+      </div>
+    </div>
+    <div class="bento-item" data-reveal>
+      <div class="img-wrap"><img src="/img/paño_amarillo.png" alt="Pano amarillo" loading="lazy"></div>
+      <div class="info">
+        <div class="tag">Panos</div>
+        <h3>Pano absorcion total</h3>
+        <p>Microfibra amarilla de alta absorcion. Pack x3 unidades.</p>
+        <div class="price">S/ 4.50</div>
+      </div>
+    </div>
+    <a href="https://wa.me/51999999999?text=Hola%2C%20quiero%20ver%20el%20cat%C3%A1logo%20completo" target="_blank" rel="noopener" class="bento-item" data-reveal style="display:block;color:inherit;text-decoration:none;">
+      <div class="img-wrap" style="background:var(--cream-dark);display:flex;align-items:center;justify-content:center;">
+        <div style="text-align:center;padding:20px;">
+          <div style="font-size:32px;color:var(--gold);margin-bottom:8px;">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          </div>
+          <div style="font-family:var(--font-heading);font-size:14px;font-weight:600;color:var(--navy);">Mas productos</div>
+          <div style="font-size:12px;color:var(--ink-400);margin-top:4px;">Consulta nuestro catalogo completo &rarr;</div>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <div class="wholesale-cta" data-reveal id="wholesale">
+    <h3>Eres distribuidor o bodeguero?</h3>
+    <p>Compra al por mayor con precios especiales y delivery directo a tu local.</p>
+    <a href="https://wa.me/51999999999?text=Hola%2C%20quiero%20comprar%20al%20por%20mayor" target="_blank" rel="noopener" class="btn btn-secondary" style="color:white;">
+      Cotizar por mayor
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    </a>
+  </div>
+</section>
+
+<!-- Story -->
+<section class="story" id="nosotros">
+  <div class="container">
+    <div class="story-grid">
+      <div class="story-text">
+        <div class="section-badge">Quienes somos</div>
+        <h2>Hecho en Peru, <em>con orgullo</em></h2>
+        <p>En Maqui Mary fabricamos esponjas y accesorios de limpieza con estandares de calidad que compiten con cualquier marca internacional. Cada producto sale de nuestra fabrica con la certeza de que ayuda a miles de hogares peruanos a mantener su limpieza.</p>
+        <p>Trabajamos directamente con bodegas, distribuidores y amas de casa. Sin intermediarios, sin sobrecostos.</p>
+        <div class="story-tags">
+          <span>Peruanos</span>
+          <span>Calidad</span>
+          <span>Esfuerzo</span>
+          <span>Hogar</span>
+        </div>
+      </div>
+      <div class="story-visual">
+        <div class="img-card">
+          <img src="/img/esponja_doble_uso_cuadrada_tira.png" alt="Produccion de esponjas" loading="lazy">
+        </div>
+        <div class="img-card">
+          <img src="/img/esponja_payasito_colores_tiras.jpeg" alt="Esponja payasito" loading="lazy">
+        </div>
+        <div class="img-card">
+          <img src="/img/esponja_doble_uso_salva_uñas.png" alt="Esponja salva unas" loading="lazy">
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Testimonials -->
+<section class="testimonials container" id="testimonios">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:40px;flex-wrap:wrap;gap:16px;">
+    <div>
+      <div class="section-badge">Testimonios</div>
+      <h2 style="margin-bottom:0;">Lo que dicen nuestros clientes</h2>
+    </div>
+    <p style="color:var(--ink-400);font-size:14px;max-width:32ch;">+3,200 clientes confian en nosotros cada mes.</p>
+  </div>
+  <div class="testimonials-scroll">
+    <div class="testimonial-card" data-reveal>
+      <div class="stars">&starf;&starf;&starf;&starf;&starf;</div>
+      <blockquote>"Compro esponjas para mi bodega hace mas de dos anos. La calidad es constante y los precios son los mejores de Lima."</blockquote>
+      <div class="author">
+        <div class="avatar avatar-1">M</div>
+        <div><div class="name">Maria G.</div><div class="detail">Bodeguera · San Martin de Porres</div></div>
+      </div>
+    </div>
+    <div class="testimonial-card" data-reveal>
+      <div class="stars">&starf;&starf;&starf;&starf;&starf;</div>
+      <blockquote>"La esponja doble uso es la mejor que he probado. No se deshace como otras marcas. Mi esposa esta encantada."</blockquote>
+      <div class="author">
+        <div class="avatar avatar-2">C</div>
+        <div><div class="name">Carlos R.</div><div class="detail">Cliente recurrente · Los Olivos</div></div>
+      </div>
+    </div>
+    <div class="testimonial-card" data-reveal>
+      <div class="stars">&starf;&starf;&starf;&starf;&starf;</div>
+      <blockquote>"Delivery rapido y la atencion es excelente. Compre panos amarillos y llegaron al dia siguiente. Muy recomendados."</blockquote>
+      <div class="author">
+        <div class="avatar avatar-3">R</div>
+        <div><div class="name">Rosa M.</div><div class="detail">Ama de casa · Comas</div></div>
+      </div>
+    </div>
+    <div class="testimonial-card" data-reveal>
+      <div class="stars">&starf;&starf;&starf;&starf;&starf;</div>
+      <blockquote>"Distribuyo sus productos en mi tienda desde 2021. La rotacion es alta porque la gente vuelve a comprar."</blockquote>
+      <div class="author">
+        <div class="avatar avatar-1">J</div>
+        <div><div class="name">Jorge L.</div><div class="detail">Distribuidor · Rimac</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq" id="faq">
+  <div class="container">
+    <div class="faq-header">
+      <div class="section-badge">Ayuda</div>
+      <h2>Preguntas frecuentes</h2>
+      <p>Todo lo que necesitas saber sobre nuestros productos y entregas.</p>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFAQ(this)">
+          Hacen delivery a todo Lima?
+          <span class="icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </span>
+        </button>
+        <div class="faq-answer"><p>Si, realizamos entregas en toda Lima Metropolitana. El costo de delivery depende de la distancia y el volumen del pedido. Para pedidos mayores a S/ 100, el delivery es gratuito en distritos seleccionados.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFAQ(this)">
+          Cual es el pedido minimo?
+          <span class="icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </span>
+        </button>
+        <div class="faq-answer"><p>No tenemos pedido minimo para compras al por menor. Puedes comprar desde 1 unidad. Para precios al por mayor, el minimo es a partir de 12 unidades por producto.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFAQ(this)">
+          Venden al por mayor?
+          <span class="icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </span>
+        </button>
+        <div class="faq-answer"><p>Si, ofrecemos precios especiales para distribuidores, bodegueros y negocios. Contactanos por WhatsApp para recibir nuestra lista de precios al por mayor con descuentos por volumen.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFAQ(this)">
+          Que metodos de pago aceptan?
+          <span class="icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </span>
+        </button>
+        <div class="faq-answer"><p>Aceptamos Yape, Plin, transferencia BCP, BBVA e Interbank. Tambien recibimos efectivo contra entrega. Para pedidos al por mayor, emitimos factura con RUC.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFAQ(this)">
+          Cuanto duran sus esponjas?
+          <span class="icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </span>
+        </button>
+        <div class="faq-answer"><p>Nuestras esponjas de alta densidad duran entre 3 y 5 semanas con uso diario, dependiendo del tipo de superficie y la frecuencia de uso. La esponja doble uso es nuestra mas duradera, hasta 6 semanas.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Contact -->
+<section class="contact" id="contacto">
+  <div class="container">
+    <div class="contact-inner">
+      <div class="section-badge" style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.6);margin:0 auto 20px;">Contacto</div>
+      <h2>Quieres hacer un pedido?</h2>
+      <p>Escribenos directamente a WhatsApp. Te atendemos de inmediato, sin formularios ni esperas.</p>
+      <a href="https://wa.me/51999999999?text=Hola%2C%20quiero%20comprar%20esponjas" target="_blank" rel="noopener" class="btn-arrow" style="background:var(--gold);color:var(--navy);margin:0 auto;">
+        Escribir a WhatsApp
+        <span class="icon-wrap" style="background:rgba(30,45,61,0.12);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </span>
+      </a>
+      <div class="contact-payments">
+        <img src="/img/yape-logo.svg" alt="Yape">
+        <img src="/img/plin-logo.svg" alt="Plin">
+        <img src="/img/bcp-logo.svg" alt="BCP">
+        <img src="/img/bbva-logo.svg" alt="BBVA">
+        <img src="/img/interbank-logo.svg" alt="Interbank">
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- Footer -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <h4 style="display:flex;align-items:center;gap:8px;">
+          <img src="/img/logo_oficial.png" alt="" style="width:24px;height:24px;border-radius:50%;object-fit:cover;">
+          Maqui Mary
+        </h4>
+        <p>Fabricacion y venta de esponjas, estropajos y accesorios de limpieza. Calidad peruana con mas de 8 anos en el mercado.</p>
+      </div>
+      <div>
+        <h4>Contacto</h4>
+        <a href="https://wa.me/51999999999" target="_blank" rel="noopener">WhatsApp: +51 999 999 999</a>
+        <a href="mailto:ventas@maquimary.pe">ventas@maquimary.pe</a>
+      </div>
+      <div>
+        <h4>Links</h4>
+        <a href="#productos">Productos</a>
+        <a href="#nosotros">Nosotros</a>
+        <a href="#faq">Preguntas frecuentes</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      &copy; 2026 INVERSIONES MAQUI MARY PERU E.I.R.L. Todos los derechos reservados. RUC: 20606218801
+    </div>
+  </div>
+</footer>
+
+<!-- WhatsApp FAB -->
+<a href="https://wa.me/51999999999?text=Hola%2C%20quiero%20comprar%20esponjas" target="_blank" rel="noopener" class="whatsapp-fab" aria-label="WhatsApp">
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+</a>
+
+<script>
+// === Nav scroll effect ===
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+  navbar.classList.toggle('scrolled', window.scrollY > 40);
+}, { passive: true });
+
+// === Mobile menu ===
+function openMenu() {
+  document.getElementById('mobileMenu').classList.add('open');
+}
+function closeMenu() {
+  document.getElementById('mobileMenu').classList.remove('open');
+}
+
+// === FAQ toggle ===
+function toggleFAQ(btn) {
+  const item = btn.closest('.faq-item');
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(el => el.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+
+// === Counters ===
+const counters = document.querySelectorAll('[data-count]');
+const counterObs = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const el = entry.target;
+      const target = parseInt(el.dataset.count);
+      if (isNaN(target)) return;
+      let current = 0;
+      const step = Math.ceil(target / 40);
+      const t = setInterval(() => {
+        current += step;
+        if (current >= target) {
+          current = target;
+          clearInterval(t);
+        }
+        el.textContent = current.toLocaleString('es-PE');
+      }, 30);
+      counterObs.unobserve(el);
+    }
+  });
+}, { threshold: 0.3 });
+counters.forEach(el => counterObs.observe(el));
+
+// === Scroll reveal ===
+const revealObs = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      revealObs.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('[data-reveal], .reveal, .reveal-left, .reveal-right, .reveal-scale').forEach(el => {
+  if (!el.classList.contains('visible')) revealObs.observe(el);
+});
+
+document.querySelectorAll('.trust-card, .bento-item, .testimonial-card, .wholesale-cta').forEach(el => {
+  if (!el.classList.contains('visible')) revealObs.observe(el);
+});
+
+// === Keyboard nav ===
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeMenu();
+});
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "name": "INVERSIONES MAQUI MARY PERU E.I.R.L.",
+  "alternateName": "Maqui Mary",
+  "description": "Fabricacion y venta de esponjas, estropajos y accesorios de limpieza",
+  "url": "https://maquimary.pe",
+  "telephone": "+51999999999",
+  "address": { "@type": "PostalAddress", "addressLocality": "Lima", "addressCountry": "PE" },
+  "taxID": "20606218801",
+  "priceRange": "S/"
+}
+</script>
+</body>
+</html>

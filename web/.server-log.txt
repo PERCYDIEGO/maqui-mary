@@ -1,0 +1,2737 @@
+
+> maqui-mary-web@1.0.0 dev
+> next dev
+
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 3.5s
+ ○ Compiling /src/middleware ...
+ ✓ Compiled /src/middleware in 2.4s (465 modules)
+ ○ Compiling /_not-found ...
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (101kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (231kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ ✓ Compiled /_not-found in 13.2s (1408 modules)
+ POST /api/clientes 404 in 13825ms
+ GET /crm/login 200 in 13839ms
+ GET /crm/login 200 in 13839ms
+ GET /crm/login 200 in 13797ms
+ GET /crm/login 200 in 13842ms
+ GET /crm/login 200 in 13798ms
+ ✓ Compiled in 5s (699 modules)
+ ○ Compiling /api/config ...
+ ✓ Compiled /api/config in 860ms (754 modules)
+ GET /crm/login 200 in 1290ms
+ GET /crm/login 200 in 1541ms
+ GET /crm/login 200 in 1540ms
+ GET /api/config 200 in 2132ms
+ GET /api/config 200 in 2143ms
+ GET /api/config 200 in 2472ms
+ GET /api/config 200 in 357ms
+ GET /api/config 200 in 365ms
+ GET /api/config 200 in 267ms
+ GET /api/config 200 in 144ms
+ GET /api/config 200 in 183ms
+ GET /crm/login 200 in 199ms
+ GET /crm/login 200 in 311ms
+ GET /api/config 200 in 160ms
+ GET /api/config 200 in 147ms
+ ✓ Compiled /api/auth/admin in 290ms (756 modules)
+ POST /api/auth/admin 403 in 432ms
+ GET /api/leads 404 in 231ms
+ GET /crm/login 200 in 166ms
+ GET /crm/login 200 in 175ms
+ GET /api/config 200 in 158ms
+ GET /api/config 200 in 180ms
+ GET /api/config 200 in 152ms
+ GET /api/config 200 in 144ms
+ GET /api/leads 404 in 56ms
+ GET /crm/login 200 in 30ms
+ GET /api/config 200 in 187ms
+ GET /api/config 200 in 135ms
+ ○ Compiling / ...
+ ✓ Compiled / in 4s (2432 modules)
+ GET / 200 in 5014ms
+ GET /api/config 200 in 412ms
+ ✓ Compiled /api/empresa in 358ms (1245 modules)
+ GET /api/empresa 200 in 630ms
+ GET /api/config 200 in 213ms
+ GET /api/empresa 200 in 157ms
+ GET /api/config 200 in 153ms
+ GET /api/config 200 in 144ms
+ GET /api/empresa 200 in 149ms
+ GET /api/empresa 200 in 156ms
+ GET /crm/login 200 in 180ms
+ GET /api/config 200 in 184ms
+ GET /api/config 200 in 152ms
+ GET /crm/login 200 in 61ms
+ GET /api/config 200 in 151ms
+ GET /api/config 200 in 148ms
+ GET /crm/login 200 in 118ms
+ GET /crm/login 200 in 120ms
+ GET /api/config 200 in 157ms
+ GET /api/config 200 in 226ms
+ GET /api/config 200 in 135ms
+ GET /api/config 200 in 163ms
+ GET /crm/login 200 in 72ms
+ GET /api/config 200 in 123ms
+ GET /api/config 200 in 149ms
+ GET /crm/login 200 in 53ms
+ GET /api/config 200 in 205ms
+ GET /api/config 200 in 134ms
+ GET /crm/login 200 in 61ms
+ GET /api/config 200 in 452ms
+ GET /api/config 200 in 150ms
+ GET /crm/login 200 in 47ms
+ GET /api/config 200 in 533ms
+ GET /api/config 200 in 155ms
+ GET /crm/login 200 in 46ms
+ GET /crm/login 200 in 74ms
+ GET /api/config 200 in 388ms
+ GET /api/config 200 in 169ms
+ GET /crm/login 200 in 52ms
+ GET /api/config 200 in 196ms
+ GET /api/config 200 in 155ms
+ GET /crm/login 200 in 57ms
+ GET /api/config 200 in 197ms
+ GET /api/config 200 in 149ms
+ GET /crm/login 200 in 65ms
+ GET /api/config 200 in 362ms
+ GET /api/config 200 in 142ms
+ GET /crm/login 200 in 69ms
+ GET /crm/login 200 in 102ms
+ GET /crm/login 200 in 292ms
+ GET /api/config 200 in 221ms
+ GET /api/config 200 in 199ms
+ GET /api/config 200 in 261ms
+ GET /api/config 200 in 151ms
+ GET /crm/login 200 in 67ms
+ GET /api/config 200 in 128ms
+ GET /api/config 200 in 142ms
+ GET /crm/login 200 in 62ms
+ GET /api/config 200 in 246ms
+ GET /api/config 200 in 157ms
+ GET /crm/login 200 in 151ms
+ GET /api/config 200 in 177ms
+ GET /api/config 200 in 148ms
+ GET /crm/login 200 in 36ms
+ GET /api/config 200 in 211ms
+ GET /api/config 200 in 145ms
+ GET /crm/login 200 in 61ms
+ POST /api/clientes 404 in 65ms
+ GET /crm/login 200 in 77ms
+ POST /api/clientes 404 in 64ms
+ GET /api/config 200 in 174ms
+ GET /api/config 200 in 132ms
+ ○ Compiling /doc/[id] ...
+ ✓ Compiled /doc/[id] in 2.1s (2438 modules)
+ GET /crm/login 200 in 233ms
+ GET /doc/1'%20OR%20'1'='1 404 in 3760ms
+ GET /crm/login 200 in 40ms
+ GET /crm/login 200 in 60ms
+ GET /api/config 200 in 104ms
+ GET /api/config 200 in 126ms
+ GET /api/config 200 in 130ms
+ GET /doc/1'%20OR%20'1'='1 404 in 67ms
+ GET /crm/login 200 in 35ms
+ GET /crm/login 200 in 70ms
+ GET /api/config 200 in 107ms
+ GET /api/config 200 in 134ms
+ GET /api/config 200 in 130ms
+ GET /crm/login 200 in 33ms
+ GET /crm/login 200 in 46ms
+ GET /crm/login 200 in 43ms
+ GET /api/config 200 in 150ms
+ GET /api/config 200 in 145ms
+ GET /crm/login 200 in 50ms
+ ✓ Compiled /api/auth/admin in 220ms (1253 modules)
+ POST /api/auth/admin 403 in 301ms
+ GET /api/leads 404 in 111ms
+ GET /api/leads 404 in 62ms
+ GET /crm/login 200 in 38ms
+ GET /api/config 200 in 192ms
+ GET /api/config 200 in 134ms
+ GET /crm/login 200 in 61ms
+ GET /crm/login 200 in 44ms
+ GET /api/config 200 in 141ms
+ GET /api/config 200 in 127ms
+ GET /crm/login 200 in 96ms
+ GET /doc/00000000-0000-0000-0000-000000000000 404 in 186ms
+ GET /api/config 200 in 132ms
+ GET /api/config 200 in 127ms
+ GET /api/config 200 in 33ms
+ GET /doc/00000000-0000-0000-0000-000000000000 404 in 105ms
+ GET /api/config 200 in 38ms
+ GET /api/config 200 in 130ms
+ GET /api/config 200 in 145ms
+ GET /crm/login 200 in 87ms
+ GET /api/config 200 in 141ms
+ GET /api/config 200 in 137ms
+ GET /crm/login 200 in 83ms
+ GET /api/config 200 in 443ms
+ GET /api/config 200 in 150ms
+ GET /crm/login 200 in 82ms
+ GET /crm/login 200 in 101ms
+ GET /api/config 200 in 187ms
+ GET /api/config 200 in 182ms
+ GET /api/config 200 in 126ms
+ GET /api/config 200 in 147ms
+ GET /crm/login 200 in 77ms
+ GET /api/config 200 in 134ms
+ GET /api/config 200 in 127ms
+ GET /crm/login 200 in 66ms
+ GET /api/config 200 in 205ms
+ GET /api/config 200 in 149ms
+ GET /crm/login 200 in 88ms
+ GET /api/config 200 in 283ms
+ GET /api/config 200 in 131ms
+ GET /crm/login 200 in 56ms
+ GET /api/config 200 in 187ms
+ GET /api/config 200 in 145ms
+ GET /crm/login 200 in 45ms
+ POST /api/clientes 404 in 48ms
+ GET /crm/login 200 in 54ms
+ POST /api/clientes 404 in 59ms
+ GET /api/config 200 in 173ms
+ GET /api/config 200 in 145ms
+ GET /doc/1'%20OR%20'1'='1 404 in 91ms
+ GET /api/config 200 in 81ms
+ GET /crm/login 200 in 62ms
+ GET /doc/1'%20OR%20'1'='1 404 in 77ms
+ GET /crm/login 200 in 38ms
+ GET /api/config 200 in 91ms
+ GET /crm/login 200 in 68ms
+ GET /api/config 200 in 147ms
+ GET /api/config 200 in 133ms
+ GET /crm/login 200 in 77ms
+ GET /crm/login 200 in 115ms
+ GET /crm/login 200 in 78ms
+ GET /crm/login 200 in 86ms
+ GET /crm/login 200 in 128ms
+ GET /api/config 200 in 338ms
+ GET /crm/login 200 in 233ms
+ POST /api/auth/admin 403 in 14ms
+ GET /api/config 200 in 144ms
+ GET /api/config 200 in 141ms
+ GET /api/leads 404 in 45ms
+ GET /api/leads 404 in 34ms
+ GET /crm/login 200 in 81ms
+ GET /api/config 200 in 204ms
+ GET /api/config 200 in 128ms
+ GET /crm/login 200 in 65ms
+ GET /doc/00000000-0000-0000-0000-000000000000 404 in 69ms
+ GET /crm/login 200 in 54ms
+ GET /api/config 200 in 77ms
+ GET /api/config 200 in 149ms
+ GET /api/config 200 in 136ms
+ GET /doc/00000000-0000-0000-0000-000000000000 404 in 109ms
+ GET /crm/login 200 in 51ms
+ GET /api/config 200 in 161ms
+ GET /api/config 200 in 50ms
+ GET /api/config 200 in 137ms
+ GET /api/config 200 in 129ms
+ GET /api/config 200 in 121ms
+ GET /crm/login 200 in 55ms
+ GET /api/config 200 in 134ms
+ GET /api/config 200 in 132ms
+ GET /crm/login 200 in 395ms
+ GET /api/config 200 in 707ms
+ GET /api/config 200 in 150ms
+ GET /crm/login 200 in 81ms
+ GET /crm/login 200 in 82ms
+ GET /api/config 200 in 185ms
+ GET /api/config 200 in 225ms
+ GET /api/config 200 in 137ms
+ GET /api/config 200 in 137ms
+ GET /crm/login 200 in 50ms
+ GET /crm/login 200 in 163ms
+ GET /api/config 200 in 195ms
+ GET /api/config 200 in 183ms
+ GET /api/config 200 in 148ms
+ GET /api/config 200 in 139ms
+ GET /crm/login 200 in 31ms
+ GET /api/config 200 in 195ms
+ GET /api/config 200 in 147ms
+ GET /crm/login 200 in 87ms
+ GET /api/config 200 in 139ms
+ GET /api/config 200 in 125ms
+ GET /crm/login 200 in 67ms
+ GET /api/config 200 in 193ms
+ GET /crm/login 200 in 48ms
+ GET /api/config 200 in 136ms
+ GET /api/config 200 in 128ms
+ GET /crm/login 200 in 74ms
+ GET /crm/login 200 in 118ms
+ GET /api/config 200 in 215ms
+ GET /api/config 200 in 183ms
+ GET /api/config 200 in 130ms
+ GET /api/config 200 in 140ms
+ GET /crm/login 200 in 66ms
+ GET /crm/login 200 in 51ms
+ GET /api/config 200 in 160ms
+ GET /crm/login 200 in 49ms
+ GET /api/config 200 in 164ms
+ GET /api/config 200 in 135ms
+ GET /api/config 200 in 139ms
+ GET /api/config 200 in 136ms
+ GET /crm/login 200 in 53ms
+ GET /api/config 200 in 135ms
+ GET /api/config 200 in 124ms
+ GET /crm/login 200 in 49ms
+ GET /crm/login 200 in 43ms
+ GET /api/config 200 in 149ms
+ GET /api/config 200 in 142ms
+ GET /crm/login 200 in 64ms
+ GET /crm/login 200 in 48ms
+ GET /crm/login 200 in 53ms
+ GET /api/config 200 in 127ms
+ GET /crm/login 200 in 65ms
+ GET /api/config 200 in 84ms
+ GET /api/config 200 in 138ms
+ GET /crm/login 200 in 42ms
+ GET /api/config 200 in 118ms
+ POST /api/clientes 404 in 30ms
+ GET /crm/login 200 in 73ms
+ GET /api/config 200 in 131ms
+ GET /api/config 200 in 139ms
+ POST /api/clientes 404 in 80ms
+ GET /crm/login 200 in 52ms
+ GET /api/config 200 in 129ms
+ GET /api/config 200 in 127ms
+ GET /doc/1'%20OR%20'1'='1 404 in 82ms
+ GET /api/config 200 in 88ms
+ GET /doc/1'%20OR%20'1'='1 404 in 74ms
+ GET /api/config 200 in 75ms
+ GET /crm/login 200 in 160ms
+ GET /crm/login 200 in 227ms
+ GET /api/config 200 in 141ms
+ GET /crm/login 200 in 106ms
+ GET /api/config 200 in 171ms
+ GET /crm/login 200 in 114ms
+ GET /api/config 200 in 140ms
+ GET /crm/login 200 in 60ms
+ GET /api/config 200 in 151ms
+ POST /api/auth/admin 403 in 10ms
+ GET /api/leads 404 in 67ms
+ GET /api/leads 404 in 26ms
+ GET /crm/login 200 in 38ms
+ GET /api/config 200 in 181ms
+ GET /api/config 200 in 135ms
+ GET /crm/login 200 in 82ms
+ GET /crm/login 200 in 91ms
+ GET /api/config 200 in 139ms
+ GET /doc/00000000-0000-0000-0000-000000000000 404 in 89ms
+ GET /api/config 200 in 145ms
+ GET /api/config 200 in 44ms
+ GET /doc/00000000-0000-0000-0000-000000000000 404 in 112ms
+ GET /api/config 200 in 45ms
+ GET /api/config 200 in 120ms
+ GET /api/config 200 in 122ms
+ GET /crm/login 200 in 45ms
+ POST /api/clientes 404 in 40ms
+ GET /api/config 200 in 223ms
+ GET /api/config 200 in 139ms
+ GET /crm/login 200 in 55ms
+ POST /api/clientes 404 in 55ms
+ GET /api/config 200 in 130ms
+ GET /api/config 200 in 132ms
+ GET /doc/1'%20OR%20'1'='1 404 in 79ms
+ GET /api/config 200 in 94ms
+ GET /doc/1'%20OR%20'1'='1 404 in 59ms
+ GET /api/config 200 in 82ms
+ GET /crm/login 200 in 48ms
+ GET /api/config 200 in 134ms
+ GET /api/config 200 in 132ms
+ GET /api/leads 404 in 20ms
+ GET /crm/login 200 in 60ms
+ GET /api/config 200 in 129ms
+ GET /api/config 200 in 126ms
+ GET /api/leads 404 in 64ms
+ GET /doc/00000000-0000-0000-0000-000000000000 404 in 96ms
+ GET /api/config 200 in 44ms
+ GET /doc/00000000-0000-0000-0000-000000000000 404 in 116ms
+ GET /api/config 200 in 47ms
+ GET /api/config 200 in 129ms
+ GET /api/config 200 in 138ms
+ GET / 200 in 414ms
+ GET /crm/login 200 in 408ms
+ GET /crm/login 200 in 409ms
+ GET /crm/login 200 in 410ms
+ GET /crm/login 200 in 409ms
+ GET /crm/login 200 in 410ms
+ GET /api/config 200 in 584ms
+ GET /api/config 200 in 834ms
+ GET /api/config 200 in 880ms
+ GET /api/config 200 in 690ms
+ GET /api/config 200 in 618ms
+ GET /api/config 200 in 305ms
+ GET /api/config 200 in 280ms
+ GET /api/config 200 in 336ms
+ GET / 200 in 459ms
+ GET /crm/login 200 in 449ms
+ GET /crm/login 200 in 454ms
+ GET /crm/login 200 in 455ms
+ GET /crm/login 200 in 518ms
+ GET /crm/login 200 in 467ms
+ GET /api/config 200 in 31ms
+ GET /api/config 200 in 200ms
+ GET /api/config 200 in 65ms
+ GET /api/config 200 in 160ms
+ ○ Compiling /api/sunat/preview ...
+ ✓ Compiled /api/sunat/preview in 4.6s (1801 modules)
+ POST /api/sunat/preview 401 in 5412ms
+ GET /api/config 200 in 5746ms
+ GET /crm/login 200 in 5756ms
+ GET /crm/login 200 in 5187ms
+ GET /crm/login 200 in 2694ms
+ GET /crm/login 200 in 5826ms
+ GET / 200 in 6244ms
+ GET /crm/login 200 in 1076ms
+ GET /api/config 200 in 208ms
+ GET /api/config 200 in 589ms
+ GET /api/config 200 in 700ms
+ GET /api/config 200 in 702ms
+ GET /api/config 200 in 540ms
+ GET /api/config 200 in 373ms
+ GET /api/config 200 in 203ms
+ GET /api/config 200 in 273ms
+ GET /crm/login 200 in 451ms
+ GET /crm/login 200 in 430ms
+ GET /crm/login 200 in 576ms
+ GET /crm/login 200 in 595ms
+ GET /api/config 200 in 552ms
+ GET /crm/login 200 in 815ms
+ GET /crm/login 200 in 180ms
+ GET /crm/login 200 in 70ms
+ GET /api/config 200 in 175ms
+ GET /api/config 200 in 204ms
+ GET /crm/login 200 in 201ms
+ GET /api/config 200 in 504ms
+ GET /api/config 200 in 440ms
+ GET /crm/login 200 in 120ms
+ GET /crm/login 200 in 169ms
+ GET /api/config 200 in 153ms
+ GET /api/config 200 in 151ms
+ GET /api/config 200 in 169ms
+ GET /crm/login 200 in 123ms
+ GET /api/config 200 in 332ms
+ GET /crm/login 200 in 405ms
+ GET /crm/login 200 in 220ms
+ GET /api/config 200 in 268ms
+ GET /crm/login 200 in 299ms
+ POST /api/clientes 404 in 226ms
+ GET /api/config 200 in 349ms
+ GET /crm/login 200 in 210ms
+ GET /crm/login 200 in 220ms
+ GET /api/config 200 in 285ms
+ GET /api/config 200 in 220ms
+ GET /crm/login 200 in 265ms
+ POST /api/clientes 404 in 143ms
+ GET /doc/1'%20OR%20'1'='1 404 in 170ms
+ GET /api/config 200 in 177ms
+ GET /api/config 200 in 222ms
+ GET /api/config 200 in 158ms
+ GET /api/config 200 in 157ms
+ GET /crm/login 200 in 223ms
+ ○ Compiling /api/auth/admin ...
+ ✓ Compiled /api/auth/admin in 892ms (1803 modules)
+ POST /api/auth/admin 403 in 1695ms
+ GET /crm/login 200 in 1023ms
+ GET /crm/login 200 in 1989ms
+ GET /crm/login 200 in 432ms
+ GET /crm/login 200 in 465ms
+ GET /crm/login 200 in 813ms
+ GET /crm/login 200 in 228ms
+ GET /api/config 200 in 271ms
+ GET /api/config 200 in 328ms
+ GET /api/config 200 in 467ms
+ GET /api/config 200 in 481ms
+ GET /api/config 200 in 411ms
+ GET /crm/login 200 in 291ms
+ GET /api/config 200 in 368ms
+ GET /api/config 200 in 335ms
+ GET /api/config 200 in 320ms
+ GET /crm/login 200 in 652ms
+ GET /crm/login 200 in 653ms
+ GET /crm/login 200 in 633ms
+ GET /crm/login 200 in 870ms
+ POST /api/clientes 404 in 132ms
+ GET /api/config 200 in 194ms
+ GET /api/config 200 in 195ms
+ GET /api/config 200 in 40ms
+ GET /api/config 200 in 213ms
+ GET /api/config 200 in 153ms
+ GET /crm/login 200 in 78ms
+ GET /api/config 200 in 156ms
+ GET /crm/login 200 in 77ms
+ GET /api/config 200 in 161ms
+ GET /api/config 200 in 111ms
+ GET /crm/login 200 in 100ms
+ POST /api/auth/admin 403 in 96ms
+ GET /api/leads 404 in 52ms
+ GET /crm/login 200 in 47ms
+ GET /crm/login 200 in 54ms
+ POST /api/clientes 404 in 101ms
+ GET /api/config 200 in 146ms
+ GET /api/config 200 in 154ms
+ GET /crm/login 200 in 69ms
+ GET /api/config 200 in 153ms
+ GET /api/config 200 in 141ms
+ GET /crm/login 200 in 162ms
+ GET /doc/00000000-0000-0000-0000-000000000000 404 in 193ms
+ GET /crm/login 200 in 72ms
+ GET /api/config 200 in 39ms
+ GET /api/config 200 in 142ms
+ GET /crm/login 200 in 60ms
+ POST /api/clientes 404 in 77ms
+ GET /api/config 200 in 366ms
+ GET /api/config 200 in 178ms
+ GET /crm/login 200 in 288ms
+ GET /crm/login 200 in 348ms
+ GET /api/config 200 in 153ms
+ GET /api/config 200 in 162ms
+ GET /crm/login 200 in 148ms
+ GET /api/config 200 in 222ms
+ GET /api/config 200 in 356ms
+ GET /crm/login 200 in 180ms
+ GET /api/config 200 in 147ms
+ GET /api/config 200 in 142ms
+ GET /api/config 200 in 215ms
+ GET /api/config 200 in 162ms
+ GET /api/config 200 in 150ms
+ GET /crm/login 200 in 130ms
+ GET / 200 in 296ms
+ GET /crm/login 200 in 180ms
+ GET /api/config 200 in 271ms
+ POST /api/sunat/preview 401 in 394ms
+ GET /api/config 200 in 324ms
+ GET /crm/login 200 in 115ms
+ GET /doc/id-invalido-000 404 in 236ms
+ GET /api/config 200 in 177ms
+ GET /crm/login 200 in 70ms
+ GET /api/config 200 in 80ms
+ GET /api/config 200 in 213ms
+ GET /crm/login 200 in 70ms
+ GET /api/config 200 in 172ms
+ GET /api/config 200 in 255ms
+ GET /api/config 200 in 95ms
+ GET / 200 in 173ms
+ GET /crm/login 200 in 201ms
+ GET /crm/login 200 in 60ms
+ GET /api/config 200 in 340ms
+ ○ Compiling /api/empresa ...
+ GET /api/config 200 in 849ms
+ ✓ Compiled /api/empresa in 1667ms (1805 modules)
+ GET /api/empresa 200 in 3419ms
+ GET /api/config 200 in 2619ms
+ GET /crm/login 200 in 2230ms
+ GET /crm/login 200 in 3277ms
+ GET /api/config 200 in 2375ms
+ GET /api/empresa 200 in 736ms
+ GET /api/config 200 in 729ms
+ GET /api/empresa 200 in 220ms
+ GET /api/config 200 in 234ms
+ GET /api/empresa 200 in 180ms
+ GET /api/config 200 in 68ms
+ GET /api/config 200 in 233ms
+ GET /crm/login 200 in 137ms
+ GET /api/config 200 in 257ms
+ GET /crm/login 200 in 359ms
+ GET /api/config 200 in 87ms
+ GET /api/config 200 in 220ms
+ GET /api/config 200 in 106ms
+ GET /crm/login 200 in 110ms
+ GET /crm/login 200 in 138ms
+ GET /api/config 200 in 148ms
+ GET /crm/login 200 in 86ms
+ GET /api/config 200 in 164ms
+ GET /crm/login 200 in 260ms
+ GET /api/config 200 in 165ms
+ GET /api/config 200 in 150ms
+ GET /crm/login 200 in 105ms
+ GET /crm/login 200 in 122ms
+ GET /api/config 200 in 57ms
+ GET /api/config 200 in 144ms
+ GET /api/config 200 in 121ms
+ GET /crm/login 200 in 94ms
+ GET /api/config 200 in 143ms
+ GET /api/config 200 in 135ms
+ GET /crm/login 200 in 41ms
+ GET /api/config 200 in 215ms
+ GET /crm/login 200 in 80ms
+ GET /api/config 200 in 92ms
+ GET /api/config 200 in 142ms
+ GET /api/config 200 in 132ms
+ GET /crm/login 200 in 53ms
+ GET /api/config 200 in 138ms
+ GET /api/config 200 in 674ms
+ GET / 200 in 435ms
+ GET /crm/login 200 in 184ms
+ GET /crm/login 200 in 281ms
+ GET /api/config 200 in 67ms
+ GET /api/config 200 in 231ms
+ GET /crm/login 200 in 94ms
+ GET /api/config 200 in 188ms
+ GET /api/config 200 in 150ms
+ GET /api/config 200 in 137ms
+ GET /crm/login 200 in 77ms
+ GET /crm/login 200 in 136ms
+ GET /api/config 200 in 153ms
+ GET / 200 in 135ms
+ GET /api/config 200 in 149ms
+ GET /crm/login 200 in 173ms
+ GET /api/config 200 in 94ms
+ GET /api/config 200 in 158ms
+ GET /api/empresa 200 in 243ms
+ GET /api/config 200 in 216ms
+ GET /api/empresa 200 in 177ms
+ GET /api/config 200 in 326ms
+ GET /api/empresa 200 in 245ms
+ GET /api/config 200 in 267ms
+ GET /api/empresa 200 in 353ms
+ GET /ruta-que-no-existe-xyz 404 in 84ms
+ GET /crm/login 200 in 48ms
+ GET / 200 in 103ms
+ GET /api/config 200 in 214ms
+ GET /api/config 200 in 281ms
+ GET /crm/login 200 in 226ms
+ GET /api/config 200 in 145ms
+ GET /api/config 200 in 130ms
+ GET / 200 in 76ms
+ GET /crm/login 200 in 68ms
+ GET /api/config 200 in 192ms
+ GET /api/config 200 in 139ms
+ GET /crm/login 200 in 47ms
+ GET /api/config 200 in 132ms
+ GET /api/config 200 in 136ms
+ GET /crm/login 200 in 32ms
+ GET /api/config 200 in 166ms
+ GET /api/config 200 in 136ms
+ GET /crm/login 200 in 71ms
+ GET /api/config 200 in 127ms
+ GET /api/config 200 in 125ms
+ GET /crm/login 200 in 69ms
+ GET /api/config 200 in 185ms
+ GET /api/config 200 in 135ms
+ GET /crm/login 200 in 61ms
+ GET /api/config 200 in 133ms
+ GET /api/config 200 in 136ms
+ GET /crm/login 200 in 74ms
+ GET /api/config 200 in 186ms
+ GET /api/config 200 in 135ms
+ GET /crm/login 200 in 78ms
+ GET /api/config 200 in 128ms
+ GET /api/config 200 in 123ms
+ GET /crm/login 200 in 59ms
+ GET /api/config 200 in 137ms
+ GET /api/config 200 in 130ms
+ GET /crm/login 200 in 51ms
+ GET /api/config 200 in 127ms
+ GET /api/config 200 in 126ms
+ GET /crm/login 200 in 59ms
+ GET /api/config 200 in 137ms
+ GET /api/config 200 in 138ms
+ GET /crm/login 200 in 72ms
+ GET /api/config 200 in 130ms
+ GET /api/config 200 in 141ms
+ GET /crm/login 200 in 64ms
+ GET /api/config 200 in 131ms
+ GET /api/config 200 in 128ms
+ GET /crm/login 200 in 50ms
+ GET /api/config 200 in 125ms
+ GET /api/config 200 in 124ms
+ GET /crm/login 200 in 41ms
+ GET /api/config 200 in 175ms
+ GET /api/config 200 in 137ms
+ GET /crm/login 200 in 45ms
+ GET /api/config 200 in 126ms
+ GET /api/config 200 in 129ms
+ GET /crm/login 200 in 64ms
+ GET /api/config 200 in 137ms
+ GET /api/config 200 in 131ms
+ GET /crm/login 200 in 33ms
+ GET /api/config 200 in 145ms
+ GET /api/config 200 in 124ms
+ GET /crm/login 200 in 74ms
+ GET /api/config 200 in 132ms
+ GET /api/config 200 in 126ms
+ GET /crm/login 200 in 59ms
+ GET /api/config 200 in 129ms
+ GET /api/config 200 in 124ms
+ GET /crm/login 200 in 76ms
+ GET /api/config 200 in 131ms
+ GET /api/config 200 in 141ms
+ GET /crm/login 200 in 54ms
+ GET /api/config 200 in 124ms
+ GET /api/config 200 in 125ms
+ GET /crm/login 200 in 62ms
+ GET /api/config 200 in 128ms
+ GET /api/config 200 in 130ms
+ GET /crm/login 200 in 51ms
+ GET /api/config 200 in 126ms
+ GET /api/config 200 in 123ms
+ GET /crm/login 200 in 41ms
+ GET /api/config 200 in 208ms
+ GET /api/config 200 in 133ms
+ GET /crm/login 200 in 63ms
+ GET /api/config 200 in 133ms
+ GET /api/config 200 in 128ms
+ ✓ Compiled in 1505ms (2354 modules)
+ ✓ Compiled in 260ms (465 modules)
+ReferenceError: document is not defined
+    at Object.get (webpack-internal:///(ssr)/./src/lib/supabase.ts:10:28)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:138:36)
+    at combineChunks (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:68:23)
+    at Object.getItem (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:136:39)
+    at getItemAsync (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:136:33)
+    at SupabaseAuthClient._recoverAndRefresh (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3831:101)
+    at SupabaseAuthClient._initialize (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:346:24)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:285:35)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2290:36)
+    at SupabaseAuthClient.lockNoOp [as lock] (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:46:18)
+    at SupabaseAuthClient._acquireLock (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2286:31)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:284:31)
+    at SupabaseAuthClient.initialize (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:287:11)
+    at new GoTrueClient (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:240:18)
+    at new SupabaseAuthClient (webpack-internal:///(ssr)/./node_modules/@supabase/supabase-js/dist/index.mjs:219:3)
+    at SupabaseClient._initSupabaseAuthClient (webpack-internal:///(ssr)/./node_modules/@supabase/supabase-js/dist/index.mjs:593:10)
+    at new SupabaseClient (webpack-internal:///(ssr)/./node_modules/@supabase/supabase-js/dist/index.mjs:441:21)
+    at createClient (webpack-internal:///(ssr)/./node_modules/@supabase/supabase-js/dist/index.mjs:647:9)
+    at createBrowserClient (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:218:87)
+    at eval (webpack-internal:///(ssr)/./src/lib/supabase.ts:7:84)
+    at (ssr)/./src/lib/supabase.ts (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\app\crm\login\page.js:182:1)
+    at __webpack_require__ (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\webpack-runtime.js:33:42)
+    at eval (webpack-internal:///(ssr)/./src/app/crm/login/page.tsx:17:71)
+    at (ssr)/./src/app/crm/login/page.tsx (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\app\crm\login\page.js:127:1)
+    at Object.__webpack_require__ [as require] (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\webpack-runtime.js:33:42)
+    at require (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:40:20064)
+    at c (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:97765)
+    at D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:113359
+    at D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:113446
+    at D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:113607
+    at D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:115358
+    at t (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:115581)
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at listOnTimeout (node:internal/timers:567:9)
+    at process.processTimers (node:internal/timers:541:7)
+ReferenceError: document is not defined
+    at Object.get (webpack-internal:///(ssr)/./src/lib/supabase.ts:10:28)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:138:36)
+    at combineChunks (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:68:23)
+    at Object.getItem (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:136:39)
+    at getItemAsync (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:136:33)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2347:98)
+    at SupabaseAuthClient._useSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2328:39)
+    at SupabaseAuthClient._emitInitialSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3430:27)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3424:22)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2290:36)
+    at SupabaseAuthClient.lockNoOp [as lock] (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:46:18)
+    at SupabaseAuthClient._acquireLock (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2286:31)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3423:24)
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at listOnTimeout (node:internal/timers:567:9)
+    at process.processTimers (node:internal/timers:541:7)
+ ⨯ src\lib\supabase.ts (9:24) @ document
+ ⨯ unhandledRejection: ReferenceError: document is not defined
+    at Object.get (webpack-internal:///(ssr)/./src/lib/supabase.ts:10:28)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:138:36)
+    at combineChunks (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:68:23)
+    at Object.getItem (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:136:39)
+    at getItemAsync (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:136:33)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2347:98)
+    at SupabaseAuthClient._useSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2328:39)
+    at SupabaseAuthClient._emitInitialSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3430:27)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3424:22)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2290:36)
+    at SupabaseAuthClient.lockNoOp [as lock] (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:46:18)
+    at SupabaseAuthClient._acquireLock (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2286:31)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3423:24)
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at listOnTimeout (node:internal/timers:567:9)
+    at process.processTimers (node:internal/timers:541:7)
+[0m [90m  7 |[39m     cookies[33m:[39m {[0m
+[0m [90m  8 |[39m       [36mget[39m(name[33m:[39m string) {[0m
+[0m[31m[1m>[22m[39m[90m  9 |[39m         [36mconst[39m cookie [33m=[39m document[33m.[39mcookie[0m
+[0m [90m    |[39m                        [31m[1m^[22m[39m[0m
+[0m [90m 10 |[39m           [33m.[39msplit([32m'; '[39m)[0m
+[0m [90m 11 |[39m           [33m.[39mfind(row [33m=>[39m row[33m.[39mstartsWith(name [33m+[39m [32m'='[39m))[0m
+[0m [90m 12 |[39m         [36mreturn[39m cookie [33m?[39m cookie[33m.[39msplit([32m'='[39m)[[35m1[39m] [33m:[39m [36mnull[39m[0m
+ ⨯ src\lib\supabase.ts (9:24) @ document
+ ⨯ unhandledRejection: ReferenceError: document is not defined
+    at Object.get (webpack-internal:///(ssr)/./src/lib/supabase.ts:10:28)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:138:36)
+    at combineChunks (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:68:23)
+    at Object.getItem (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:136:39)
+    at getItemAsync (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:136:33)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2347:98)
+    at SupabaseAuthClient._useSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2328:39)
+    at SupabaseAuthClient._emitInitialSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3430:27)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3424:22)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2290:36)
+    at SupabaseAuthClient.lockNoOp [as lock] (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:46:18)
+    at SupabaseAuthClient._acquireLock (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2286:31)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3423:24)
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at listOnTimeout (node:internal/timers:567:9)
+    at process.processTimers (node:internal/timers:541:7)
+[0m [90m  7 |[39m     cookies[33m:[39m {[0m
+[0m [90m  8 |[39m       [36mget[39m(name[33m:[39m string) {[0m
+[0m[31m[1m>[22m[39m[90m  9 |[39m         [36mconst[39m cookie [33m=[39m document[33m.[39mcookie[0m
+[0m [90m    |[39m                        [31m[1m^[22m[39m[0m
+[0m [90m 10 |[39m           [33m.[39msplit([32m'; '[39m)[0m
+[0m [90m 11 |[39m           [33m.[39mfind(row [33m=>[39m row[33m.[39mstartsWith(name [33m+[39m [32m'='[39m))[0m
+[0m [90m 12 |[39m         [36mreturn[39m cookie [33m?[39m cookie[33m.[39msplit([32m'='[39m)[[35m1[39m] [33m:[39m [36mnull[39m[0m
+ GET /crm/login 200 in 622ms
+ GET /crm/login 200 in 627ms
+ GET /crm/login 200 in 626ms
+ GET /crm/login 200 in 626ms
+ GET /crm/login 200 in 627ms
+ GET /crm/login 200 in 616ms
+ ○ Compiling /api/config ...
+ ✓ Compiled /api/config in 1609ms (1239 modules)
+ReferenceError: document is not defined
+    at Object.get (webpack-internal:///(ssr)/./src/lib/supabase.ts:10:28)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:138:36)
+    at combineChunks (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:68:23)
+    at Object.getItem (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:136:39)
+    at getItemAsync (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:136:33)
+    at SupabaseAuthClient._recoverAndRefresh (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3831:101)
+    at SupabaseAuthClient._initialize (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:346:24)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:285:35)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2290:36)
+    at SupabaseAuthClient.lockNoOp [as lock] (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:46:18)
+    at SupabaseAuthClient._acquireLock (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2286:31)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:284:31)
+    at SupabaseAuthClient.initialize (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:287:11)
+    at new GoTrueClient (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:240:18)
+    at new SupabaseAuthClient (webpack-internal:///(ssr)/./node_modules/@supabase/supabase-js/dist/index.mjs:219:3)
+    at SupabaseClient._initSupabaseAuthClient (webpack-internal:///(ssr)/./node_modules/@supabase/supabase-js/dist/index.mjs:593:10)
+    at new SupabaseClient (webpack-internal:///(ssr)/./node_modules/@supabase/supabase-js/dist/index.mjs:441:21)
+    at createClient (webpack-internal:///(ssr)/./node_modules/@supabase/supabase-js/dist/index.mjs:647:9)
+    at createBrowserClient (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:218:87)
+    at eval (webpack-internal:///(ssr)/./src/lib/supabase.ts:7:84)
+    at (ssr)/./src/lib/supabase.ts (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\app\crm\login\page.js:182:1)
+    at __webpack_require__ (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\webpack-runtime.js:33:42)
+    at eval (webpack-internal:///(ssr)/./src/app/crm/login/page.tsx:17:71)
+    at (ssr)/./src/app/crm/login/page.tsx (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\app\crm\login\page.js:127:1)
+    at Object.__webpack_require__ [as require] (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\webpack-runtime.js:33:42)
+    at require (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:40:20064)
+    at c (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:97765)
+    at D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:113359
+    at D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:113446
+    at D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:113607
+    at D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:115358
+    at t (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:115581)
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at process.processTimers (node:internal/timers:538:9)
+ReferenceError: document is not defined
+    at Object.get (webpack-internal:///(ssr)/./src/lib/supabase.ts:10:28)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:138:36)
+    at combineChunks (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:68:23)
+    at Object.getItem (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:136:39)
+    at getItemAsync (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:136:33)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2347:98)
+    at SupabaseAuthClient._useSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2328:39)
+    at SupabaseAuthClient._emitInitialSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3430:27)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3424:22)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2290:36)
+    at SupabaseAuthClient.lockNoOp [as lock] (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:46:18)
+    at SupabaseAuthClient._acquireLock (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2286:31)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3423:24)
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at process.processTimers (node:internal/timers:538:9)
+ ⨯ src\lib\supabase.ts (9:24) @ document
+ ⨯ unhandledRejection: ReferenceError: document is not defined
+    at Object.get (webpack-internal:///(ssr)/./src/lib/supabase.ts:10:28)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:138:36)
+    at combineChunks (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:68:23)
+    at Object.getItem (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:136:39)
+    at getItemAsync (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:136:33)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2347:98)
+    at SupabaseAuthClient._useSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2328:39)
+    at SupabaseAuthClient._emitInitialSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3430:27)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3424:22)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2290:36)
+    at SupabaseAuthClient.lockNoOp [as lock] (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:46:18)
+    at SupabaseAuthClient._acquireLock (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2286:31)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3423:24)
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at process.processTimers (node:internal/timers:538:9)
+[0m [90m  7 |[39m     cookies[33m:[39m {[0m
+[0m [90m  8 |[39m       [36mget[39m(name[33m:[39m string) {[0m
+[0m[31m[1m>[22m[39m[90m  9 |[39m         [36mconst[39m cookie [33m=[39m document[33m.[39mcookie[0m
+[0m [90m    |[39m                        [31m[1m^[22m[39m[0m
+[0m [90m 10 |[39m           [33m.[39msplit([32m'; '[39m)[0m
+[0m [90m 11 |[39m           [33m.[39mfind(row [33m=>[39m row[33m.[39mstartsWith(name [33m+[39m [32m'='[39m))[0m
+[0m [90m 12 |[39m         [36mreturn[39m cookie [33m?[39m cookie[33m.[39msplit([32m'='[39m)[[35m1[39m] [33m:[39m [36mnull[39m[0m
+ ⨯ src\lib\supabase.ts (9:24) @ document
+ ⨯ unhandledRejection: ReferenceError: document is not defined
+    at Object.get (webpack-internal:///(ssr)/./src/lib/supabase.ts:10:28)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:138:36)
+    at combineChunks (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:68:23)
+    at Object.getItem (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:136:39)
+    at getItemAsync (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:136:33)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2347:98)
+    at SupabaseAuthClient._useSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2328:39)
+    at SupabaseAuthClient._emitInitialSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3430:27)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3424:22)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2290:36)
+    at SupabaseAuthClient.lockNoOp [as lock] (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:46:18)
+    at SupabaseAuthClient._acquireLock (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2286:31)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3423:24)
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at process.processTimers (node:internal/timers:538:9)
+[0m [90m  7 |[39m     cookies[33m:[39m {[0m
+[0m [90m  8 |[39m       [36mget[39m(name[33m:[39m string) {[0m
+[0m[31m[1m>[22m[39m[90m  9 |[39m         [36mconst[39m cookie [33m=[39m document[33m.[39mcookie[0m
+[0m [90m    |[39m                        [31m[1m^[22m[39m[0m
+[0m [90m 10 |[39m           [33m.[39msplit([32m'; '[39m)[0m
+[0m [90m 11 |[39m           [33m.[39mfind(row [33m=>[39m row[33m.[39mstartsWith(name [33m+[39m [32m'='[39m))[0m
+[0m [90m 12 |[39m         [36mreturn[39m cookie [33m?[39m cookie[33m.[39msplit([32m'='[39m)[[35m1[39m] [33m:[39m [36mnull[39m[0m
+ GET /api/config 200 in 2246ms
+ GET /api/config 200 in 1968ms
+ GET /api/config 200 in 1978ms
+ GET /crm/login 200 in 787ms
+ GET /crm/login 200 in 805ms
+ GET /crm/login 200 in 809ms
+ GET /crm/login 200 in 793ms
+ GET /api/config 200 in 2616ms
+ GET /crm/login 200 in 763ms
+ GET /api/config 200 in 131ms
+ GET /api/config 200 in 133ms
+ GET /api/config 200 in 249ms
+ GET /api/config 200 in 166ms
+ GET /crm/login 200 in 139ms
+ ○ Compiling /api/sunat/preview ...
+ ✓ Compiled /api/sunat/preview in 1662ms (1789 modules)
+ReferenceError: document is not defined
+    at Object.get (webpack-internal:///(rsc)/./src/lib/supabase.ts:10:28)
+    at eval (webpack-internal:///(rsc)/./node_modules/@supabase/ssr/dist/index.mjs:138:36)
+    at combineChunks (webpack-internal:///(rsc)/./node_modules/@supabase/ssr/dist/index.mjs:68:23)
+    at Object.getItem (webpack-internal:///(rsc)/./node_modules/@supabase/ssr/dist/index.mjs:136:39)
+    at getItemAsync (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:136:33)
+    at SupabaseAuthClient._recoverAndRefresh (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3831:101)
+    at SupabaseAuthClient._initialize (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:346:24)
+    at eval (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:285:35)
+    at eval (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2290:36)
+    at SupabaseAuthClient.lockNoOp [as lock] (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:46:18)
+    at SupabaseAuthClient._acquireLock (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2286:31)
+    at eval (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:284:31)
+    at SupabaseAuthClient.initialize (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:287:11)
+    at new GoTrueClient (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:240:18)
+    at new SupabaseAuthClient (webpack-internal:///(rsc)/./node_modules/@supabase/supabase-js/dist/index.mjs:219:3)
+    at SupabaseClient._initSupabaseAuthClient (webpack-internal:///(rsc)/./node_modules/@supabase/supabase-js/dist/index.mjs:593:10)
+    at new SupabaseClient (webpack-internal:///(rsc)/./node_modules/@supabase/supabase-js/dist/index.mjs:441:21)
+    at createClient (webpack-internal:///(rsc)/./node_modules/@supabase/supabase-js/dist/index.mjs:647:9)
+    at createBrowserClient (webpack-internal:///(rsc)/./node_modules/@supabase/ssr/dist/index.mjs:218:87)
+    at eval (webpack-internal:///(rsc)/./src/lib/supabase.ts:7:84)
+    at (rsc)/./src/lib/supabase.ts (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\app\api\sunat\preview\route.js:192:1)
+    at __webpack_require__ (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\webpack-runtime.js:33:42)
+    at eval (webpack-internal:///(rsc)/./src/app/api/sunat/preview/route.ts:6:71)
+    at (rsc)/./src/app/api/sunat/preview/route.ts (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\app\api\sunat\preview\route.js:132:1)
+    at __webpack_require__ (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\webpack-runtime.js:33:42)
+    at eval (webpack-internal:///(rsc)/./node_modules/next/dist/build/webpack/loaders/next-app-loader.js?name=app%2Fapi%2Fsunat%2Fpreview%2Froute&page=%2Fapi%2Fsunat%2Fpreview%2Froute&appPaths=&pagePath=private-next-app-dir%2Fapi%2Fsunat%2Fpreview%2Froute.ts&appDir=D%3A%5Cproyectos_opencode%5Cprojects%5CMaqui-Mary%5Cweb%5Csrc%5Capp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=D%3A%5Cproyectos_opencode%5Cprojects%5CMaqui-Mary%5Cweb&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D!:15:137)
+    at (rsc)/./node_modules/next/dist/build/webpack/loaders/next-app-loader.js?name=app%2Fapi%2Fsunat%2Fpreview%2Froute&page=%2Fapi%2Fsunat%2Fpreview%2Froute&appPaths=&pagePath=private-next-app-dir%2Fapi%2Fsunat%2Fpreview%2Froute.ts&appDir=D%3A%5Cproyectos_opencode%5Cprojects%5CMaqui-Mary%5Cweb%5Csrc%5Capp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=D%3A%5Cproyectos_opencode%5Cprojects%5CMaqui-Mary%5Cweb&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D! (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\app\api\sunat\preview\route.js:122:1)
+    at __webpack_require__ (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\webpack-runtime.js:33:42)
+    at __webpack_exec__ (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\app\api\sunat\preview\route.js:202:39)
+    at D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\app\api\sunat\preview\route.js:203:677
+    at __webpack_require__.X (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\webpack-runtime.js:168:21)
+    at D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\app\api\sunat\preview\route.js:203:47
+    at Object.<anonymous> (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\app\api\sunat\preview\route.js:206:3)
+    at Module._compile (node:internal/modules/cjs/loader:1830:14)
+    at Object..js (node:internal/modules/cjs/loader:1961:10)
+    at Module.load (node:internal/modules/cjs/loader:1553:32)
+    at Module._load (node:internal/modules/cjs/loader:1355:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1576:12)
+    at mod.require (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\server\require-hook.js:65:28)
+    at require (node:internal/modules/helpers:153:16)
+    at requirePage (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\server\require.js:109:84)
+    at D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\server\load-components.js:103:84
+    at async loadComponentsImpl (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\server\load-components.js:103:26)
+    at async DevServer.findPageComponentsImpl (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\server\next-server.js:714:36)
+    at async DevServer.findPageComponents (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\server\dev\next-dev-server.js:577:20)
+    at async DevServer.renderPageComponent (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\server\base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\server\base-server.js:1962:32)
+    at async DevServer.pipeImpl (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\server\base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\server\next-server.js:272:17)
+ POST /api/sunat/preview 401 in 2740ms
+ReferenceError: document is not defined
+    at Object.get (webpack-internal:///(rsc)/./src/lib/supabase.ts:10:28)
+    at eval (webpack-internal:///(rsc)/./node_modules/@supabase/ssr/dist/index.mjs:138:36)
+    at combineChunks (webpack-internal:///(rsc)/./node_modules/@supabase/ssr/dist/index.mjs:68:23)
+    at Object.getItem (webpack-internal:///(rsc)/./node_modules/@supabase/ssr/dist/index.mjs:136:39)
+    at getItemAsync (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:136:33)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2347:98)
+    at SupabaseAuthClient._useSession (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2328:39)
+    at SupabaseAuthClient._emitInitialSession (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3430:27)
+    at eval (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3424:22)
+    at eval (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2290:36)
+    at SupabaseAuthClient.lockNoOp [as lock] (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:46:18)
+    at SupabaseAuthClient._acquireLock (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2286:31)
+    at eval (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3423:24)
+ ⨯ src\lib\supabase.ts (9:24) @ document
+ ⨯ unhandledRejection: ReferenceError: document is not defined
+    at Object.get (webpack-internal:///(rsc)/./src/lib/supabase.ts:10:28)
+    at eval (webpack-internal:///(rsc)/./node_modules/@supabase/ssr/dist/index.mjs:138:36)
+    at combineChunks (webpack-internal:///(rsc)/./node_modules/@supabase/ssr/dist/index.mjs:68:23)
+    at Object.getItem (webpack-internal:///(rsc)/./node_modules/@supabase/ssr/dist/index.mjs:136:39)
+    at getItemAsync (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:136:33)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2347:98)
+    at SupabaseAuthClient._useSession (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2328:39)
+    at SupabaseAuthClient._emitInitialSession (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3430:27)
+    at eval (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3424:22)
+    at eval (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2290:36)
+    at SupabaseAuthClient.lockNoOp [as lock] (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:46:18)
+    at SupabaseAuthClient._acquireLock (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2286:31)
+    at eval (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3423:24)
+[0m [90m  7 |[39m     cookies[33m:[39m {[0m
+[0m [90m  8 |[39m       [36mget[39m(name[33m:[39m string) {[0m
+[0m[31m[1m>[22m[39m[90m  9 |[39m         [36mconst[39m cookie [33m=[39m document[33m.[39mcookie[0m
+[0m [90m    |[39m                        [31m[1m^[22m[39m[0m
+[0m [90m 10 |[39m           [33m.[39msplit([32m'; '[39m)[0m
+[0m [90m 11 |[39m           [33m.[39mfind(row [33m=>[39m row[33m.[39mstartsWith(name [33m+[39m [32m'='[39m))[0m
+[0m [90m 12 |[39m         [36mreturn[39m cookie [33m?[39m cookie[33m.[39msplit([32m'='[39m)[[35m1[39m] [33m:[39m [36mnull[39m[0m
+ ⨯ src\lib\supabase.ts (9:24) @ document
+ ⨯ unhandledRejection: ReferenceError: document is not defined
+    at Object.get (webpack-internal:///(rsc)/./src/lib/supabase.ts:10:28)
+    at eval (webpack-internal:///(rsc)/./node_modules/@supabase/ssr/dist/index.mjs:138:36)
+    at combineChunks (webpack-internal:///(rsc)/./node_modules/@supabase/ssr/dist/index.mjs:68:23)
+    at Object.getItem (webpack-internal:///(rsc)/./node_modules/@supabase/ssr/dist/index.mjs:136:39)
+    at getItemAsync (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:136:33)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2347:98)
+    at SupabaseAuthClient._useSession (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2328:39)
+    at SupabaseAuthClient._emitInitialSession (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3430:27)
+    at eval (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3424:22)
+    at eval (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2290:36)
+    at SupabaseAuthClient.lockNoOp [as lock] (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:46:18)
+    at SupabaseAuthClient._acquireLock (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2286:31)
+    at eval (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3423:24)
+[0m [90m  7 |[39m     cookies[33m:[39m {[0m
+[0m [90m  8 |[39m       [36mget[39m(name[33m:[39m string) {[0m
+[0m[31m[1m>[22m[39m[90m  9 |[39m         [36mconst[39m cookie [33m=[39m document[33m.[39mcookie[0m
+[0m [90m    |[39m                        [31m[1m^[22m[39m[0m
+[0m [90m 10 |[39m           [33m.[39msplit([32m'; '[39m)[0m
+[0m [90m 11 |[39m           [33m.[39mfind(row [33m=>[39m row[33m.[39mstartsWith(name [33m+[39m [32m'='[39m))[0m
+[0m [90m 12 |[39m         [36mreturn[39m cookie [33m?[39m cookie[33m.[39msplit([32m'='[39m)[[35m1[39m] [33m:[39m [36mnull[39m[0m
+ReferenceError: document is not defined
+    at Object.get (webpack-internal:///(ssr)/./src/lib/supabase.ts:10:28)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:138:36)
+    at combineChunks (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:68:23)
+    at Object.getItem (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:136:39)
+    at getItemAsync (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:136:33)
+    at SupabaseAuthClient._recoverAndRefresh (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3831:101)
+    at SupabaseAuthClient._initialize (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:346:24)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:285:35)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2290:36)
+    at SupabaseAuthClient.lockNoOp [as lock] (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:46:18)
+    at SupabaseAuthClient._acquireLock (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2286:31)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:284:31)
+    at SupabaseAuthClient.initialize (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:287:11)
+    at new GoTrueClient (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:240:18)
+    at new SupabaseAuthClient (webpack-internal:///(ssr)/./node_modules/@supabase/supabase-js/dist/index.mjs:219:3)
+    at SupabaseClient._initSupabaseAuthClient (webpack-internal:///(ssr)/./node_modules/@supabase/supabase-js/dist/index.mjs:593:10)
+    at new SupabaseClient (webpack-internal:///(ssr)/./node_modules/@supabase/supabase-js/dist/index.mjs:441:21)
+    at createClient (webpack-internal:///(ssr)/./node_modules/@supabase/supabase-js/dist/index.mjs:647:9)
+    at createBrowserClient (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:218:87)
+    at eval (webpack-internal:///(ssr)/./src/lib/supabase.ts:7:84)
+    at (ssr)/./src/lib/supabase.ts (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\app\crm\login\page.js:182:1)
+    at __webpack_require__ (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\webpack-runtime.js:33:42)
+    at eval (webpack-internal:///(ssr)/./src/app/crm/login/page.tsx:17:71)
+    at (ssr)/./src/app/crm/login/page.tsx (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\app\crm\login\page.js:127:1)
+    at Object.__webpack_require__ [as require] (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\webpack-runtime.js:33:42)
+    at require (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:40:20064)
+    at c (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:97765)
+    at D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:113359
+    at D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:113446
+    at D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:113607
+    at D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:115358
+    at t (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:115581)
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at listOnTimeout (node:internal/timers:567:9)
+    at process.processTimers (node:internal/timers:541:7)
+ReferenceError: document is not defined
+    at Object.get (webpack-internal:///(ssr)/./src/lib/supabase.ts:10:28)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:138:36)
+    at combineChunks (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:68:23)
+    at Object.getItem (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:136:39)
+    at getItemAsync (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:136:33)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2347:98)
+    at SupabaseAuthClient._useSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2328:39)
+    at SupabaseAuthClient._emitInitialSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3430:27)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3424:22)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2290:36)
+    at SupabaseAuthClient.lockNoOp [as lock] (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:46:18)
+    at SupabaseAuthClient._acquireLock (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2286:31)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3423:24)
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at listOnTimeout (node:internal/timers:567:9)
+    at process.processTimers (node:internal/timers:541:7)
+ ⨯ src\lib\supabase.ts (9:24) @ document
+ ⨯ unhandledRejection: ReferenceError: document is not defined
+    at Object.get (webpack-internal:///(ssr)/./src/lib/supabase.ts:10:28)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:138:36)
+    at combineChunks (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:68:23)
+    at Object.getItem (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:136:39)
+    at getItemAsync (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:136:33)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2347:98)
+    at SupabaseAuthClient._useSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2328:39)
+    at SupabaseAuthClient._emitInitialSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3430:27)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3424:22)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2290:36)
+    at SupabaseAuthClient.lockNoOp [as lock] (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:46:18)
+    at SupabaseAuthClient._acquireLock (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2286:31)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3423:24)
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at listOnTimeout (node:internal/timers:567:9)
+    at process.processTimers (node:internal/timers:541:7)
+[0m [90m  7 |[39m     cookies[33m:[39m {[0m
+[0m [90m  8 |[39m       [36mget[39m(name[33m:[39m string) {[0m
+[0m[31m[1m>[22m[39m[90m  9 |[39m         [36mconst[39m cookie [33m=[39m document[33m.[39mcookie[0m
+[0m [90m    |[39m                        [31m[1m^[22m[39m[0m
+[0m [90m 10 |[39m           [33m.[39msplit([32m'; '[39m)[0m
+[0m [90m 11 |[39m           [33m.[39mfind(row [33m=>[39m row[33m.[39mstartsWith(name [33m+[39m [32m'='[39m))[0m
+[0m [90m 12 |[39m         [36mreturn[39m cookie [33m?[39m cookie[33m.[39msplit([32m'='[39m)[[35m1[39m] [33m:[39m [36mnull[39m[0m
+ ⨯ src\lib\supabase.ts (9:24) @ document
+ ⨯ unhandledRejection: ReferenceError: document is not defined
+    at Object.get (webpack-internal:///(ssr)/./src/lib/supabase.ts:10:28)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:138:36)
+    at combineChunks (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:68:23)
+    at Object.getItem (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:136:39)
+    at getItemAsync (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:136:33)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2347:98)
+    at SupabaseAuthClient._useSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2328:39)
+    at SupabaseAuthClient._emitInitialSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3430:27)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3424:22)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2290:36)
+    at SupabaseAuthClient.lockNoOp [as lock] (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:46:18)
+    at SupabaseAuthClient._acquireLock (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2286:31)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3423:24)
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at listOnTimeout (node:internal/timers:567:9)
+    at process.processTimers (node:internal/timers:541:7)
+[0m [90m  7 |[39m     cookies[33m:[39m {[0m
+[0m [90m  8 |[39m       [36mget[39m(name[33m:[39m string) {[0m
+[0m[31m[1m>[22m[39m[90m  9 |[39m         [36mconst[39m cookie [33m=[39m document[33m.[39mcookie[0m
+[0m [90m    |[39m                        [31m[1m^[22m[39m[0m
+[0m [90m 10 |[39m           [33m.[39msplit([32m'; '[39m)[0m
+[0m [90m 11 |[39m           [33m.[39mfind(row [33m=>[39m row[33m.[39mstartsWith(name [33m+[39m [32m'='[39m))[0m
+[0m [90m 12 |[39m         [36mreturn[39m cookie [33m?[39m cookie[33m.[39msplit([32m'='[39m)[[35m1[39m] [33m:[39m [36mnull[39m[0m
+ GET /crm/login 200 in 1755ms
+ GET /crm/login 200 in 1206ms
+ GET /crm/login 200 in 2811ms
+ GET /api/config 200 in 350ms
+ GET /crm/login 200 in 669ms
+ GET /crm/login 200 in 670ms
+ GET /crm/login 200 in 823ms
+ GET /api/config 200 in 138ms
+ GET /api/config 200 in 178ms
+ GET /api/config 200 in 395ms
+ GET /api/config 200 in 414ms
+ GET /api/config 200 in 363ms
+ GET /api/config 200 in 528ms
+ GET /crm/login 200 in 243ms
+ GET /api/config 200 in 336ms
+ GET /api/config 200 in 319ms
+ GET /api/config 200 in 353ms
+ GET /crm/login 200 in 741ms
+ GET /api/config 200 in 404ms
+ GET /crm/login 200 in 408ms
+ GET /crm/login 200 in 159ms
+ GET /crm/login 200 in 330ms
+ GET /api/config 200 in 273ms
+ GET /api/config 200 in 325ms
+ GET /api/config 200 in 241ms
+ GET /crm/login 200 in 286ms
+ GET /api/config 200 in 269ms
+ GET /api/config 200 in 241ms
+ GET /api/config 200 in 196ms
+ GET /api/config 200 in 56ms
+ GET /crm/login 200 in 109ms
+ GET /crm/login 200 in 294ms
+ GET /crm/login 200 in 378ms
+ GET /crm/login 200 in 458ms
+ GET /crm/login 200 in 196ms
+ GET /api/config 200 in 378ms
+ GET /api/config 200 in 676ms
+ GET /api/config 200 in 368ms
+ GET /api/config 200 in 410ms
+ GET /crm/login 200 in 413ms
+ GET /crm/login 200 in 413ms
+ GET /crm/login 200 in 645ms
+ ○ Compiling /api/auth/admin ...
+ ✓ Compiled /api/auth/admin in 1336ms (1791 modules)
+ POST /api/auth/admin 403 in 2030ms
+ReferenceError: document is not defined
+    at Object.get (webpack-internal:///(ssr)/./src/lib/supabase.ts:10:28)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:138:36)
+    at combineChunks (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:68:23)
+    at Object.getItem (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:136:39)
+    at getItemAsync (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:136:33)
+    at SupabaseAuthClient._recoverAndRefresh (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3831:101)
+    at SupabaseAuthClient._initialize (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:346:24)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:285:35)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2290:36)
+    at SupabaseAuthClient.lockNoOp [as lock] (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:46:18)
+    at SupabaseAuthClient._acquireLock (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2286:31)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:284:31)
+    at SupabaseAuthClient.initialize (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:287:11)
+    at new GoTrueClient (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:240:18)
+    at new SupabaseAuthClient (webpack-internal:///(ssr)/./node_modules/@supabase/supabase-js/dist/index.mjs:219:3)
+    at SupabaseClient._initSupabaseAuthClient (webpack-internal:///(ssr)/./node_modules/@supabase/supabase-js/dist/index.mjs:593:10)
+    at new SupabaseClient (webpack-internal:///(ssr)/./node_modules/@supabase/supabase-js/dist/index.mjs:441:21)
+    at createClient (webpack-internal:///(ssr)/./node_modules/@supabase/supabase-js/dist/index.mjs:647:9)
+    at createBrowserClient (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:218:87)
+    at eval (webpack-internal:///(ssr)/./src/lib/supabase.ts:7:84)
+    at (ssr)/./src/lib/supabase.ts (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\app\crm\login\page.js:182:1)
+    at __webpack_require__ (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\webpack-runtime.js:33:42)
+    at eval (webpack-internal:///(ssr)/./src/app/crm/login/page.tsx:17:71)
+    at (ssr)/./src/app/crm/login/page.tsx (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\app\crm\login\page.js:127:1)
+    at Object.__webpack_require__ [as require] (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\webpack-runtime.js:33:42)
+    at require (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:40:20064)
+    at c (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:97765)
+    at D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:113359
+    at D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:113446
+    at D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:113607
+    at D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:115358
+    at t (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:115581)
+ReferenceError: document is not defined
+    at Object.get (webpack-internal:///(ssr)/./src/lib/supabase.ts:10:28)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:138:36)
+    at combineChunks (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:68:23)
+    at Object.getItem (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:136:39)
+    at getItemAsync (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:136:33)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2347:98)
+    at SupabaseAuthClient._useSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2328:39)
+    at SupabaseAuthClient._emitInitialSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3430:27)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3424:22)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2290:36)
+    at SupabaseAuthClient.lockNoOp [as lock] (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:46:18)
+    at SupabaseAuthClient._acquireLock (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2286:31)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3423:24)
+ ⨯ src\lib\supabase.ts (9:24) @ document
+ ⨯ unhandledRejection: ReferenceError: document is not defined
+    at Object.get (webpack-internal:///(ssr)/./src/lib/supabase.ts:10:28)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:138:36)
+    at combineChunks (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:68:23)
+    at Object.getItem (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:136:39)
+    at getItemAsync (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:136:33)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2347:98)
+    at SupabaseAuthClient._useSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2328:39)
+    at SupabaseAuthClient._emitInitialSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3430:27)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3424:22)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2290:36)
+    at SupabaseAuthClient.lockNoOp [as lock] (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:46:18)
+    at SupabaseAuthClient._acquireLock (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2286:31)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3423:24)
+[0m [90m  7 |[39m     cookies[33m:[39m {[0m
+[0m [90m  8 |[39m       [36mget[39m(name[33m:[39m string) {[0m
+[0m[31m[1m>[22m[39m[90m  9 |[39m         [36mconst[39m cookie [33m=[39m document[33m.[39mcookie[0m
+[0m [90m    |[39m                        [31m[1m^[22m[39m[0m
+[0m [90m 10 |[39m           [33m.[39msplit([32m'; '[39m)[0m
+[0m [90m 11 |[39m           [33m.[39mfind(row [33m=>[39m row[33m.[39mstartsWith(name [33m+[39m [32m'='[39m))[0m
+[0m [90m 12 |[39m         [36mreturn[39m cookie [33m?[39m cookie[33m.[39msplit([32m'='[39m)[[35m1[39m] [33m:[39m [36mnull[39m[0m
+ ⨯ src\lib\supabase.ts (9:24) @ document
+ ⨯ unhandledRejection: ReferenceError: document is not defined
+    at Object.get (webpack-internal:///(ssr)/./src/lib/supabase.ts:10:28)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:138:36)
+    at combineChunks (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:68:23)
+    at Object.getItem (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:136:39)
+    at getItemAsync (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:136:33)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2347:98)
+    at SupabaseAuthClient._useSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2328:39)
+    at SupabaseAuthClient._emitInitialSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3430:27)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3424:22)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2290:36)
+    at SupabaseAuthClient.lockNoOp [as lock] (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:46:18)
+    at SupabaseAuthClient._acquireLock (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2286:31)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3423:24)
+[0m [90m  7 |[39m     cookies[33m:[39m {[0m
+[0m [90m  8 |[39m       [36mget[39m(name[33m:[39m string) {[0m
+[0m[31m[1m>[22m[39m[90m  9 |[39m         [36mconst[39m cookie [33m=[39m document[33m.[39mcookie[0m
+[0m [90m    |[39m                        [31m[1m^[22m[39m[0m
+[0m [90m 10 |[39m           [33m.[39msplit([32m'; '[39m)[0m
+[0m [90m 11 |[39m           [33m.[39mfind(row [33m=>[39m row[33m.[39mstartsWith(name [33m+[39m [32m'='[39m))[0m
+[0m [90m 12 |[39m         [36mreturn[39m cookie [33m?[39m cookie[33m.[39msplit([32m'='[39m)[[35m1[39m] [33m:[39m [36mnull[39m[0m
+ GET /api/config 200 in 1580ms
+ GET /crm/login 200 in 2108ms
+ GET /crm/login 200 in 276ms
+ GET /api/config 200 in 329ms
+ GET /api/config 200 in 479ms
+ GET /crm/login 200 in 539ms
+ GET /api/config 200 in 374ms
+ ✓ Compiled /_not-found in 470ms (1793 modules)
+ReferenceError: document is not defined
+    at Object.get (webpack-internal:///(ssr)/./src/lib/supabase.ts:10:28)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:138:36)
+    at combineChunks (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:68:23)
+    at Object.getItem (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:136:39)
+    at getItemAsync (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:136:33)
+    at SupabaseAuthClient._recoverAndRefresh (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3831:101)
+    at SupabaseAuthClient._initialize (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:346:24)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:285:35)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2290:36)
+    at SupabaseAuthClient.lockNoOp [as lock] (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:46:18)
+    at SupabaseAuthClient._acquireLock (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2286:31)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:284:31)
+    at SupabaseAuthClient.initialize (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:287:11)
+    at new GoTrueClient (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:240:18)
+    at new SupabaseAuthClient (webpack-internal:///(ssr)/./node_modules/@supabase/supabase-js/dist/index.mjs:219:3)
+    at SupabaseClient._initSupabaseAuthClient (webpack-internal:///(ssr)/./node_modules/@supabase/supabase-js/dist/index.mjs:593:10)
+    at new SupabaseClient (webpack-internal:///(ssr)/./node_modules/@supabase/supabase-js/dist/index.mjs:441:21)
+    at createClient (webpack-internal:///(ssr)/./node_modules/@supabase/supabase-js/dist/index.mjs:647:9)
+    at createBrowserClient (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:218:87)
+    at eval (webpack-internal:///(ssr)/./src/lib/supabase.ts:7:84)
+    at (ssr)/./src/lib/supabase.ts (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\app\_not-found\page.js:160:1)
+    at __webpack_require__ (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\webpack-runtime.js:33:42)
+    at eval (webpack-internal:///(ssr)/./src/context/AppContext.tsx:10:71)
+    at (ssr)/./src/context/AppContext.tsx (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\app\_not-found\page.js:149:1)
+    at Object.__webpack_require__ [as require] (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\webpack-runtime.js:33:42)
+    at require (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:40:20064)
+    at D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:108376
+    at ea (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:108583)
+    at K (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:107133)
+    at nY (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:12:56632)
+    at a_ (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:47501)
+    at aj (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:53793)
+    at D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:42336
+    at aw (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:42822)
+    at a_ (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:49776)
+    at aj (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:53793)
+    at aC (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:52874)
+    at a_ (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:50095)
+    ... collapsed 7 duplicate lines matching above lines ...
+    at aj (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:53793)
+    at aC (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:52874)
+    at a_ (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:50095)
+    at aj (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:53793)
+    at aC (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:52874)
+ReferenceError: document is not defined
+    at Object.get (webpack-internal:///(ssr)/./src/lib/supabase.ts:10:28)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:138:36)
+    at combineChunks (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:68:23)
+    at Object.getItem (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:136:39)
+    at getItemAsync (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:136:33)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2347:98)
+    at SupabaseAuthClient._useSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2328:39)
+    at SupabaseAuthClient._emitInitialSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3430:27)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3424:22)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2290:36)
+    at SupabaseAuthClient.lockNoOp [as lock] (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:46:18)
+    at SupabaseAuthClient._acquireLock (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2286:31)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3423:24)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at runNextTicks (node:internal/process/task_queues:69:3)
+    at listOnTimeout (node:internal/timers:567:9)
+    at process.processTimers (node:internal/timers:541:7)
+ ⨯ src\lib\supabase.ts (9:24) @ document
+ ⨯ unhandledRejection: ReferenceError: document is not defined
+    at Object.get (webpack-internal:///(ssr)/./src/lib/supabase.ts:10:28)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:138:36)
+    at combineChunks (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:68:23)
+    at Object.getItem (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:136:39)
+    at getItemAsync (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:136:33)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2347:98)
+    at SupabaseAuthClient._useSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2328:39)
+    at SupabaseAuthClient._emitInitialSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3430:27)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3424:22)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2290:36)
+    at SupabaseAuthClient.lockNoOp [as lock] (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:46:18)
+    at SupabaseAuthClient._acquireLock (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2286:31)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3423:24)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at runNextTicks (node:internal/process/task_queues:69:3)
+    at listOnTimeout (node:internal/timers:567:9)
+    at process.processTimers (node:internal/timers:541:7)
+[0m [90m  7 |[39m     cookies[33m:[39m {[0m
+[0m [90m  8 |[39m       [36mget[39m(name[33m:[39m string) {[0m
+[0m[31m[1m>[22m[39m[90m  9 |[39m         [36mconst[39m cookie [33m=[39m document[33m.[39mcookie[0m
+[0m [90m    |[39m                        [31m[1m^[22m[39m[0m
+[0m [90m 10 |[39m           [33m.[39msplit([32m'; '[39m)[0m
+[0m [90m 11 |[39m           [33m.[39mfind(row [33m=>[39m row[33m.[39mstartsWith(name [33m+[39m [32m'='[39m))[0m
+[0m [90m 12 |[39m         [36mreturn[39m cookie [33m?[39m cookie[33m.[39msplit([32m'='[39m)[[35m1[39m] [33m:[39m [36mnull[39m[0m
+ ⨯ src\lib\supabase.ts (9:24) @ document
+ ⨯ unhandledRejection: ReferenceError: document is not defined
+    at Object.get (webpack-internal:///(ssr)/./src/lib/supabase.ts:10:28)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:138:36)
+    at combineChunks (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:68:23)
+    at Object.getItem (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:136:39)
+    at getItemAsync (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:136:33)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2347:98)
+    at SupabaseAuthClient._useSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2328:39)
+    at SupabaseAuthClient._emitInitialSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3430:27)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3424:22)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2290:36)
+    at SupabaseAuthClient.lockNoOp [as lock] (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:46:18)
+    at SupabaseAuthClient._acquireLock (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2286:31)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3423:24)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at runNextTicks (node:internal/process/task_queues:69:3)
+    at listOnTimeout (node:internal/timers:567:9)
+    at process.processTimers (node:internal/timers:541:7)
+[0m [90m  7 |[39m     cookies[33m:[39m {[0m
+[0m [90m  8 |[39m       [36mget[39m(name[33m:[39m string) {[0m
+[0m[31m[1m>[22m[39m[90m  9 |[39m         [36mconst[39m cookie [33m=[39m document[33m.[39mcookie[0m
+[0m [90m    |[39m                        [31m[1m^[22m[39m[0m
+[0m [90m 10 |[39m           [33m.[39msplit([32m'; '[39m)[0m
+[0m [90m 11 |[39m           [33m.[39mfind(row [33m=>[39m row[33m.[39mstartsWith(name [33m+[39m [32m'='[39m))[0m
+[0m [90m 12 |[39m         [36mreturn[39m cookie [33m?[39m cookie[33m.[39msplit([32m'='[39m)[[35m1[39m] [33m:[39m [36mnull[39m[0m
+ GET /api/config 200 in 978ms
+ POST /api/clientes 404 in 978ms
+ GET /crm/login 200 in 804ms
+ GET /api/config 200 in 938ms
+ GET /api/config 200 in 391ms
+ GET /api/config 200 in 310ms
+ ○ Compiling /doc/[id] ...
+ ✓ Compiled /doc/[id] in 878ms (1803 modules)
+ReferenceError: document is not defined
+    at Object.get (webpack-internal:///(ssr)/./src/lib/supabase.ts:10:28)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:138:36)
+    at combineChunks (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:68:23)
+    at Object.getItem (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:136:39)
+    at getItemAsync (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:136:33)
+    at SupabaseAuthClient._recoverAndRefresh (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3831:101)
+    at SupabaseAuthClient._initialize (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:346:24)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:285:35)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2290:36)
+    at SupabaseAuthClient.lockNoOp [as lock] (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:46:18)
+    at SupabaseAuthClient._acquireLock (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2286:31)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:284:31)
+    at SupabaseAuthClient.initialize (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:287:11)
+    at new GoTrueClient (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:240:18)
+    at new SupabaseAuthClient (webpack-internal:///(ssr)/./node_modules/@supabase/supabase-js/dist/index.mjs:219:3)
+    at SupabaseClient._initSupabaseAuthClient (webpack-internal:///(ssr)/./node_modules/@supabase/supabase-js/dist/index.mjs:593:10)
+    at new SupabaseClient (webpack-internal:///(ssr)/./node_modules/@supabase/supabase-js/dist/index.mjs:441:21)
+    at createClient (webpack-internal:///(ssr)/./node_modules/@supabase/supabase-js/dist/index.mjs:647:9)
+    at createBrowserClient (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:218:87)
+    at eval (webpack-internal:///(ssr)/./src/lib/supabase.ts:7:84)
+    at (ssr)/./src/lib/supabase.ts (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\app\_not-found\page.js:160:1)
+    at __webpack_require__ (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\webpack-runtime.js:33:42)
+    at eval (webpack-internal:///(ssr)/./src/context/AppContext.tsx:10:71)
+    at (ssr)/./src/context/AppContext.tsx (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\app\_not-found\page.js:149:1)
+    at Object.__webpack_require__ [as require] (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\webpack-runtime.js:33:42)
+    at require (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:40:20064)
+    at D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:108376
+    at ea (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:108583)
+    at K (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:107133)
+    at nY (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:12:56632)
+    at a_ (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:47501)
+    at aj (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:53793)
+    at D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:42336
+    at aw (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:42822)
+    at a_ (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:49776)
+    at aj (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:53793)
+    at aC (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:52874)
+    at a_ (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:50095)
+    ... collapsed 7 duplicate lines matching above lines ...
+    at aj (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:53793)
+    at aC (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:52874)
+    at a_ (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:50095)
+    at aj (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:53793)
+    at aC (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:52874)
+ReferenceError: document is not defined
+    at Object.get (webpack-internal:///(ssr)/./src/lib/supabase.ts:10:28)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:138:36)
+    at combineChunks (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:68:23)
+    at Object.getItem (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:136:39)
+    at getItemAsync (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:136:33)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2347:98)
+    at SupabaseAuthClient._useSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2328:39)
+    at SupabaseAuthClient._emitInitialSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3430:27)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3424:22)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2290:36)
+    at SupabaseAuthClient.lockNoOp [as lock] (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:46:18)
+    at SupabaseAuthClient._acquireLock (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2286:31)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3423:24)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at runNextTicks (node:internal/process/task_queues:69:3)
+    at listOnTimeout (node:internal/timers:567:9)
+    at process.processTimers (node:internal/timers:541:7)
+ ⨯ src\lib\supabase.ts (9:24) @ document
+ ⨯ unhandledRejection: ReferenceError: document is not defined
+    at Object.get (webpack-internal:///(ssr)/./src/lib/supabase.ts:10:28)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:138:36)
+    at combineChunks (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:68:23)
+    at Object.getItem (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:136:39)
+    at getItemAsync (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:136:33)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2347:98)
+    at SupabaseAuthClient._useSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2328:39)
+    at SupabaseAuthClient._emitInitialSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3430:27)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3424:22)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2290:36)
+    at SupabaseAuthClient.lockNoOp [as lock] (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:46:18)
+    at SupabaseAuthClient._acquireLock (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2286:31)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3423:24)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at runNextTicks (node:internal/process/task_queues:69:3)
+    at listOnTimeout (node:internal/timers:567:9)
+    at process.processTimers (node:internal/timers:541:7)
+[0m [90m  7 |[39m     cookies[33m:[39m {[0m
+[0m [90m  8 |[39m       [36mget[39m(name[33m:[39m string) {[0m
+[0m[31m[1m>[22m[39m[90m  9 |[39m         [36mconst[39m cookie [33m=[39m document[33m.[39mcookie[0m
+[0m [90m    |[39m                        [31m[1m^[22m[39m[0m
+[0m [90m 10 |[39m           [33m.[39msplit([32m'; '[39m)[0m
+[0m [90m 11 |[39m           [33m.[39mfind(row [33m=>[39m row[33m.[39mstartsWith(name [33m+[39m [32m'='[39m))[0m
+[0m [90m 12 |[39m         [36mreturn[39m cookie [33m?[39m cookie[33m.[39msplit([32m'='[39m)[[35m1[39m] [33m:[39m [36mnull[39m[0m
+ ⨯ src\lib\supabase.ts (9:24) @ document
+ ⨯ unhandledRejection: ReferenceError: document is not defined
+    at Object.get (webpack-internal:///(ssr)/./src/lib/supabase.ts:10:28)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:138:36)
+    at combineChunks (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:68:23)
+    at Object.getItem (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:136:39)
+    at getItemAsync (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:136:33)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2347:98)
+    at SupabaseAuthClient._useSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2328:39)
+    at SupabaseAuthClient._emitInitialSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3430:27)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3424:22)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2290:36)
+    at SupabaseAuthClient.lockNoOp [as lock] (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:46:18)
+    at SupabaseAuthClient._acquireLock (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2286:31)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3423:24)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at runNextTicks (node:internal/process/task_queues:69:3)
+    at listOnTimeout (node:internal/timers:567:9)
+    at process.processTimers (node:internal/timers:541:7)
+[0m [90m  7 |[39m     cookies[33m:[39m {[0m
+[0m [90m  8 |[39m       [36mget[39m(name[33m:[39m string) {[0m
+[0m[31m[1m>[22m[39m[90m  9 |[39m         [36mconst[39m cookie [33m=[39m document[33m.[39mcookie[0m
+[0m [90m    |[39m                        [31m[1m^[22m[39m[0m
+[0m [90m 10 |[39m           [33m.[39msplit([32m'; '[39m)[0m
+[0m [90m 11 |[39m           [33m.[39mfind(row [33m=>[39m row[33m.[39mstartsWith(name [33m+[39m [32m'='[39m))[0m
+[0m [90m 12 |[39m         [36mreturn[39m cookie [33m?[39m cookie[33m.[39msplit([32m'='[39m)[[35m1[39m] [33m:[39m [36mnull[39m[0m
+ GET /api/config 200 in 1296ms
+ POST /api/clientes 404 in 1193ms
+ GET /api/config 200 in 1601ms
+ GET /api/config 200 in 1203ms
+ GET /crm/login 200 in 1255ms
+ GET /doc/1'%20OR%20'1'='1 404 in 1829ms
+ GET /crm/login 200 in 292ms
+ GET /api/config 200 in 234ms
+ GET /crm/login 200 in 108ms
+ GET /api/config 200 in 161ms
+ GET /api/config 200 in 137ms
+ GET /api/config 200 in 179ms
+ GET /crm/login 200 in 77ms
+ GET /api/config 200 in 138ms
+ GET /api/config 200 in 127ms
+ GET /api/config 200 in 130ms
+ GET /api/config 200 in 36ms
+ GET /crm/login 200 in 80ms
+ GET /crm/login 200 in 245ms
+ GET /api/config 200 in 188ms
+ GET /crm/login 200 in 64ms
+ GET /api/config 200 in 173ms
+ GET /crm/login 200 in 95ms
+ GET /api/config 200 in 174ms
+ GET /api/config 200 in 125ms
+ GET /crm/login 200 in 191ms
+ GET /api/config 200 in 204ms
+ GET /api/config 200 in 75ms
+ GET /crm/login 200 in 205ms
+ GET /api/config 200 in 43ms
+ GET /api/config 200 in 23ms
+ GET /crm/login 200 in 517ms
+ GET /api/config 200 in 1729ms
+ POST /api/clientes 404 in 1799ms
+ GET /crm/login 200 in 1657ms
+ GET /crm/login 200 in 355ms
+ GET /api/config 200 in 261ms
+ POST /api/auth/admin 403 in 523ms
+ GET /api/config 200 in 610ms
+ GET /api/config 200 in 603ms
+ GET /crm/login 200 in 346ms
+ GET /api/config 200 in 300ms
+ GET /crm/login 200 in 362ms
+ GET /crm/login 200 in 660ms
+ GET /api/leads 404 in 772ms
+ POST /api/clientes 404 in 405ms
+ GET /crm/login 200 in 547ms
+ GET /crm/login 200 in 508ms
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (101kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (231kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ GET /crm/login 200 in 134ms
+ GET /api/config 200 in 197ms
+ GET /api/config 200 in 368ms
+ GET /api/config 200 in 594ms
+ GET /api/config 200 in 453ms
+ GET /api/config 200 in 421ms
+ GET /api/config 200 in 495ms
+ GET /crm/login 200 in 373ms
+ GET /crm/login 200 in 539ms
+ GET /crm/login 200 in 722ms
+ POST /api/clientes 404 in 204ms
+ GET /api/config 200 in 236ms
+ GET /api/config 200 in 111ms
+ GET /crm/login 200 in 114ms
+ GET /api/config 200 in 200ms
+ GET /api/config 200 in 209ms
+ GET /doc/00000000-0000-0000-0000-000000000000 404 in 239ms
+ GET /api/config 200 in 251ms
+ GET /api/config 200 in 252ms
+ GET /api/config 200 in 26ms
+ GET /api/config 200 in 49ms
+ GET /crm/login 200 in 136ms
+ GET /crm/login 200 in 101ms
+ GET /api/config 200 in 193ms
+ GET /api/config 200 in 139ms
+ GET /api/config 200 in 214ms
+ GET /crm/login 200 in 117ms
+ GET /api/config 200 in 187ms
+ReferenceError: document is not defined
+    at Object.get (webpack-internal:///(rsc)/./src/lib/supabase.ts:10:28)
+    at eval (webpack-internal:///(rsc)/./node_modules/@supabase/ssr/dist/index.mjs:138:36)
+    at combineChunks (webpack-internal:///(rsc)/./node_modules/@supabase/ssr/dist/index.mjs:68:23)
+    at Object.getItem (webpack-internal:///(rsc)/./node_modules/@supabase/ssr/dist/index.mjs:136:39)
+    at getItemAsync (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:136:33)
+    at SupabaseAuthClient._recoverAndRefresh (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3831:101)
+    at SupabaseAuthClient._initialize (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:346:24)
+    at eval (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:285:35)
+    at eval (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2290:36)
+    at SupabaseAuthClient.lockNoOp [as lock] (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:46:18)
+    at SupabaseAuthClient._acquireLock (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2286:31)
+    at eval (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:284:31)
+    at SupabaseAuthClient.initialize (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:287:11)
+    at new GoTrueClient (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:240:18)
+    at new SupabaseAuthClient (webpack-internal:///(rsc)/./node_modules/@supabase/supabase-js/dist/index.mjs:219:3)
+    at SupabaseClient._initSupabaseAuthClient (webpack-internal:///(rsc)/./node_modules/@supabase/supabase-js/dist/index.mjs:593:10)
+    at new SupabaseClient (webpack-internal:///(rsc)/./node_modules/@supabase/supabase-js/dist/index.mjs:441:21)
+    at createClient (webpack-internal:///(rsc)/./node_modules/@supabase/supabase-js/dist/index.mjs:647:9)
+    at createBrowserClient (webpack-internal:///(rsc)/./node_modules/@supabase/ssr/dist/index.mjs:218:87)
+    at eval (webpack-internal:///(rsc)/./src/lib/supabase.ts:7:84)
+    at (rsc)/./src/lib/supabase.ts (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\app\api\sunat\preview\route.js:192:1)
+    at __webpack_require__ (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\webpack-runtime.js:33:42)
+    at eval (webpack-internal:///(rsc)/./src/app/api/sunat/preview/route.ts:6:71)
+    at (rsc)/./src/app/api/sunat/preview/route.ts (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\app\api\sunat\preview\route.js:132:1)
+    at __webpack_require__ (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\webpack-runtime.js:33:42)
+    at eval (webpack-internal:///(rsc)/./node_modules/next/dist/build/webpack/loaders/next-app-loader.js?name=app%2Fapi%2Fsunat%2Fpreview%2Froute&page=%2Fapi%2Fsunat%2Fpreview%2Froute&appPaths=&pagePath=private-next-app-dir%2Fapi%2Fsunat%2Fpreview%2Froute.ts&appDir=D%3A%5Cproyectos_opencode%5Cprojects%5CMaqui-Mary%5Cweb%5Csrc%5Capp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=D%3A%5Cproyectos_opencode%5Cprojects%5CMaqui-Mary%5Cweb&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D!:15:137)
+    at (rsc)/./node_modules/next/dist/build/webpack/loaders/next-app-loader.js?name=app%2Fapi%2Fsunat%2Fpreview%2Froute&page=%2Fapi%2Fsunat%2Fpreview%2Froute&appPaths=&pagePath=private-next-app-dir%2Fapi%2Fsunat%2Fpreview%2Froute.ts&appDir=D%3A%5Cproyectos_opencode%5Cprojects%5CMaqui-Mary%5Cweb%5Csrc%5Capp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=D%3A%5Cproyectos_opencode%5Cprojects%5CMaqui-Mary%5Cweb&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D! (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\app\api\sunat\preview\route.js:122:1)
+    at __webpack_require__ (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\webpack-runtime.js:33:42)
+    at __webpack_exec__ (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\app\api\sunat\preview\route.js:202:39)
+    at D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\app\api\sunat\preview\route.js:203:677
+    at __webpack_require__.X (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\webpack-runtime.js:168:21)
+    at D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\app\api\sunat\preview\route.js:203:47
+    at Object.<anonymous> (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\app\api\sunat\preview\route.js:206:3)
+    at Module._compile (node:internal/modules/cjs/loader:1830:14)
+    at Object..js (node:internal/modules/cjs/loader:1961:10)
+    at Module.load (node:internal/modules/cjs/loader:1553:32)
+    at Module._load (node:internal/modules/cjs/loader:1355:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1576:12)
+    at mod.require (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\server\require-hook.js:65:28)
+    at require (node:internal/modules/helpers:153:16)
+    at requirePage (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\server\require.js:109:84)
+    at D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\server\load-components.js:103:84
+    at async loadComponentsImpl (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\server\load-components.js:103:26)
+    at async DevServer.findPageComponentsImpl (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\server\next-server.js:714:36)
+    at async DevServer.findPageComponents (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\server\dev\next-dev-server.js:577:20)
+    at async DevServer.renderPageComponent (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\server\base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\server\base-server.js:1962:32)
+    at async DevServer.pipeImpl (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\server\base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\server\next-server.js:272:17)
+ POST /api/sunat/preview 401 in 290ms
+ReferenceError: document is not defined
+    at Object.get (webpack-internal:///(rsc)/./src/lib/supabase.ts:10:28)
+    at eval (webpack-internal:///(rsc)/./node_modules/@supabase/ssr/dist/index.mjs:138:36)
+    at combineChunks (webpack-internal:///(rsc)/./node_modules/@supabase/ssr/dist/index.mjs:68:23)
+    at Object.getItem (webpack-internal:///(rsc)/./node_modules/@supabase/ssr/dist/index.mjs:136:39)
+    at getItemAsync (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:136:33)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2347:98)
+    at SupabaseAuthClient._useSession (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2328:39)
+    at SupabaseAuthClient._emitInitialSession (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3430:27)
+    at eval (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3424:22)
+    at eval (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2290:36)
+    at SupabaseAuthClient.lockNoOp [as lock] (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:46:18)
+    at SupabaseAuthClient._acquireLock (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2286:31)
+    at eval (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3423:24)
+ ⨯ src\lib\supabase.ts (9:24) @ document
+ ⨯ unhandledRejection: ReferenceError: document is not defined
+    at Object.get (webpack-internal:///(rsc)/./src/lib/supabase.ts:10:28)
+    at eval (webpack-internal:///(rsc)/./node_modules/@supabase/ssr/dist/index.mjs:138:36)
+    at combineChunks (webpack-internal:///(rsc)/./node_modules/@supabase/ssr/dist/index.mjs:68:23)
+    at Object.getItem (webpack-internal:///(rsc)/./node_modules/@supabase/ssr/dist/index.mjs:136:39)
+    at getItemAsync (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:136:33)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2347:98)
+    at SupabaseAuthClient._useSession (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2328:39)
+    at SupabaseAuthClient._emitInitialSession (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3430:27)
+    at eval (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3424:22)
+    at eval (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2290:36)
+    at SupabaseAuthClient.lockNoOp [as lock] (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:46:18)
+    at SupabaseAuthClient._acquireLock (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2286:31)
+    at eval (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3423:24)
+[0m [90m  7 |[39m     cookies[33m:[39m {[0m
+[0m [90m  8 |[39m       [36mget[39m(name[33m:[39m string) {[0m
+[0m[31m[1m>[22m[39m[90m  9 |[39m         [36mconst[39m cookie [33m=[39m document[33m.[39mcookie[0m
+[0m [90m    |[39m                        [31m[1m^[22m[39m[0m
+[0m [90m 10 |[39m           [33m.[39msplit([32m'; '[39m)[0m
+[0m [90m 11 |[39m           [33m.[39mfind(row [33m=>[39m row[33m.[39mstartsWith(name [33m+[39m [32m'='[39m))[0m
+[0m [90m 12 |[39m         [36mreturn[39m cookie [33m?[39m cookie[33m.[39msplit([32m'='[39m)[[35m1[39m] [33m:[39m [36mnull[39m[0m
+ ⨯ src\lib\supabase.ts (9:24) @ document
+ ⨯ unhandledRejection: ReferenceError: document is not defined
+    at Object.get (webpack-internal:///(rsc)/./src/lib/supabase.ts:10:28)
+    at eval (webpack-internal:///(rsc)/./node_modules/@supabase/ssr/dist/index.mjs:138:36)
+    at combineChunks (webpack-internal:///(rsc)/./node_modules/@supabase/ssr/dist/index.mjs:68:23)
+    at Object.getItem (webpack-internal:///(rsc)/./node_modules/@supabase/ssr/dist/index.mjs:136:39)
+    at getItemAsync (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:136:33)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2347:98)
+    at SupabaseAuthClient._useSession (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2328:39)
+    at SupabaseAuthClient._emitInitialSession (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3430:27)
+    at eval (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3424:22)
+    at eval (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2290:36)
+    at SupabaseAuthClient.lockNoOp [as lock] (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:46:18)
+    at SupabaseAuthClient._acquireLock (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2286:31)
+    at eval (webpack-internal:///(rsc)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3423:24)
+[0m [90m  7 |[39m     cookies[33m:[39m {[0m
+[0m [90m  8 |[39m       [36mget[39m(name[33m:[39m string) {[0m
+[0m[31m[1m>[22m[39m[90m  9 |[39m         [36mconst[39m cookie [33m=[39m document[33m.[39mcookie[0m
+[0m [90m    |[39m                        [31m[1m^[22m[39m[0m
+[0m [90m 10 |[39m           [33m.[39msplit([32m'; '[39m)[0m
+[0m [90m 11 |[39m           [33m.[39mfind(row [33m=>[39m row[33m.[39mstartsWith(name [33m+[39m [32m'='[39m))[0m
+[0m [90m 12 |[39m         [36mreturn[39m cookie [33m?[39m cookie[33m.[39msplit([32m'='[39m)[[35m1[39m] [33m:[39m [36mnull[39m[0m
+ GET /api/config 200 in 311ms
+ GET /crm/login 200 in 56ms
+ GET / 200 in 430ms
+ GET /api/config 200 in 249ms
+ GET /api/config 200 in 275ms
+ GET /crm/login 200 in 639ms
+ GET /api/config 200 in 53ms
+ GET / 200 in 254ms
+ GET /crm/login 200 in 284ms
+ GET /crm/login 200 in 347ms
+ GET /crm/login 200 in 328ms
+ GET /api/config 200 in 146ms
+ GET /api/config 200 in 166ms
+ GET /api/config 200 in 301ms
+ GET / 200 in 299ms
+ GET /api/config 200 in 368ms
+ GET /api/config 200 in 177ms
+ GET /crm/login 200 in 266ms
+ GET /api/config 200 in 143ms
+ GET /crm/login 200 in 259ms
+ GET /crm/login 200 in 132ms
+ GET /crm/login 200 in 141ms
+ GET /crm/login 200 in 139ms
+ GET /api/config 200 in 145ms
+ GET /api/config 200 in 99ms
+ GET /crm/login 200 in 71ms
+ GET /api/config 200 in 268ms
+ GET /api/config 200 in 275ms
+ GET /api/config 200 in 257ms
+ GET /crm/login 200 in 76ms
+ GET /api/config 200 in 163ms
+ GET /api/config 200 in 150ms
+ GET /api/config 200 in 155ms
+ GET /crm/login 200 in 53ms
+ GET /api/config 200 in 152ms
+ GET /api/config 200 in 150ms
+ GET /api/config 200 in 136ms
+ GET /crm/login 200 in 48ms
+ GET /api/config 200 in 153ms
+ GET /crm/login 200 in 64ms
+ GET /api/config 200 in 152ms
+ GET /api/config 200 in 34ms
+ GET /crm/login 200 in 56ms
+ GET /crm/login 200 in 58ms
+ GET /api/config 200 in 141ms
+ GET /crm/login 200 in 61ms
+ GET /api/config 200 in 113ms
+ GET /api/config 200 in 132ms
+ GET /api/config 200 in 140ms
+ GET /crm/login 200 in 72ms
+ GET /crm/login 200 in 87ms
+ GET /crm/login 200 in 46ms
+ GET /api/config 200 in 151ms
+ GET /api/config 200 in 196ms
+ GET /api/config 200 in 149ms
+ GET /crm/login 200 in 97ms
+ GET /api/config 200 in 174ms
+ GET /crm/login 200 in 45ms
+ GET /api/config 200 in 137ms
+ GET /api/config 200 in 137ms
+ GET /api/config 200 in 128ms
+ GET /api/config 200 in 139ms
+ GET /crm/login 200 in 43ms
+ GET /crm/login 200 in 54ms
+ GET /api/config 200 in 425ms
+ GET /crm/login 200 in 84ms
+ GET /api/config 200 in 161ms
+ GET /api/config 200 in 152ms
+ GET /crm/login 200 in 77ms
+ GET /api/config 200 in 150ms
+ GET /api/config 200 in 170ms
+ GET /api/config 200 in 143ms
+ GET /api/config 200 in 143ms
+ GET /crm/login 200 in 49ms
+ GET /crm/login 200 in 49ms
+ GET /api/config 200 in 166ms
+ GET /api/config 200 in 139ms
+ GET /crm/login 200 in 60ms
+ GET / 200 in 170ms
+ GET /api/config 200 in 248ms
+ GET /api/config 200 in 220ms
+ GET /crm/login 200 in 91ms
+ GET /doc/id-invalido-000 404 in 291ms
+ GET /api/config 200 in 205ms
+ GET /api/config 200 in 137ms
+ GET /api/config 200 in 80ms
+ GET /api/config 200 in 138ms
+ GET /api/config 200 in 138ms
+ GET / 200 in 86ms
+ GET /crm/login 200 in 104ms
+ GET /api/config 200 in 592ms
+ ○ Compiling /api/empresa ...
+ ✓ Compiled /api/empresa in 1952ms (1805 modules)
+ReferenceError: document is not defined
+    at Object.get (webpack-internal:///(ssr)/./src/lib/supabase.ts:10:28)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:138:36)
+    at combineChunks (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:68:23)
+    at Object.getItem (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:136:39)
+    at getItemAsync (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:136:33)
+    at SupabaseAuthClient._recoverAndRefresh (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3831:101)
+    at SupabaseAuthClient._initialize (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:346:24)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:285:35)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2290:36)
+    at SupabaseAuthClient.lockNoOp [as lock] (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:46:18)
+    at SupabaseAuthClient._acquireLock (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2286:31)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:284:31)
+    at SupabaseAuthClient.initialize (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:287:11)
+    at new GoTrueClient (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:240:18)
+    at new SupabaseAuthClient (webpack-internal:///(ssr)/./node_modules/@supabase/supabase-js/dist/index.mjs:219:3)
+    at SupabaseClient._initSupabaseAuthClient (webpack-internal:///(ssr)/./node_modules/@supabase/supabase-js/dist/index.mjs:593:10)
+    at new SupabaseClient (webpack-internal:///(ssr)/./node_modules/@supabase/supabase-js/dist/index.mjs:441:21)
+    at createClient (webpack-internal:///(ssr)/./node_modules/@supabase/supabase-js/dist/index.mjs:647:9)
+    at createBrowserClient (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:218:87)
+    at eval (webpack-internal:///(ssr)/./src/lib/supabase.ts:7:84)
+    at (ssr)/./src/lib/supabase.ts (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\app\crm\login\page.js:182:1)
+    at __webpack_require__ (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\webpack-runtime.js:33:42)
+    at eval (webpack-internal:///(ssr)/./src/app/crm/login/page.tsx:17:71)
+    at (ssr)/./src/app/crm/login/page.tsx (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\app\crm\login\page.js:127:1)
+    at Object.__webpack_require__ [as require] (D:\proyectos_opencode\projects\Maqui-Mary\web\.next\server\webpack-runtime.js:33:42)
+    at require (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:40:20064)
+    at c (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:97765)
+    at D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:113359
+    at D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:113446
+    at D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:113607
+    at D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:115358
+    at t (D:\proyectos_opencode\projects\Maqui-Mary\web\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:115581)
+ReferenceError: document is not defined
+    at Object.get (webpack-internal:///(ssr)/./src/lib/supabase.ts:10:28)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:138:36)
+    at combineChunks (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:68:23)
+    at Object.getItem (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:136:39)
+    at getItemAsync (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:136:33)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2347:98)
+    at SupabaseAuthClient._useSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2328:39)
+    at SupabaseAuthClient._emitInitialSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3430:27)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3424:22)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2290:36)
+    at SupabaseAuthClient.lockNoOp [as lock] (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:46:18)
+    at SupabaseAuthClient._acquireLock (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2286:31)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3423:24)
+ ⨯ src\lib\supabase.ts (9:24) @ document
+ ⨯ unhandledRejection: ReferenceError: document is not defined
+    at Object.get (webpack-internal:///(ssr)/./src/lib/supabase.ts:10:28)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:138:36)
+    at combineChunks (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:68:23)
+    at Object.getItem (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:136:39)
+    at getItemAsync (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:136:33)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2347:98)
+    at SupabaseAuthClient._useSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2328:39)
+    at SupabaseAuthClient._emitInitialSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3430:27)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3424:22)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2290:36)
+    at SupabaseAuthClient.lockNoOp [as lock] (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:46:18)
+    at SupabaseAuthClient._acquireLock (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2286:31)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3423:24)
+[0m [90m  7 |[39m     cookies[33m:[39m {[0m
+[0m [90m  8 |[39m       [36mget[39m(name[33m:[39m string) {[0m
+[0m[31m[1m>[22m[39m[90m  9 |[39m         [36mconst[39m cookie [33m=[39m document[33m.[39mcookie[0m
+[0m [90m    |[39m                        [31m[1m^[22m[39m[0m
+[0m [90m 10 |[39m           [33m.[39msplit([32m'; '[39m)[0m
+[0m [90m 11 |[39m           [33m.[39mfind(row [33m=>[39m row[33m.[39mstartsWith(name [33m+[39m [32m'='[39m))[0m
+[0m [90m 12 |[39m         [36mreturn[39m cookie [33m?[39m cookie[33m.[39msplit([32m'='[39m)[[35m1[39m] [33m:[39m [36mnull[39m[0m
+ ⨯ src\lib\supabase.ts (9:24) @ document
+ ⨯ unhandledRejection: ReferenceError: document is not defined
+    at Object.get (webpack-internal:///(ssr)/./src/lib/supabase.ts:10:28)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:138:36)
+    at combineChunks (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:68:23)
+    at Object.getItem (webpack-internal:///(ssr)/./node_modules/@supabase/ssr/dist/index.mjs:136:39)
+    at getItemAsync (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:136:33)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2347:98)
+    at SupabaseAuthClient._useSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2328:39)
+    at SupabaseAuthClient._emitInitialSession (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3430:27)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3424:22)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2290:36)
+    at SupabaseAuthClient.lockNoOp [as lock] (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:46:18)
+    at SupabaseAuthClient._acquireLock (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:2286:31)
+    at eval (webpack-internal:///(ssr)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:3423:24)
+[0m [90m  7 |[39m     cookies[33m:[39m {[0m
+[0m [90m  8 |[39m       [36mget[39m(name[33m:[39m string) {[0m
+[0m[31m[1m>[22m[39m[90m  9 |[39m         [36mconst[39m cookie [33m=[39m document[33m.[39mcookie[0m
+[0m [90m    |[39m                        [31m[1m^[22m[39m[0m
+[0m [90m 10 |[39m           [33m.[39msplit([32m'; '[39m)[0m
+[0m [90m 11 |[39m           [33m.[39mfind(row [33m=>[39m row[33m.[39mstartsWith(name [33m+[39m [32m'='[39m))[0m
+[0m [90m 12 |[39m         [36mreturn[39m cookie [33m?[39m cookie[33m.[39msplit([32m'='[39m)[[35m1[39m] [33m:[39m [36mnull[39m[0m
+ GET /api/empresa 200 in 3383ms
+ GET /api/config 200 in 2440ms
+ GET /crm/login 200 in 377ms
+ GET /api/empresa 200 in 342ms
+ GET /api/config 200 in 409ms
+ GET /api/config 200 in 466ms
+ GET /api/empresa 200 in 473ms
+ GET /api/config 200 in 535ms
+ GET /crm/login 200 in 343ms
+ GET /api/empresa 200 in 240ms
+ GET /api/config 200 in 226ms
+ GET /api/config 200 in 157ms
+ GET /crm/login 200 in 82ms
+ GET /api/config 200 in 159ms
+ GET /api/config 200 in 129ms
+ GET /api/config 200 in 142ms
+ GET / 200 in 171ms
+ GET /api/empresa 200 in 195ms
+ GET /api/config 200 in 218ms
+ GET /api/empresa 200 in 144ms
+ GET /api/config 200 in 139ms
+ GET /api/empresa 200 in 141ms
+ GET /api/config 200 in 136ms
+ GET /api/empresa 200 in 140ms
+ GET /api/config 200 in 145ms
+ GET /crm/login 200 in 92ms
+ GET /api/config 200 in 135ms
+ GET /api/config 200 in 128ms
+ GET /crm/login 200 in 69ms
+ GET /crm/login 200 in 67ms
+ GET /api/config 200 in 139ms
+ GET /api/config 200 in 147ms
+ GET /crm/login 200 in 35ms
+ GET / 200 in 86ms
+ GET /api/config 200 in 168ms
+ GET /api/config 200 in 144ms
+ GET /crm/login 200 in 64ms
+ GET /api/config 200 in 167ms
+ GET /api/empresa 200 in 218ms
+ GET /api/config 200 in 169ms
+ GET /api/empresa 200 in 146ms
+ GET /api/config 200 in 137ms
+ GET /api/empresa 200 in 159ms
+ GET /api/config 200 in 175ms
+ GET /api/empresa 200 in 245ms
+ GET /api/config 200 in 134ms
+ GET /api/config 200 in 134ms
+ GET /ruta-que-no-existe-xyz 404 in 42ms
+ GET /api/config 200 in 129ms
+ GET /api/config 200 in 125ms
+ GET / 200 in 111ms
+ GET /crm/login 200 in 80ms
+ GET /api/config 200 in 330ms
+ GET /api/empresa 200 in 410ms
+ GET /api/config 200 in 226ms
+ GET /api/empresa 200 in 207ms
+ GET /api/config 200 in 166ms
+ GET /api/empresa 200 in 474ms
+ GET /api/config 200 in 290ms
+ GET /api/config 200 in 297ms
+ GET /api/empresa 200 in 435ms
+ GET /api/config 200 in 150ms
+ GET /crm/login 200 in 61ms
+ GET /api/config 200 in 143ms
+ GET /api/config 200 in 136ms
+ GET / 200 in 90ms
+ GET /api/config 200 in 143ms
+ GET /api/empresa 200 in 178ms
+ GET /api/config 200 in 174ms
+ GET /api/empresa 200 in 265ms
+ GET /api/config 200 in 494ms
+ GET /crm/login 200 in 136ms
+ GET /api/empresa 200 in 227ms
+ GET /api/config 200 in 310ms
+ GET /api/empresa 200 in 275ms
+ GET /api/config 200 in 185ms
+ GET /crm/login 200 in 64ms
+ GET /api/config 200 in 80ms
+ GET /api/config 200 in 71ms
+ GET /crm/login 200 in 63ms
+ GET /crm/login 200 in 59ms
+ GET /api/config 200 in 150ms
+ GET /api/config 200 in 106ms
+ GET /crm/login 200 in 67ms
+ GET /api/config 200 in 141ms
+ GET /api/config 200 in 173ms
+ GET /api/config 200 in 129ms
+ GET /api/config 200 in 134ms
+ GET /crm/login 200 in 92ms
+ GET /crm/login 200 in 212ms
+ GET /api/config 200 in 131ms
+ GET /api/config 200 in 130ms
+ GET /api/config 200 in 126ms
+ GET /api/config 200 in 131ms
+ GET /crm/login 200 in 44ms
+ GET /api/config 200 in 143ms
+ GET /api/config 200 in 132ms
+ GET /crm/login 200 in 41ms
+ GET /api/config 200 in 164ms
+ GET /api/config 200 in 128ms
+ GET /crm/login 200 in 64ms
+ GET /api/config 200 in 129ms
+ GET /api/config 200 in 123ms
+ GET /crm/login 200 in 66ms
+ GET /api/config 200 in 131ms
+ GET /api/config 200 in 135ms
+ GET /crm/login 200 in 41ms
+ GET /crm/login 200 in 90ms
+ GET /api/config 200 in 129ms
+ GET /api/config 200 in 123ms
+ GET /api/config 200 in 144ms
+ GET /api/config 200 in 128ms
+ GET /crm/login 200 in 68ms
+ GET /crm/login 200 in 76ms
+ GET /api/config 200 in 159ms
+ GET /api/config 200 in 173ms
+ GET /api/config 200 in 124ms
+ GET /crm/login 200 in 70ms
+ GET /api/config 200 in 147ms
+ GET /api/config 200 in 129ms
+ GET /api/config 200 in 126ms
+ GET /crm/login 200 in 74ms
+ GET /api/config 200 in 136ms
+ GET /api/config 200 in 125ms
+ GET /crm/login 200 in 68ms
+ GET /api/config 200 in 129ms
+ GET /api/config 200 in 125ms
+ GET /crm/login 200 in 55ms
+ GET /api/config 200 in 161ms
+ GET /api/config 200 in 127ms
+ GET /crm/login 200 in 45ms
+ GET /api/config 200 in 127ms
+ GET /api/config 200 in 123ms
+ ✓ Compiled in 1049ms (1676 modules)
+ ✓ Compiled in 367ms (126 modules)
+ GET /crm/login 200 in 437ms
+ GET /crm/login 200 in 692ms
+ GET /crm/login 200 in 737ms
+ GET /crm/login 200 in 746ms
+ GET /crm/login 200 in 939ms
+ GET /crm/login 200 in 1288ms
+ ○ Compiling /api/config ...
+ ✓ Compiled /api/config in 1153ms (900 modules)
+ GET /api/config 200 in 2025ms
+ GET /api/config 200 in 1978ms
+ GET /api/config 200 in 2044ms
+ GET /api/config 200 in 1379ms
+ GET /crm/login 200 in 1378ms
+ GET /crm/login 200 in 1118ms
+ GET /crm/login 200 in 1091ms
+ GET /crm/login 200 in 1102ms
+ GET /crm/login 200 in 1407ms
+ GET /api/config 200 in 149ms
+ GET /api/config 200 in 184ms
+ GET /api/config 200 in 175ms
+ GET /api/config 200 in 209ms
+ GET /api/config 200 in 184ms
+ GET /api/config 200 in 64ms
+ GET /api/config 200 in 342ms
+ GET /crm/login 200 in 168ms
+ GET /api/config 200 in 241ms
+ GET /crm/login 200 in 78ms
+ GET /crm/login 200 in 253ms
+ ○ Compiling /api/sunat/preview ...
+ ✓ Compiled /api/sunat/preview in 1906ms (1111 modules)
+ POST /api/sunat/preview 401 in 2528ms
+ GET /api/config 200 in 1187ms
+ GET /api/config 200 in 1161ms
+ GET /api/config 200 in 1615ms
+ GET /crm/login 200 in 2270ms
+ GET /crm/login 200 in 1314ms
+ GET /crm/login 200 in 2607ms
+ GET /api/config 200 in 494ms
+ GET /api/config 200 in 722ms
+ GET /crm/login 200 in 825ms
+ GET /crm/login 200 in 772ms
+ GET /crm/login 200 in 503ms
+ GET /api/config 200 in 683ms
+ GET /api/config 200 in 615ms
+ GET /api/config 200 in 303ms
+ GET /api/config 200 in 265ms
+ GET /crm/login 200 in 373ms
+ GET /api/config 200 in 176ms
+ GET /crm/login 200 in 501ms
+ GET /crm/login 200 in 474ms
+ GET /crm/login 200 in 421ms
+ GET /crm/login 200 in 348ms
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (101kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (231kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ GET /api/config 200 in 66ms
+ GET /api/config 200 in 192ms
+ GET /api/config 200 in 197ms
+ GET /api/config 200 in 224ms
+ GET /api/config 200 in 279ms
+ GET /api/config 200 in 115ms
+ GET /crm/login 200 in 355ms
+ GET /crm/login 200 in 323ms
+ GET /crm/login 200 in 278ms
+ GET /api/config 200 in 392ms
+ GET /crm/login 200 in 580ms
+ GET /crm/login 200 in 582ms
+ GET /crm/login 200 in 691ms
+ GET /api/config 200 in 27ms
+ GET /api/config 200 in 172ms
+ GET /api/config 200 in 177ms
+ GET /api/config 200 in 260ms
+ GET /api/config 200 in 253ms
+ GET /api/config 200 in 326ms
+ GET /crm/login 200 in 610ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 828ms (1113 modules)
+ GET /api/config 200 in 1531ms
+ GET /api/config 200 in 1362ms
+ POST /api/clientes 404 in 1745ms
+ GET /crm/login 200 in 1632ms
+ GET /crm/login 200 in 1460ms
+ GET /crm/login 200 in 1339ms
+ GET /crm/login 200 in 1647ms
+ ○ Compiling /doc/[id] ...
+ ✓ Compiled /api/auth/admin in 1143ms (1123 modules)
+ ✓ Compiled in 1ms (1125 modules)
+ ✓ Compiled in 1ms (1125 modules)
+ ✓ Compiled in 0ms (1125 modules)
+ GET /api/config 200 in 780ms
+ GET /doc/1'%20OR%20'1'='1 404 in 3576ms
+ GET /api/config 200 in 1067ms
+ GET /api/config 200 in 3062ms
+ ✓ Compiled in 0ms (1125 modules)
+ POST /api/auth/admin 403 in 2921ms
+ GET /crm/login 200 in 1493ms
+ GET /crm/login 200 in 1503ms
+ ✓ Compiled in 0ms (1125 modules)
+ ✓ Compiled in 1ms (1125 modules)
+ ✓ Compiled in 0ms (1125 modules)
+ GET /api/config 200 in 2147ms
+ GET /api/config 200 in 1885ms
+ GET /crm/login 200 in 1898ms
+ POST /api/clientes 404 in 428ms
+ GET /api/config 200 in 404ms
+ GET /api/config 200 in 408ms
+ GET /crm/login 200 in 456ms
+ GET /crm/login 200 in 392ms
+ GET /crm/login 200 in 196ms
+ GET /api/config 200 in 192ms
+ GET /api/config 200 in 169ms
+ GET /crm/login 200 in 225ms
+ GET /api/config 200 in 262ms
+ GET /crm/login 200 in 328ms
+ GET /api/config 200 in 401ms
+ GET /crm/login 200 in 214ms
+ GET /api/config 200 in 146ms
+ GET /api/config 200 in 189ms
+ GET /crm/login 200 in 102ms
+ GET /api/config 200 in 206ms
+ GET /crm/login 200 in 365ms
+ GET /crm/login 200 in 365ms
+ GET /api/config 200 in 154ms
+ GET /api/config 200 in 174ms
+ GET /api/config 200 in 201ms
+ GET /crm/login 200 in 122ms
+ GET /api/config 200 in 327ms
+ POST /api/auth/admin 403 in 56ms
+ GET /api/leads 404 in 42ms
+ GET /crm/login 200 in 110ms
+ GET /crm/login 200 in 339ms
+ GET /api/config 200 in 403ms
+ POST /api/clientes 404 in 457ms
+ GET /crm/login 200 in 201ms
+ GET /api/config 200 in 187ms
+ GET /api/config 200 in 190ms
+ GET /crm/login 200 in 256ms
+ GET /api/config 200 in 252ms
+ GET /api/config 200 in 224ms
+ GET /crm/login 200 in 402ms
+ GET /crm/login 200 in 322ms
+ GET /api/config 200 in 301ms
+ GET /api/config 200 in 241ms
+ GET /crm/login 200 in 297ms
+ GET /doc/00000000-0000-0000-0000-000000000000 404 in 486ms
+ GET /api/config 200 in 315ms
+ GET /api/config 200 in 323ms
+ GET /api/config 200 in 442ms
+ GET /api/config 200 in 456ms
+ GET /api/config 200 in 280ms
+ GET /api/config 200 in 264ms
+ GET /crm/login 200 in 254ms
+ GET /crm/login 200 in 150ms
+ GET /crm/login 200 in 120ms
+ GET /api/config 200 in 450ms
+ GET /api/config 200 in 169ms
+ GET /crm/login 200 in 109ms
+ GET /api/config 200 in 188ms
+ GET /api/config 200 in 728ms
+ GET /api/config 200 in 208ms
+ GET /api/config 200 in 133ms
+ GET /api/config 200 in 130ms
+ GET /api/config 200 in 338ms
+ GET /crm/login 200 in 69ms
+ GET /api/config 200 in 180ms
+ GET /crm/login 200 in 89ms
+ GET /api/config 200 in 215ms
+ GET /crm/login 200 in 574ms
+ GET /crm/login 200 in 256ms
+ GET /api/config 200 in 444ms
+ GET /api/config 200 in 362ms
+ GET /api/config 200 in 465ms
+ GET /api/config 200 in 191ms
+ GET /api/config 200 in 134ms
+ GET /crm/login 200 in 217ms
+ GET /api/config 200 in 299ms
+ GET /crm/login 200 in 376ms
+ GET /crm/login 200 in 385ms
+ GET /api/config 200 in 584ms
+ GET /api/config 200 in 583ms
+ GET /api/config 200 in 263ms
+ GET /crm/login 200 in 330ms
+ GET /crm/login 200 in 330ms
+ GET /crm/login 200 in 423ms
+ GET /api/config 200 in 266ms
+ GET /api/config 200 in 165ms
+ GET /api/config 200 in 134ms
+ GET /api/config 200 in 167ms
+ GET /api/config 200 in 338ms
+ GET /api/config 200 in 495ms
+ GET /api/config 200 in 182ms
+ GET /crm/login 200 in 186ms
+ GET /api/config 200 in 133ms
+ POST /api/clientes 404 in 193ms
+ GET /crm/login 200 in 49ms
+ GET /api/config 200 in 129ms
+ POST /api/sunat/preview 401 in 960ms
+ GET /api/config 200 in 741ms
+ GET /crm/login 200 in 1107ms
+ GET /crm/login 200 in 1118ms
+ GET /crm/login 200 in 1138ms
+ GET /crm/login 200 in 1141ms
+ GET /crm/login 200 in 1291ms
+ GET /api/config 200 in 901ms
+ GET /api/config 200 in 1188ms
+ GET /crm/login 200 in 3603ms
+ GET /crm/login 200 in 3606ms
+ GET / 200 in 3401ms
+ POST /api/clientes 404 in 237ms
+ GET /crm/login 200 in 312ms
+ GET /api/config 200 in 214ms
+ GET /api/config 200 in 519ms
+ GET /api/config 200 in 527ms
+ GET /api/config 200 in 341ms
+ GET /api/config 200 in 372ms
+ GET /api/config 200 in 392ms
+ GET /crm/login 200 in 364ms
+ GET /crm/login 200 in 365ms
+ GET /api/config 200 in 1119ms
+ GET /crm/login 200 in 1094ms
+ GET /api/config 200 in 160ms
+ GET /api/config 200 in 254ms
+ GET /crm/login 200 in 159ms
+ GET /crm/login 200 in 121ms
+ GET /api/config 200 in 296ms
+ GET /api/config 200 in 518ms
+ GET /crm/login 200 in 770ms
+ GET /crm/login 200 in 987ms
+ GET /crm/login 200 in 989ms
+ GET /crm/login 200 in 990ms
+ GET / 200 in 647ms
+ GET /api/config 200 in 218ms
+ GET /api/config 200 in 255ms
+ GET /api/config 200 in 222ms
+ GET /api/config 200 in 465ms
+ GET /crm/login 200 in 423ms
+ GET /crm/login 200 in 496ms
+ GET /crm/login 200 in 586ms
+ GET /api/config 200 in 914ms
+ GET /crm/login 200 in 359ms
+ GET /crm/login 200 in 775ms
+ GET /crm/login 200 in 614ms
+ GET /crm/login 200 in 820ms
+ GET /crm/login 200 in 793ms
+ GET / 200 in 1133ms
+ POST /api/clientes 404 in 452ms
+ POST /api/clientes 404 in 325ms
+ GET /api/config 200 in 585ms
+ GET /api/config 200 in 584ms
+ GET /api/config 200 in 419ms
+ GET /doc/1'%20OR%20'1'='1 404 in 505ms
+ GET /crm/login 200 in 352ms
+ POST /api/sunat/preview 401 in 237ms
+ GET /api/config 200 in 404ms
+ GET /api/config 200 in 486ms
+ GET /api/config 200 in 506ms
+ GET /crm/login 200 in 926ms
+ GET /crm/login 200 in 2739ms
+ GET /crm/login 200 in 2740ms
+ GET /crm/login 200 in 2741ms
+ GET /crm/login 200 in 1159ms
+ GET /crm/login 200 in 753ms
+ GET /api/config 200 in 470ms
+ GET /api/config 200 in 181ms
+ GET /crm/login 200 in 881ms
+ GET /api/config 200 in 509ms
+ GET /api/config 200 in 620ms
+ GET /api/config 200 in 624ms
+ GET /api/config 200 in 490ms
+ GET /crm/login 200 in 942ms
+ GET /crm/login 200 in 940ms
+ GET /crm/login 200 in 952ms
+ GET /crm/login 200 in 1209ms
+ GET /crm/login 200 in 1476ms
+ GET /api/config 200 in 932ms
+ GET /api/config 200 in 935ms
+ GET /api/config 200 in 798ms
+ GET /crm/login 200 in 682ms
+ POST /api/auth/admin 403 in 127ms
+ GET /api/config 200 in 226ms
+ GET /api/config 200 in 271ms
+ GET /crm/login 200 in 279ms
+ GET /api/config 200 in 293ms
+ GET /crm/login 200 in 400ms
+ GET /crm/login 200 in 530ms
+ GET /crm/login 200 in 535ms
+ GET /api/config 200 in 773ms
+ GET /crm/login 200 in 902ms
+ GET /crm/login 200 in 1017ms
+ POST /api/clientes 404 in 289ms
+ GET /api/config 200 in 573ms
+ GET /api/config 200 in 370ms
+ GET /api/config 200 in 421ms
+ GET /api/config 200 in 424ms
+ GET /api/config 200 in 503ms
+ GET /crm/login 200 in 596ms
+ GET /crm/login 200 in 761ms
+ GET /crm/login 200 in 788ms
+ GET /crm/login 200 in 900ms
+ GET /api/config 200 in 678ms
+ GET /crm/login 200 in 1037ms
+ GET /crm/login 200 in 1044ms
+ GET /api/config 200 in 375ms
+ POST /api/clientes 404 in 411ms
+ GET /api/config 200 in 515ms
+ GET /api/config 200 in 538ms
+ GET /api/config 200 in 541ms
+ GET /crm/login 200 in 555ms
+ POST /api/auth/admin 403 in 281ms
+ GET /api/config 200 in 446ms
+ GET /api/config 200 in 447ms
+ GET /api/config 200 in 449ms
+ GET /api/config 200 in 453ms
+ GET /crm/login 200 in 537ms
+ GET /api/leads 404 in 388ms
+ GET /crm/login 200 in 139ms
+ GET /crm/login 200 in 136ms
+ GET /api/config 200 in 228ms
+ GET /api/config 200 in 196ms
+ GET /crm/login 200 in 197ms
+ GET /api/config 200 in 458ms
+ GET /crm/login 200 in 662ms
+ GET /api/config 200 in 259ms
+ GET /api/config 200 in 454ms
+ GET /crm/login 200 in 677ms
+ GET /api/config 200 in 433ms
+ GET /api/config 200 in 315ms
+ POST /api/clientes 404 in 324ms
+ GET /crm/login 200 in 401ms
+ GET /crm/login 200 in 386ms
+ GET /api/config 200 in 253ms
+ GET /crm/login 200 in 280ms
+ GET /api/config 200 in 318ms
+ GET /api/config 200 in 314ms
+ GET /crm/login 200 in 115ms
+ GET /api/config 200 in 216ms
+ GET /doc/00000000-0000-0000-0000-000000000000 404 in 272ms
+ GET /api/config 200 in 278ms
+ GET /api/config 200 in 260ms
+ GET /api/config 200 in 176ms
+ GET /crm/login 200 in 258ms
+ GET /crm/login 200 in 297ms
+ GET /api/config 200 in 662ms
+ GET /crm/login 200 in 616ms
+ GET /crm/login 200 in 556ms
+ GET /crm/login 200 in 684ms
+ GET /api/config 200 in 650ms
+ GET /api/config 200 in 189ms
+ GET /api/config 200 in 57ms
+ GET /api/config 200 in 166ms
+ GET /api/config 200 in 260ms
+ GET /api/config 200 in 418ms
+ GET /api/config 200 in 468ms
+ GET /api/config 200 in 547ms
+ GET /crm/login 200 in 1196ms
+ POST /api/sunat/preview 401 in 678ms
+ GET /api/config 200 in 234ms
+ GET /api/config 200 in 914ms
+ GET /api/config 200 in 531ms
+ GET /crm/login 200 in 728ms
+ GET /crm/login 200 in 662ms
+ GET /crm/login 200 in 864ms
+ GET /crm/login 200 in 610ms
+ GET /api/config 200 in 247ms
+ GET /api/config 200 in 251ms
+ GET /api/config 200 in 258ms
+ GET /crm/login 200 in 162ms
+ GET /api/config 200 in 319ms
+ GET /api/config 200 in 379ms
+ GET /api/config 200 in 417ms
+ GET /api/config 200 in 194ms
+ GET /crm/login 200 in 329ms
+ GET /api/config 200 in 277ms
+ GET / 200 in 574ms
+ GET /crm/login 200 in 916ms
+ GET /crm/login 200 in 920ms
+ GET /crm/login 200 in 886ms
+ GET /crm/login 200 in 835ms
+ GET /crm/login 200 in 503ms
+ GET / 200 in 331ms
+ GET /api/config 200 in 590ms
+ GET /api/config 200 in 596ms
+ GET /api/config 200 in 555ms
+ GET /api/config 200 in 574ms
+ GET /doc/id-invalido-000 404 in 917ms
+ GET /crm/login 200 in 778ms
+ GET /crm/login 200 in 1013ms
+ GET /crm/login 200 in 1015ms
+ GET /api/config 200 in 475ms
+ GET /crm/login 200 in 1160ms
+ GET /api/config 200 in 348ms
+ GET /crm/login 200 in 386ms
+ GET /crm/login 200 in 385ms
+ GET / 200 in 610ms
+ GET /api/config 200 in 435ms
+ GET /api/config 200 in 566ms
+ GET /crm/login 200 in 595ms
+ GET /api/config 200 in 540ms
+ GET /api/config 200 in 423ms
+ GET /api/config 200 in 405ms
+ GET /api/config 200 in 337ms
+ GET /api/config 200 in 221ms
+ GET /api/config 200 in 170ms
+ GET /api/config 200 in 192ms
+ GET /api/config 200 in 244ms
+ GET / 200 in 278ms
+ GET /api/config 200 in 336ms
+ GET / 200 in 305ms
+ GET /api/config 200 in 167ms
+ GET /crm/login 200 in 335ms
+ GET /crm/login 200 in 121ms
+ GET /crm/login 200 in 157ms
+ GET /crm/login 200 in 288ms
+ GET /api/config 200 in 169ms
+ GET /api/config 200 in 230ms
+ GET /api/config 200 in 218ms
+ GET /api/config 200 in 346ms
+ GET /api/config 200 in 275ms
+ GET /crm/login 200 in 329ms
+ GET /crm/login 200 in 313ms
+ GET /api/config 200 in 381ms
+ GET /crm/login 200 in 258ms
+ GET /crm/login 200 in 252ms
+ GET / 200 in 202ms
+ GET /api/config 200 in 213ms
+ GET /api/config 200 in 433ms
+ GET /crm/login 200 in 416ms
+ GET /api/config 200 in 354ms
+ GET /api/config 200 in 166ms
+ GET /crm/login 200 in 312ms
+ GET /crm/login 200 in 228ms
+ GET /crm/login 200 in 109ms
+ GET /api/config 200 in 182ms
+ GET /api/config 200 in 166ms
+ GET /api/config 200 in 160ms
+ GET /api/config 200 in 182ms
+ GET /crm/login 200 in 49ms
+ GET /api/config 200 in 268ms
+ GET /api/config 200 in 274ms
+ GET /crm/login 200 in 276ms
+ GET /api/config 200 in 372ms
+ GET /crm/login 200 in 336ms
+ GET /crm/login 200 in 365ms
+ GET /api/config 200 in 291ms
+ GET /api/config 200 in 100ms
+ GET /crm/login 200 in 265ms
+ GET /crm/login 200 in 308ms
+ GET /crm/login 200 in 151ms
+ GET /api/config 200 in 285ms
+ GET /api/config 200 in 221ms
+ GET /api/config 200 in 53ms
+ GET / 200 in 135ms
+ GET /api/config 200 in 258ms
+ GET /api/config 200 in 682ms
+ GET /crm/login 200 in 330ms
+ GET /crm/login 200 in 284ms
+ GET /crm/login 200 in 288ms
+ GET /ruta-que-no-existe-xyz 404 in 591ms
+ GET /crm/login 200 in 691ms
+ GET /crm/login 200 in 575ms
+ GET /api/config 200 in 318ms
+ GET /api/config 200 in 237ms
+ GET /api/config 200 in 404ms
+ GET /api/config 200 in 363ms
+ GET /api/config 200 in 287ms
+ GET / 200 in 472ms
+ GET /api/config 200 in 430ms
+ GET /api/config 200 in 452ms
+ GET /crm/login 200 in 561ms
+ GET /crm/login 200 in 603ms
+ GET /crm/login 200 in 874ms
+ GET /crm/login 200 in 1074ms
+ GET /api/config 200 in 192ms
+ GET /api/config 200 in 152ms
+ GET /api/config 200 in 221ms
+ GET /api/config 200 in 346ms
+ GET /api/config 200 in 165ms
+ GET /api/config 200 in 150ms
+ GET /api/config 200 in 130ms
+ GET /crm/login 200 in 51ms
+ GET / 200 in 103ms
+ GET /api/config 200 in 178ms
+ GET /api/config 200 in 205ms
+ GET /crm/login 200 in 70ms
+ GET /doc/id-invalido-000 404 in 121ms
+ GET /api/config 200 in 99ms
+ GET /api/config 200 in 142ms
+ GET /api/config 200 in 157ms
+ GET /crm/login 200 in 75ms
+ GET / 200 in 246ms
+ GET /crm/login 200 in 254ms
+ GET /api/config 200 in 157ms
+ GET /api/config 200 in 144ms
+ GET /crm/login 200 in 95ms
+ GET /api/config 200 in 176ms
+ GET /api/config 200 in 178ms
+ GET /crm/login 200 in 81ms
+ GET /crm/login 200 in 89ms
+ GET /api/config 200 in 200ms
+ GET /api/config 200 in 158ms
+ GET /api/config 200 in 147ms
+ GET /api/config 200 in 151ms
+ GET /crm/login 200 in 108ms
+ GET /crm/login 200 in 206ms
+ GET / 200 in 375ms
+ GET /api/config 200 in 168ms
+ GET /crm/login 200 in 132ms
+ GET /api/config 200 in 201ms
+ GET /api/config 200 in 151ms
+ GET /crm/login 200 in 96ms
+ GET /api/config 200 in 367ms
+ ○ Compiling /api/empresa ...
+ ✓ Compiled /api/empresa in 1502ms (914 modules)
+ ✓ Compiled in 1ms (914 modules)
+ ✓ Compiled in 1ms (914 modules)
+ ✓ Compiled in 0ms (914 modules)
+ GET /api/config 200 in 2686ms
+ GET /api/empresa 200 in 3503ms
+ GET /api/config 200 in 2215ms
+ ✓ Compiled in 1ms (914 modules)
+ GET /crm/login 200 in 2988ms
+ ✓ Compiled in 0ms (914 modules)
+ ✓ Compiled in 0ms (914 modules)
+ ✓ Compiled in 0ms (914 modules)
+ GET /api/config 200 in 2493ms
+ GET /api/empresa 200 in 2190ms
+ GET /crm/login 200 in 1660ms
+ GET /api/config 200 in 202ms
+ GET /api/empresa 200 in 224ms
+ GET /api/empresa 200 in 201ms
+ GET /api/config 200 in 115ms
+ GET /crm/login 200 in 68ms
+ GET /api/config 200 in 158ms
+ GET /api/config 200 in 201ms
+ GET /crm/login 200 in 134ms
+ GET /api/config 200 in 147ms
+ GET /crm/login 200 in 80ms
+ GET /api/config 200 in 146ms
+ GET /api/config 200 in 131ms
+ GET /api/config 200 in 137ms
+ GET /api/config 200 in 124ms
+ GET /crm/login 200 in 55ms
+ GET /api/config 200 in 133ms
+ GET /api/config 200 in 133ms
+ GET / 200 in 189ms
+ GET /api/config 200 in 156ms
+ GET /api/empresa 200 in 213ms
+ GET /api/config 200 in 142ms
+ GET /api/empresa 200 in 138ms
+ GET /api/config 200 in 165ms
+ GET /api/empresa 200 in 198ms
+ GET /api/config 200 in 147ms
+ GET /api/empresa 200 in 141ms
+ GET /ruta-que-no-existe-xyz 404 in 69ms
+ GET /crm/login 200 in 131ms
+ GET / 200 in 256ms
+ GET /api/config 200 in 292ms
+ GET /crm/login 200 in 251ms
+ GET /api/config 200 in 203ms
+ GET /api/empresa 200 in 227ms
+ GET /api/config 200 in 197ms
+ GET /api/empresa 200 in 160ms
+ GET /api/config 200 in 141ms
+ GET /api/empresa 200 in 149ms
+ GET /api/config 200 in 158ms
+ GET /api/empresa 200 in 141ms
+ GET /api/config 200 in 139ms
+ GET /api/config 200 in 129ms
+ GET /crm/login 200 in 37ms
+ GET /api/config 200 in 277ms
+ GET /api/config 200 in 152ms
+ GET /crm/login 200 in 40ms
+ GET /crm/login 200 in 70ms
+ GET /api/config 200 in 169ms
+ GET /crm/login 200 in 64ms
+ GET /api/config 200 in 137ms
+ GET /api/config 200 in 140ms
+ GET /crm/login 200 in 56ms
+ GET /api/config 200 in 134ms
+ GET /api/config 200 in 129ms
+ GET /crm/login 200 in 56ms
+ GET /api/config 200 in 141ms
+ GET /api/config 200 in 132ms
+ GET /crm/login 200 in 68ms
+ GET /api/config 200 in 134ms
+ GET /api/config 200 in 136ms
+ GET /crm/login 200 in 41ms
+ GET /api/config 200 in 133ms
+ GET /api/config 200 in 127ms
+ GET /crm/login 200 in 38ms
+ GET /crm/login 200 in 47ms
+ GET /api/config 200 in 683ms
+ GET /api/config 200 in 153ms
+ GET /crm/login 200 in 55ms
+ GET /api/config 200 in 146ms
+ GET /api/config 200 in 128ms
+ GET /crm/login 200 in 69ms
+ GET /api/config 200 in 143ms
+ GET /api/config 200 in 148ms
+ GET /crm/login 200 in 58ms
+ GET /api/config 200 in 133ms
+ GET /api/config 200 in 128ms
+ GET /crm/login 200 in 65ms
+ GET /api/config 200 in 134ms
+ GET /api/config 200 in 152ms
+ GET /crm/login 200 in 67ms
+ GET /api/config 200 in 184ms
+ GET /api/config 200 in 130ms
+ GET /crm/login 200 in 48ms
+ GET /api/config 200 in 198ms
+ GET /api/config 200 in 134ms
+ GET /crm/login 200 in 45ms
+ GET /api/config 200 in 135ms
+ GET /api/config 200 in 152ms
+ GET /crm/login 200 in 41ms
+ GET /api/config 200 in 145ms
+ GET /api/config 200 in 137ms
+ GET /crm/login 200 in 55ms
+ GET /api/config 200 in 133ms
+ GET /api/config 200 in 129ms
+ GET /crm/login 200 in 80ms
+ GET /api/config 200 in 133ms
+ GET /api/config 200 in 130ms
+ GET /crm/login 200 in 57ms
+ GET /api/config 200 in 129ms
+ GET /api/config 200 in 127ms
+ GET /crm/login 200 in 76ms
+ GET /api/config 200 in 155ms
+ GET /api/config 200 in 132ms
+ GET /crm/login 200 in 44ms
+ GET /api/config 200 in 146ms
+ GET /api/config 200 in 139ms
+ GET /crm/login 200 in 70ms
+ GET /api/config 200 in 131ms
+ GET /api/config 200 in 137ms
+ GET /crm/login 200 in 43ms
+ GET /api/config 200 in 138ms
+ GET /api/config 200 in 130ms
+ GET /crm/login 200 in 37ms
+ GET /api/config 200 in 137ms
+ GET /api/config 200 in 131ms
+ GET /crm/login 200 in 62ms
+ GET /api/config 200 in 131ms
+ GET /api/config 200 in 125ms
+ GET /crm/login 200 in 56ms
+ GET /api/config 200 in 153ms
+ GET /api/config 200 in 164ms
+ GET /crm/login 200 in 41ms
+ GET /api/config 200 in 128ms
+ GET /api/config 200 in 129ms
+ GET /crm/login 200 in 59ms
+ GET /api/config 200 in 131ms
+ GET /api/config 200 in 129ms
+ GET /crm/login 200 in 55ms
+ GET /api/config 200 in 130ms
+ GET /api/config 200 in 127ms
+ GET /crm/login 200 in 69ms
+ GET /api/config 200 in 125ms
+ GET /api/config 200 in 125ms
+ GET /crm/login 200 in 42ms
+ GET /api/config 200 in 124ms
+ GET /api/config 200 in 125ms
+ GET /crm/login 200 in 48ms
+ GET /api/config 200 in 136ms
+ GET /api/config 200 in 142ms
+ GET /crm/login 200 in 64ms
+ GET /api/config 200 in 128ms
+ GET /api/config 200 in 124ms
+ GET /crm/login 200 in 47ms
+ GET /api/config 200 in 174ms
+ GET /api/config 200 in 138ms
+ GET /crm/login 200 in 93ms
+ GET /api/config 200 in 132ms
+ GET /api/config 200 in 127ms
+ GET /crm/login 200 in 76ms
+ GET /api/config 200 in 171ms
+ GET /api/config 200 in 132ms
+ GET /crm/login 200 in 55ms
+ GET /api/config 200 in 134ms
+ GET /api/config 200 in 129ms
+ GET /crm/login 200 in 55ms
+ GET /api/config 200 in 178ms
+ GET /api/config 200 in 128ms
+ GET /crm/login 200 in 60ms
+ GET /api/config 200 in 131ms
+ GET /api/config 200 in 125ms
+ GET /crm/login 200 in 47ms
+ GET /api/config 200 in 163ms
+ GET /api/config 200 in 130ms
+ GET /crm/login 200 in 65ms
+ GET /api/config 200 in 130ms
+ GET /api/config 200 in 132ms
+ GET /crm/login 200 in 56ms
+ GET /api/config 200 in 190ms
+ GET /api/config 200 in 142ms
+ GET /crm/login 200 in 63ms
+ GET /api/config 200 in 125ms
+ GET /api/config 200 in 129ms
+ GET /crm/login 200 in 49ms
+ GET /api/config 200 in 195ms
+ GET /api/config 200 in 128ms
+ GET /crm/login 200 in 53ms
+ GET /api/config 200 in 129ms
+ GET /api/config 200 in 128ms
+ ✓ Compiled in 698ms (126 modules)
+ GET /crm/login 200 in 100ms
+ GET /api/config 200 in 181ms
+ GET /crm/login 200 in 80ms
+ GET /api/config 200 in 139ms
+ GET /api/config 200 in 137ms
+ GET /crm/login 200 in 78ms
+ GET /api/config 200 in 172ms
+ GET /api/config 200 in 119ms
+ GET /crm/login 200 in 63ms
+ GET /api/config 200 in 128ms
+ GET /api/config 200 in 124ms
+ GET /crm/login 200 in 58ms
+ GET /api/config 200 in 175ms
+ GET /api/config 200 in 127ms
+ GET /crm/login 200 in 64ms
+ GET /api/config 200 in 132ms
+ GET /api/config 200 in 128ms
+ GET /crm/login 200 in 37ms
+ GET /api/config 200 in 179ms
+ GET /api/config 200 in 127ms
+ GET /crm/login 200 in 51ms
+ GET /api/config 200 in 160ms
+ GET /api/config 200 in 124ms

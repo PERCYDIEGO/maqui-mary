@@ -82,3 +82,100 @@ _Archivo inicial creado por project init._
 - **CORRECCIÓN**: En todas las páginas admin: (1) eliminar el redirect client-side (middleware ya protege), (2) usar `/api/auth/me` si se necesita el rol para UI condicional (ej: `isAdmin` state para mostrar botones).
 - **REGLA**: Hacer grep de `supabase.from('profiles')` en páginas del CRM al inicio de sesión para detectar este patrón anti-RLS. El middleware es el único guard que necesita verificar rol para acceso — las páginas solo necesitan el rol para UI condicional, no para redirect.
 
+---
+
+### [2026-05-31] Toast "No se pudo cargar config SUNAT" en CADA navegación
+
+- **CONTEXTO**: Página `/crm/configuracion`, useEffect que carga `sunat_config` al montar
+- **ERROR**: Toast de error aparecía cada vez que el usuario visitaba la sección Configuración mientras la policy RLS recursiva estuviera activa
+- **CAUSA**: El catch de `loadSunatConfig` hacía `toast.error('No se pudo cargar config SUNAT: ' + e.message)` para CUALQUIER error, incluyendo el de recursión infinita de RLS. El usuario veía el toast en cada visita a esa sección.
+- **CORRECCIÓN**: Distinguir errores de RLS (`e.message.includes('infinite recursion') || e.message.includes('policy')`) y silenciarlos — son errores de configuración de BD, no errores de la app. Errores reales (red, DB caída) siguen mostrando toast.
+- **REGLA**: Los errores de RLS son errores de infraestructura/configuración, no errores de usuario. Detectar con `message.includes('infinite recursion')` y no mostrar toast al usuario. Loguear en console para debug pero no interrumpir la UX.
+
+---
+
+### [2026-05-31] E2E test debe detectar toasts de error al navegar entre secciones
+
+- **CONTEXTO**: Test E2E `tests/functional/flujo-completo.spec.ts`
+- **ERROR**: Los tests verificaban que las páginas cargaban (sin Error 500) pero no verificaban que no aparecieran toasts de error durante la navegación
+- **CORRECCIÓN**: Agregar test que navega por TODAS las secciones y verifica que ningún toast de error con patrones `/No se pudo cargar|Error al cargar|infinite recursion/i` sea visible
+- **REGLA**: Los tests E2E deben verificar ausencia de toasts de error además de ausencia de errores HTTP. Una página puede cargar con código 200 pero mostrar toasts de error visibles al usuario.
+
+---
+
+### [2026-05-31] clearSession en helpers.ts usaba ruta /crm/logout inexistente
+
+- **CONTEXTO**: `tests/helpers.ts`, función `clearSession` llamada por `loginAs` antes de cada login
+- **ERROR**: `page.goto('/crm/logout')` navegaba a una ruta que no existe en Next.js → 404 silencioso. Los errores estaban en `.catch(() => {})` así que no rompía tests pero causaba lentitud y confusión.
+- **CAUSA**: La función asumía que existía una ruta `/crm/logout` cuando el logout real es client-side via `supabase.auth.signOut()` en el layout.
+- **CORRECCIÓN**: Reemplazar por `page.context().clearCookies()` + `page.goto('/crm/login')` + `localStorage/sessionStorage.clear()`. No depender de rutas de la app para limpiar sesión.
+- **REGLA**: En tests E2E, limpiar sesión directamente con `clearCookies()` y `localStorage.clear()`, no navegando a una ruta de logout que puede no existir. Es más rápido y confiable.
+
+---
+
+### [2026-05-31] console.log en middleware filtra info de requests en producción
+
+- **CONTEXTO**: `middleware.ts`, logs de debug para rastrear sesiones
+- **ERROR**: 3 `console.log` exponían paths de requests y nombres de cookies en los logs de producción (Vercel). ESLint `no-console` lo detectó como warning.
+- **CAUSA**: Se agregaron durante debugging de la autenticación SSR y nunca se eliminaron
+- **CORRECCIÓN**: Eliminar los console.log. El fallback `getSession → getUser` se mantuvo por robustez.
+- **REGLA**: NUNCA dejar `console.log` con datos de requests en middleware o API routes. Usar solo en desarrollo local con guard `if (process.env.NODE_ENV === 'development')`. En producción filtran paths y cookies a los logs.
+
+---
+
+### [2026-05-31] El patrón anti-RLS de supabase.from('profiles') estaba replicado en 3+ páginas
+
+- **CONTEXTO**: Auditoría completa del proyecto — `sunat/diagnostico/page.tsx` aún tenía el mismo bug
+- **ERROR**: `sunat/diagnostico/page.tsx` tenía el mismo `supabase.from('profiles').select('role')` con redirect si null — misma causa raíz que ya fue corregida en `sunat/page.tsx` y `usuarios/page.tsx`
+- **CAUSA**: El patrón fue copiado en varias páginas al momento de crearlas y no se auditaron todas al hacer el fix inicial.
+- **CORRECCIÓN**: Al corregir un patrón anti-pattern en una página, hacer **grep del patrón en todo el proyecto** para encontrar todas las instancias. No asumir que solo existe en los archivos reportados.
+- **REGLA**: Al hacer fix de un bug con patrón replicable, siempre correr `grep -r "patron" src/` para encontrar todas las instancias antes de cerrar el fix.
+
+---
+
+### [2026-05-31] cambiar-contrasena: UPDATE profiles bloqueado por RLS — force_password_change no se actualizaba
+
+- **CONTEXTO**: `crm/cambiar-contrasena/page.tsx`, flujo de primer login forzado
+- **ERROR**: `supabase.from('profiles').update({ force_password_change: false })` falló silencioso por RLS. El usuario cambiaba contraseña pero volvía a ser forzado a cambiarla en cada login.
+- **CAUSA**: Sin policy `profiles_update_self` (`FOR UPDATE USING (auth.uid() = id)`), el anon key no puede UPDATE en la tabla profiles aunque sea el propio usuario.
+- **CORRECCIÓN**: Reemplazar el UPDATE directo con `PATCH /api/auth/me` que usa service role para garantizar el update. Handler PATCH con whitelist explícita (`force_password_change` únicamente) para evitar escalada de privilegios.
+- **REGLA**: Para operaciones de UPDATE/INSERT en tablas con RLS desde el cliente, verificar que exista la policy correspondiente O usar un API endpoint con service role. Nunca asumir que un UPDATE del propio registro funciona sin la policy explícita `FOR UPDATE USING (auth.uid() = id)`.
+
+---
+
+### [2026-05-31] zonas_delivery no existía en BD — sección Configuración mostraba vacío sin error visible
+
+- **CONTEXTO**: Página `configuracion`, sección de zonas de delivery
+- **ERROR**: La tabla `zonas_delivery` no existía en producción. La query fallaba pero el código ya manejaba el error silenciosamente (`if (!error && data) setZonas(data)`). El usuario veía la sección vacía sin saber por qué.
+- **CAUSA**: La migración `migration_delivery.sql` existía en el repo pero nunca fue ejecutada en la BD de producción.
+- **CORRECCIÓN**: Crear `migration_final_pendientes.sql` con `CREATE TABLE IF NOT EXISTS zonas_delivery` + datos iniciales + RLS policies.
+- **REGLA**: Mantener un archivo `migration_pendientes.sql` actualizado con todo lo que falta ejecutar en producción. Al hacer auditoría, verificar qué tablas usa el código y cuáles existen realmente en la BD.
+
+---
+
+### [2026-05-31] payment/evidence bloqueaba a clientes del landing con "No autorizado"
+
+- **CONTEXTO**: `api/payment/evidence/route.ts`, flujo de pago del carrito en el landing
+- **ERROR**: Clientes recibían "No autorizado" al intentar subir su comprobante de pago (Yape/Plin). El flujo completo de compra quedaba roto.
+- **CAUSA**: La auditoría de seguridad agregó `verifyAuth` a este endpoint asumiendo que solo el CRM lo usaba. Pero es una ruta **pública** — clientes anónimos del landing la llaman sin sesión CRM.
+- **CORRECCIÓN**: Eliminar `verifyAuth`. La ruta ya está en `PUBLIC_API_ROUTES` del middleware. La validación de tipo/tamaño de archivo permanece como protección anti-abuso.
+- **REGLA**: Al agregar auth a endpoints de API, verificar SIEMPRE quién llama la ruta: ¿CRM interno o clientes públicos del landing? Los endpoints en `PUBLIC_API_ROUTES` son públicos por diseño — no agregar `verifyAuth` en ellos. Hacer grep de dónde se llama el endpoint antes de protegerlo.
+
+---
+
+### [2026-06-21] formatearMoneda no mostraba separador de miles
+
+- **CONTEXTO**: `lib/calculos.ts`, función `formatearMoneda`, usada en toda la app (facturas, boletas, guías, totales)
+- **ERROR**: Montos grandes como 2200.00 se mostraban sin separador: `S/ 2200.00` en vez de `S/ 2,200.00`
+- **CAUSA**: La función usaba `valor.toFixed(2)` directo, sin separador de miles.
+- **CORRECCIÓN**: Reemplazar por regex que agrega coma cada 3 dígitos antes del punto decimal: `parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',')`. Solución explícita sin depender de `toLocaleString` (que varía por entorno).
+- **REGLA**: Nunca usar `toFixed(2)` directamente para mostrar montos en UI. Siempre usar `formatearMoneda()` que incluye separador de miles. Si se necesita formato numérico sin símbolo, usar la misma regex.
+
+---
+
+### [2026-06-21] Campo precio en documentos no tenía indicador visual de modificación
+
+- **CONTEXTO**: Formularios `facturas/nueva/page.tsx` y `boletas/nueva/page.tsx`, paso 2 (ítems)
+- **SITUACIÓN**: El campo de precio unitario ya era editable al seleccionar un producto, pero no había ningún indicador de que el vendedor había cambiado el precio respecto al catálogo.
+- **CORRECCIÓN**: Agregar `precioCatalogo?: number` en `ItemDocumento`. Al seleccionar producto se guarda `precioCatalogo: producto.precioUnitario`. Cuando `valorUnitario !== precioCatalogo`: badge ámbar "· Precio especial" en el label, borde ámbar en el input, link "Base: S/ X.XX · Restaurar" debajo.
+- **REGLA**: Cuando un campo tiene un valor "base" que puede ser sobreescrito, siempre mostrar el valor original como referencia y un indicador visual del cambio. Guardar el valor base en el estado desde el momento de la selección, no recalcularlo después.

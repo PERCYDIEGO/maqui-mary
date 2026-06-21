@@ -33,7 +33,7 @@ test('página /crm/login carga correctamente', async ({ page }) => {
   await page.goto('/crm/login')
   await page.waitForLoadState('networkidle')
   // Debe tener campo de email/usuario y password
-  const emailInput = page.locator('input[type="email"], input[name="email"]')
+  const emailInput = page.locator('input[inputMode="email"], input[type="email"], input[name="email"]')
   const passInput  = page.locator('input[type="password"]')
   await expect(emailInput.first()).toBeVisible()
   await expect(passInput.first()).toBeVisible()
@@ -41,7 +41,7 @@ test('página /crm/login carga correctamente', async ({ page }) => {
 
 test('favicon existe y no da 404', async ({ page }) => {
   const res = await page.request.get('/favicon.ico')
-  expect([200, 204]).toContain(res.status())
+  expect([200, 204, 304]).toContain(res.status())
 })
 
 test('meta title y description presentes en homepage', async ({ page }) => {
@@ -111,7 +111,7 @@ test('404 page personalizada funciona', async ({ page }) => {
 test('sin "[object Object]" en homepage', async ({ page }) => {
   await page.goto('/')
   await page.waitForLoadState('networkidle')
-  const body = await page.locator('body').textContent() || ''
+  const body = await page.locator('body').innerText() || ''
   expect(body).not.toMatch(/\[object Object\]/)
   expect(body).not.toMatch(/\bundefined\b/)
 })

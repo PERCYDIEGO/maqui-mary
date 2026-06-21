@@ -1,13 +1,12 @@
 import { test, expect } from '@playwright/test'
-import { loginAsAdmin } from './helpers'
+import { loginAsAdmin, safeNavigate } from './helpers'
 
 // ─── CÁLCULOS FISCALES ────────────────────────────────────────────────────────
 
 test('IGV 18%: precio 100 → base 84.75, igv 15.25, total 100.00', async ({ page }) => {
   // Probar a través de la API de preview o la UI de nueva factura
   await loginAsAdmin(page)
-  await page.goto('/crm/facturas/nueva')
-  await page.waitForLoadState('networkidle')
+  await safeNavigate(page, '/crm/facturas/nueva')
 
   // Agregar un ítem con precio 100
   const precioInput = page.locator('input[name*="precio" i], input[placeholder*="precio" i]').first()
@@ -44,8 +43,7 @@ test('número a letras: 250.50 → "DOSCIENTOS CINCUENTA"', async ({ page }) => 
 
 test('total con múltiples ítems es correcto', async ({ page }) => {
   await loginAsAdmin(page)
-  await page.goto('/crm/facturas/nueva')
-  await page.waitForLoadState('networkidle')
+  await safeNavigate(page, '/crm/facturas/nueva')
   // Verificar que la página carga sin crash
   await expect(page.locator('body')).not.toContainText('Error')
   await expect(page.locator('body')).not.toContainText('undefined')
@@ -55,8 +53,7 @@ test('total con múltiples ítems es correcto', async ({ page }) => {
 
 test('RUC con 10 dígitos es rechazado', async ({ page }) => {
   await loginAsAdmin(page)
-  await page.goto('/crm/clientes')
-  await page.waitForLoadState('networkidle')
+  await safeNavigate(page, '/crm/clientes')
   // Intentar crear cliente con RUC inválido via API
   const res = await page.request.post('/api/clientes', {
     data: { nombre: 'Test SA', tipo_documento: 6, num_documento: '1234567890' }, // 10 dígitos
@@ -93,8 +90,7 @@ test('preview XML no cambia estado en DB', async ({ page }) => {
 
 test('página nueva factura carga sin crash', async ({ page }) => {
   await loginAsAdmin(page)
-  await page.goto('/crm/facturas/nueva')
-  await page.waitForLoadState('networkidle')
+  await safeNavigate(page, '/crm/facturas/nueva')
   await expect(page.locator('body')).not.toContainText('Error 500')
   await expect(page.locator('body')).not.toContainText('Internal Server Error')
   await expect(page.locator('body')).not.toContainText('undefined')
@@ -102,36 +98,32 @@ test('página nueva factura carga sin crash', async ({ page }) => {
 
 test('página nueva boleta carga sin crash', async ({ page }) => {
   await loginAsAdmin(page)
-  await page.goto('/crm/boletas/nueva')
-  await page.waitForLoadState('networkidle')
+  await safeNavigate(page, '/crm/boletas/nueva')
   await expect(page.locator('body')).not.toContainText('Error 500')
 })
 
 test('página nueva guía carga sin crash', async ({ page }) => {
   await loginAsAdmin(page)
-  await page.goto('/crm/guias/nueva')
-  await page.waitForLoadState('networkidle')
+  await safeNavigate(page, '/crm/guias/nueva')
   await expect(page.locator('body')).not.toContainText('Error 500')
 })
 
 test('listado facturas carga con datos o vacío (no crash)', async ({ page }) => {
   await loginAsAdmin(page)
-  await page.goto('/crm/facturas')
-  await page.waitForLoadState('networkidle')
-  const body = await page.locator('body').textContent()
+  await safeNavigate(page, '/crm/facturas')
+  const body = await page.locator('body').innerText()
   expect(body).not.toMatch(/Error 500|Internal Server Error|undefined/i)
 })
 
 test('fecha en documentos usa hora Perú (no UTC+0)', async ({ page }) => {
   // Verificar que la fecha mostrada en el sistema corresponde a Lima GMT-5
   await loginAsAdmin(page)
-  await page.goto('/crm')
-  await page.waitForLoadState('networkidle')
+  // loginAs already lands on /crm
   // La fecha en UI debe coincidir con new Date().toLocaleDateString('es-PE')
   const today = new Date(Date.now() - 5 * 60 * 60 * 1000)
   const todayStr = today.toISOString().slice(0, 10) // YYYY-MM-DD
   const [year, month, day] = todayStr.split('-')
-  const bodyText = await page.locator('body').textContent() || ''
+  const bodyText = await page.locator('body').innerText() || ''
   // Verificar que la fecha de hoy está presente en alguna forma
   expect(bodyText).toMatch(new RegExp(`${day}/${month}/${year}|${year}-${month}-${day}|${parseInt(day)} de`))
 })

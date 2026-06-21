@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { loginAsAdmin, ADMIN_EMAIL, ADMIN_PASSWORD } from './helpers'
+import { loginAsAdmin, ADMIN_EMAIL, ADMIN_PASSWORD, safeNavigate } from './helpers'
 
 // ─── AUTH & SESIÓN ───────────────────────────────────────────────────────────
 
@@ -10,7 +10,7 @@ test('login correcto redirige a /crm', async ({ page }) => {
 
 test('login incorrecto muestra error, no redirige', async ({ page }) => {
   await page.goto('/crm/login')
-  await page.fill('input[type="email"], input[name="email"]', ADMIN_EMAIL)
+  await page.fill('input[inputMode="email"], input[placeholder*="Correo"]', ADMIN_EMAIL)
   await page.fill('input[type="password"]', 'clavemal123')
   await page.click('button[type="submit"]')
   await expect(page).toHaveURL(/\/crm\/login/)
@@ -54,7 +54,7 @@ test('logout limpia sesión correctamente', async ({ page }) => {
       Object.keys(localStorage).forEach(k => { if (k.startsWith('sb-')) localStorage.removeItem(k) })
       Object.keys(sessionStorage).forEach(k => sessionStorage.removeItem(k))
     })
-    await page.goto('/crm')
+    await safeNavigate(page, '/crm')
   }
   await expect(page).toHaveURL(/\/crm\/login/)
 })
@@ -69,7 +69,7 @@ test('sesión persiste al recargar', async ({ page }) => {
 
 test('contraseña incorrecta no expone hash ni token en DOM', async ({ page }) => {
   await page.goto('/crm/login')
-  await page.fill('input[type="email"], input[name="email"]', ADMIN_EMAIL)
+  await page.fill('input[inputMode="email"], input[placeholder*="Correo"]', ADMIN_EMAIL)
   await page.fill('input[type="password"]', 'clavemal')
   await page.click('button[type="submit"]')
   await page.waitForTimeout(1000)

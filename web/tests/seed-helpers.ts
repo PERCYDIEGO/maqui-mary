@@ -36,20 +36,13 @@ export async function seedTestData() {
   return { clientes, transportistas, productos }
 }
 
+async function deleteByColumn(table: string, column: string, value: string) {
+  const { error } = await supabase.from(table).delete().ilike(column, `${value}%`)
+  if (error) console.warn(`Cleanup warning en ${table}.${column}: ${error.message}`)
+}
+
 export async function cleanupTestData() {
-  for (const table of ['factura_items', 'facturas', 'movimientos_stock', 'transportistas', 'clientes', 'productos']) {
-    const { error } = await supabase
-      .from(table)
-      .delete()
-      .or(`name.like.${TEST_PREFIX}%,nombres.like.${TEST_PREFIX}%,apellidos.like.${TEST_PREFIX}%`)
-    if (error) {
-      const { error: err2 } = await supabase
-        .from(table)
-        .delete()
-        .ilike('name', `${TEST_PREFIX}%`)
-      if (err2) {
-        console.warn(`Cleanup warning en ${table}: ${err2.message}`)
-      }
-    }
-  }
+  await deleteByColumn('clientes', 'name', TEST_PREFIX)
+  await deleteByColumn('productos', 'name', TEST_PREFIX)
+  await deleteByColumn('transportistas', 'nombres', 'Juan')
 }
