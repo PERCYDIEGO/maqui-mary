@@ -10,6 +10,8 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    const url = new URL(req.url)
+    const dryRun = url.searchParams.get('dry_run') === '1'
     const body = await req.json()
     const {
       guia_id,
@@ -23,6 +25,7 @@ export async function POST(req: NextRequest) {
       motivo_traslado,
       descripcion_motivo = '',
       fecha_inicio_traslado,
+      fecha_entrega_a_transportista, // puede ser distinto a fecha_inicio_traslado
       // Destinatario
       destinatario_tipo_doc,
       destinatario_num_doc,
@@ -88,6 +91,7 @@ export async function POST(req: NextRequest) {
       motivoTraslado: motivo_traslado,
       descripcionMotivo: descripcion_motivo,
       fechaInicioTraslado: fecha_inicio_traslado,
+      fechaEntregaTransportista: fecha_entrega_a_transportista || fecha_inicio_traslado,
       destinatarioTipoDoc: destinatario_tipo_doc || '6',
       destinatarioNumDoc: destinatario_num_doc || '',
       destinatarioNombre: destinatario_nombre || '',
@@ -128,6 +132,10 @@ export async function POST(req: NextRequest) {
         rucEmisor: d.ruc_emisor || d.rucEmisor || '20606218801',
       })),
     })
+
+    if (dryRun) {
+      return NextResponse.json({ ok: true, dryRun: true, request: apiSunatReq })
+    }
 
     // Enviar a APISUNAT (endpoint /api/v3/dispatches para guías)
     const apiResult = await sendToApiSunat(apiSunatReq, apisunatToken, apisunatEnv, true)

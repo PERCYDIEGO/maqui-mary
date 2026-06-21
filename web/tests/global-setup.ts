@@ -86,14 +86,14 @@ export default async function globalSetup() {
     .eq('activo', true)
     .limit(1)
 
-  // Ubigeo de la empresa (punto de partida de guías)
+  // Configuración SUNAT completa (series + ubigeo)
   const { data: sunatConfig } = await supabase
     .from('sunat_config')
-    .select('ubigeo, address')
+    .select('ruc, ubigeo, address, series_factura, next_number_factura, series_guia, next_number_guia')
     .eq('id', 1)
     .single()
 
-  // ── 3. Crear guía de prueba en borrador ──────────────────────────────────
+  // ── 3. Crear factura de prueba para vincular la guía ──────────────────────
 
   const hoy = new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString().slice(0, 10)
   const transportista = transportistas?.[0]
@@ -102,10 +102,51 @@ export default async function globalSetup() {
 
   const ubigeoEmpresa = sunatConfig?.ubigeo || '150103' // Lurigancho, Lima
   const ubigeoDestino = '150101'                        // Lima Cercado (fallback genérico)
+  const rucEmpresa = sunatConfig?.ruc || '20606218801'
+  const seriesFactura = sunatConfig?.series_factura || 'F001'
+  const siguienteFactura = Number(sunatConfig?.next_number_factura || 9999) + 1000
+
+  const primerProducto = producto1 ?? { name: 'Esponja test', price: 5.5, unidad_de_medida: 'NIU' }
+  const subtotal = Number(primerProducto.price || 5.5)
+  const igv = Number((subtotal * 0.18).toFixed(2))
+  const total = Number((subtotal + igv).toFixed(2))
+
+  const facturaPayload = {
+    series: seriesFactura,
+    number: siguienteFactura,
+    cliente_id: clienteRUC?.id ?? null,
+    cliente_nombre: clienteRUC?.name ?? 'FABARLI S.A.C.',
+    cliente_ruc: clienteRUC?.num_documento ?? '20509146668',
+    cliente_direccion: clienteRUC?.address ?? 'Lima',
+    subtotal,
+    igv,
+    total,
+    tipo_comprobante: '01',
+    status: 'confirmed',
+    estado_sunat: 'ACEPTADO' as const,
+    origen: 'crm',
+  }
+
+  const { data: facturaCreada, error: facturaErr } = await supabase
+    .from('facturas')
+    .insert(facturaPayload)
+    .select('id, series, number')
+    .single()
+
+  if (facturaErr) {
+    console.warn('⚠ No se pudo crear factura de prueba para guía:', facturaErr.message)
+  }
+
+  // ── 4. Crear guía de prueba en borrador, vinculada a la factura ────────────
+
+  const numeroGuiaTest = Number(sunatConfig?.next_number_guia || 9990) + 10000
+
+  // Eliminar guías de test anteriores si existen (limpieza por si hubo corridas previas)
+  await supabase.from('guias').delete().eq('serie', 'T001').gte('numero', 9990)
 
   const guiaPayload: Record<string, unknown> = {
     serie: 'T001',
-    numero: 9990, // número de test - poco probable que colisione
+    numero: numeroGuiaTest, // número de test secuenciado para evitar duplicados en sandbox
     tipo_guia: '09',
     fecha_emision: hoy,
     fecha_inicio_traslado: hoy,
@@ -122,9 +163,12 @@ export default async function globalSetup() {
     numero_bultos: 1,
     estado: 'borrador',
     created_by: userId,
+    documentos_relacionados: facturaCreada
+      ? JSON.stringify([{ tipo: 'factura', serie: facturaCreada.series, numero: String(facturaCreada.number), ruc_emisor: rucEmpresa }])
+      : JSON.stringify([]),
     bienes: producto1
-      ? [{ descripcion: producto1.name, cantidad: 2, unidad_de_medida: producto1.unidad_de_medida || 'NIU' }]
-      : [{ descripcion: 'Esponja de cocina', cantidad: 2, unidad_de_medida: 'NIU' }],
+      ? JSON.stringify([{ descripcion: producto1.name, cantidad: 2, unidad_de_medida: producto1.unidad_de_medida || 'NIU' }])
+      : JSON.stringify([{ descripcion: 'Esponja de cocina', cantidad: 2, unidad_de_medida: 'NIU' }]),
   }
 
   if (transportista?.modalidad === 'publico') {
@@ -144,9 +188,6 @@ export default async function globalSetup() {
     })
   }
 
-  // Eliminar guía de test anterior si existe
-  await supabase.from('guias').delete().eq('numero', 9990).eq('serie', 'T001')
-
   const { data: guiaCreada, error: guiaErr } = await supabase
     .from('guias')
     .insert(guiaPayload)
@@ -157,7 +198,7 @@ export default async function globalSetup() {
     console.warn('⚠ No se pudo crear guía de prueba:', guiaErr.message)
   }
 
-  // ── 4. Guardar todo en .test-creds.json ───────────────────────────────────
+  // ── 5. Guardar todo en .test-creds.json ───────────────────────────────────
 
   fs.writeFileSync(CREDS_FILE, JSON.stringify({
     email: TEST_EMAIL,
@@ -167,7 +208,9 @@ export default async function globalSetup() {
     clienteRUC: clienteRUC ?? { name: 'FABARLI S.A.C.', num_documento: '20509146668', tipo_documento: '6', address: 'Lima' },
     productos: productos ?? [],
     transportista: transportista ?? null,
+    factura: facturaCreada ?? null,
     guia: guiaCreada ?? null,
+    rucEmpresa,
     ubigeoEmpresa,
     ubigeoDestino,
     puntoPartida: sunatConfig?.address ?? 'Lurigancho, Lima',
@@ -176,5 +219,6 @@ export default async function globalSetup() {
   console.log(`✓ Usuario de prueba creado: ${TEST_EMAIL}`)
   if (clienteRUC) console.log(`✓ Cliente RUC: ${clienteRUC.name} (${clienteRUC.num_documento})`)
   if (productos?.length) console.log(`✓ Productos: ${productos.map(p => p.name).join(', ')}`)
+  if (facturaCreada) console.log(`✓ Factura de prueba creada: ${facturaCreada.series}-${String(facturaCreada.number)} (id: ${facturaCreada.id})`)
   if (guiaCreada) console.log(`✓ Guía de prueba creada: ${guiaCreada.serie}-${guiaCreada.numero} (id: ${guiaCreada.id})`)
 }

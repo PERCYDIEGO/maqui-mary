@@ -6,7 +6,7 @@ dotenv.config({ path: '.env.local' })
 export default defineConfig({
   testDir: './tests',
   timeout: 30000,
-  retries: 1,
+  retries: 0,
   globalSetup: './tests/global-setup.ts',
   globalTeardown: './tests/global-teardown.ts',
   use: {
