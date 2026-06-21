@@ -92,45 +92,25 @@ function ContadorAnimado({ target, suffix = '', label }: { target: number; suffi
 }
 
 function CintilloBanner({ bestseller, clientes = 0 }: { bestseller: { name: string; price: number } | null; clientes?: number }) {
-  const [seconds, setSeconds] = useState(0)
   const [msgIdx, setMsgIdx] = useState(0)
 
-  useEffect(() => {
-    const t = setInterval(() => setSeconds(s => s + 1), 1000)
-    return () => clearInterval(t)
-  }, [])
-
-  const mins = Math.floor(seconds / 60)
-  const secs = seconds % 60
-  const timer = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
-
   const messages = [
-    {
-      icon: '🔥',
-      text: mins >= 5 && mins % 5 === 0 && secs < 2
-        ? `🎉 ¡${mins} minutos aquí! Llevas más tiempo del que crees — El más vendido: ${bestseller?.name || 'Nuestras esponjas'}`
-        : `El más vendido: ${bestseller?.name || 'Esponjas'} — desde S/ ${bestseller?.price.toFixed(2) || '—'} 🏆`
-    },
-    { icon: '⏱️', text: `Llevas ${timer} explorando — ¡Calidad y precio justo te esperan!` },
-    { icon: '🇵🇪', text: 'Hecho en Perú · Fabricación propia en Lurigancho — Calidad que tu hogar merece' },
-    { icon: '⭐', text: clientes > 0 ? `5.0 estrellas · Más de ${Intl.NumberFormat('es-PE').format(clientes)} clientes nos respaldan` : '5.0 estrellas · Calidad comprobada por nuestros clientes' },
-    { icon: '💪', text: 'La mejor relación calidad-precio — ¡Agrega al carrito y comprueba!' },
+    { icon: '🔥', text: `Más vendido: ${bestseller?.name || 'Esponjas Maqui Mary'} — desde S/ ${bestseller?.price.toFixed(2) || '—'} 🏆` },
+    { icon: '🇵🇪', text: 'Fabricación propia en Lurigancho · Sin intermediarios → precio directo de fábrica' },
+    { icon: '⭐', text: clientes > 0 ? `Más de ${Intl.NumberFormat('es-PE').format(clientes)} clientes satisfechos en Lima` : 'Calidad comprobada por cientos de hogares limeños' },
+    { icon: '🚚', text: 'Delivery a todos los distritos de Lima · Recojo gratis en Lurigancho' },
   ]
 
   useEffect(() => {
     const t = setInterval(() => setMsgIdx(i => (i + 1) % messages.length), 6000)
     return () => clearInterval(t)
-  }, [])
-
-  useEffect(() => {
-    if (mins >= 5 && mins % 5 === 0 && secs === 0) setMsgIdx(0)
-  }, [mins, secs])
+  }, [messages.length])
 
   return (
     <div className="relative overflow-hidden bg-gradient-to-r from-accent-gold via-ink-600 to-accent-gold bg-[length:200%_100%] animate-shimmer mb-10 rounded-2xl">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-center gap-3 text-white text-sm md:text-base font-medium text-center min-h-[48px] drop-shadow-md">
         <span className="text-lg shrink-0 drop-shadow-sm">{messages[msgIdx].icon}</span>
-        <span className="animate-pulse-soft drop-shadow-sm">{messages[msgIdx].text}</span>
+        <span className="drop-shadow-sm">{messages[msgIdx].text}</span>
       </div>
     </div>
   )
@@ -140,8 +120,9 @@ export default function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [cartOpen, setCartOpen] = useState(false)
   const [cart, setCart] = useState<CartItem[]>([])
+  const [openFaq, setOpenFaq] = useState<number | null>(null)
   const { productos, refreshProductos } = useApp()
-  const [bgMusic, setBgMusic] = useState(true)
+  const [bgMusic, setBgMusic] = useState(false)
   const [heroLoaded, setHeroLoaded] = useState(false)
   const [landingTrack, setLandingTrack] = useState('')
   const audioRef = useRef<any>(null)
@@ -200,24 +181,14 @@ export default function LandingPage() {
     setTimeout(() => setHeroLoaded(true), 100)
   }, [])
 
-  // Lazy load audio engine solo cuando el usuario active música
+  // Audio: solo arranca cuando el usuario lo activa explícitamente (opt-in)
   useEffect(() => {
-    if (!landingTrack) return
-    let cleanup: (() => void) | undefined
+    if (!landingTrack || !bgMusic) return
     import('@/lib/audio').then(mod => {
       audioRef.current = mod.audio
-      if (bgMusic && landingTrack) mod.audio.startTrack(landingTrack)
-      const handler = () => {
-        if (bgMusic && landingTrack) mod.audio.startTrack(landingTrack)
-      }
-      document.addEventListener('pointerdown', handler)
-      document.addEventListener('keydown', handler)
-      cleanup = () => {
-        document.removeEventListener('pointerdown', handler)
-        document.removeEventListener('keydown', handler)
-      }
+      mod.audio.startTrack(landingTrack)
     })
-    return () => { cleanup?.(); audioRef.current?.stopTrack?.() }
+    return () => { audioRef.current?.stopTrack?.() }
   }, [bgMusic, landingTrack])
 
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
@@ -306,42 +277,43 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen">
       {/* ===== NAVBAR ===== */}
-      <nav className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${cartOpen ? 'bg-ink-800' : 'bg-ink-800/90 backdrop-blur-md'}`}>
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <MaquiMaryLogoLight size={48} />
-          <div className="hidden md:flex items-center gap-6 text-sm">
-            <a href="#productos" className="text-ink-200 hover:text-accent-gold transition-colors">Productos</a>
-            <a href="#nosotros" className="text-ink-200 hover:text-accent-gold transition-colors">Nosotros</a>
-            <a href="#testimonios" className="text-ink-200 hover:text-accent-gold transition-colors">Testimonios</a>
-            <a href="#contacto" className="text-ink-200 hover:text-accent-gold transition-colors">Contacto</a>
+      <nav className="fixed top-0 left-0 right-0 z-40 bg-ink-900 border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-6 md:px-10 py-4 md:py-5 flex items-center justify-between">
+          <MaquiMaryLogoLight size={42} />
+          <div className="hidden md:flex items-center gap-8">
+            <a href="#productos" className="text-[15px] font-medium text-ink-300 hover:text-white transition-colors duration-150">Productos</a>
+            <a href="#nosotros" className="text-[15px] font-medium text-ink-300 hover:text-white transition-colors duration-150">Nosotros</a>
+            <a href="#testimonios" className="text-[15px] font-medium text-ink-300 hover:text-white transition-colors duration-150">Testimonios</a>
+            <a href="#contacto" className="text-[15px] font-medium text-ink-300 hover:text-white transition-colors duration-150">Contacto</a>
           </div>
-          <div className="flex items-center gap-3">
-            <a href="/crm/login" className="hidden md:flex items-center gap-1.5 text-sm text-ink-400 hover:text-accent-gold transition-colors mr-2 border border-ink-700 px-3 py-1.5 rounded-lg hover:border-accent-gold">
-              <Lock size={14} />
-              <span>Área de Empleados</span>
-            </a>
-            <button onClick={() => setCartOpen(true)} className="relative">
-              <ShoppingCart size={22} className="text-ink-200 hover:text-accent-gold transition-colors" />
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setCartOpen(true)}
+              className="relative flex items-center gap-2 text-ink-300 hover:text-white transition-colors duration-150"
+              aria-label="Abrir carrito"
+            >
+              <ShoppingCart size={20} />
               {itemsCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-accent-terracotta text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center animate-scale-in">
+                <span className="absolute -top-2 -right-2 bg-accent-terracotta text-white text-[11px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
                   {itemsCount}
                 </span>
               )}
             </button>
-            <button className="md:hidden text-ink-200" onClick={() => setMenuOpen(!menuOpen)}>
-              {menuOpen ? <X size={24} /> : <Menu size={24} />}
+            <button
+              className="md:hidden text-ink-300 hover:text-white transition-colors"
+              onClick={() => setMenuOpen(!menuOpen)}
+              aria-label={menuOpen ? 'Cerrar menú' : 'Abrir menú'}
+            >
+              {menuOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
           </div>
         </div>
         {menuOpen && (
-          <div className="md:hidden bg-ink-800 px-4 pb-4 flex flex-col gap-3 text-ink-200">
-            <a href="#productos" onClick={() => setMenuOpen(false)} className="hover:text-accent-gold transition-colors">Productos</a>
-            <a href="#nosotros" onClick={() => setMenuOpen(false)} className="hover:text-accent-gold transition-colors">Nosotros</a>
-            <a href="#testimonios" onClick={() => setMenuOpen(false)} className="hover:text-accent-gold transition-colors">Testimonios</a>
-            <a href="#contacto" onClick={() => setMenuOpen(false)} className="hover:text-accent-gold transition-colors">Contacto</a>
-            <a href="/crm/login" className="text-accent-gold border-t border-ink-700 pt-3 mt-2 flex items-center gap-2 font-medium">
-              <Lock size={14} /> Área de Empleados
-            </a>
+          <div className="md:hidden bg-ink-900 border-t border-white/10 px-6 pb-6 flex flex-col gap-1">
+            <a href="#productos" onClick={() => setMenuOpen(false)} className="text-[15px] font-medium text-ink-300 hover:text-white transition-colors py-3 border-b border-white/5">Productos</a>
+            <a href="#nosotros" onClick={() => setMenuOpen(false)} className="text-[15px] font-medium text-ink-300 hover:text-white transition-colors py-3 border-b border-white/5">Nosotros</a>
+            <a href="#testimonios" onClick={() => setMenuOpen(false)} className="text-[15px] font-medium text-ink-300 hover:text-white transition-colors py-3 border-b border-white/5">Testimonios</a>
+            <a href="#contacto" onClick={() => setMenuOpen(false)} className="text-[15px] font-medium text-ink-300 hover:text-white transition-colors py-3">Contacto</a>
           </div>
         )}
       </nav>
@@ -357,24 +329,26 @@ export default function LandingPage() {
           <div className="max-w-3xl">
             <div className={`flex items-center gap-3 mb-6 transition-all duration-700 ${heroLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
               <span className="badge-gold text-sm">🇵🇪 Empresa Peruana</span>
-              <span className="inline-flex items-center gap-1 bg-white/10 text-white px-3 py-1 rounded-full text-sm backdrop-blur-sm">
-                <Star size={14} className="fill-accent-gold text-accent-gold" />
-                5.0 ({estadisticas.clientes_satisfechos >= 1000 ? `${(estadisticas.clientes_satisfechos / 1000).toFixed(1)}k` : estadisticas.clientes_satisfechos} reseñas)
-              </span>
+              {estadisticas.clientes_satisfechos > 0 && (
+                <span className="inline-flex items-center gap-1 bg-white/10 text-white px-3 py-1 rounded-full text-sm backdrop-blur-sm">
+                  <Star size={14} className="fill-accent-gold text-accent-gold" />
+                  +{estadisticas.clientes_satisfechos >= 1000 ? `${(estadisticas.clientes_satisfechos / 1000).toFixed(1)}k` : estadisticas.clientes_satisfechos} clientes
+                </span>
+              )}
             </div>
-            <h1 className={`font-display text-5xl md:text-7xl font-bold leading-tight mb-6 transition-all duration-700 delay-200 ${heroLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-              Esponjas de Limpieza{' '}
-              <span className="gradient-text bg-gradient-to-r from-accent-gold via-accent-terracotta to-accent-gold bg-clip-text text-transparent">
-                en Lima
+            <h1 className={`font-display text-5xl md:text-7xl font-bold leading-tight mb-6 transition-all duration-700 delay-200 ${heroLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={{ textWrap: 'balance' } as React.CSSProperties}>
+              Directo de fábrica,{' '}
+              <span className="text-accent-gold">
+                sin intermediarios
               </span>
               <br />
               <span className="text-2xl md:text-3xl font-light text-ink-300 font-body animate-fade-in" style={{ animationDelay: '1s', animationFillMode: 'both' }}>
-                Precios bajos · Calidad Peruana · Delivery en Lima
+                Esponjas de limpieza · Fabricamos en Lurigancho · Delivery Lima
               </span>
             </h1>
             <p className={`text-lg md:text-xl text-ink-300 mb-8 max-w-2xl leading-relaxed transition-all duration-700 delay-400 ${heroLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-              Fabricantes y distribuidores de esponjas de limpieza en Lurigancho, Lima.
-              Calidad que tu hogar merece, precio justo para tu bolsillo.
+              Somos fabricantes directos — sin bodegón de por medio. Mejor calidad, precio justo,
+              y el respaldo de miles de hogares limeños que nos eligen cada semana.
             </p>
             <div className={`flex flex-wrap gap-4 transition-all duration-700 delay-600 ${heroLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
               <a href={`https://wa.me/${empresaData.whatsapp_clientes}?text=¡Hola!%20Quiero%20comprar%20esponjas%20de%20limpieza`} target="_blank" rel="noopener noreferrer" className="btn-secondary text-lg flex items-center gap-2 group relative overflow-hidden">
@@ -493,7 +467,6 @@ export default function LandingPage() {
                           </div>
                         )}
                       </div>
-                      <Rating rating={5.0} count={12800} />
                       <h3 className="font-heading font-bold text-ink-800 text-lg mt-2">{nombre}</h3>
                       <p className="text-ink-400 text-xs mb-2">{featuredItemMap[categoria]?.desc || descripcion || ''}</p>
                       {precioOriginal > precio ? (
@@ -521,7 +494,6 @@ export default function LandingPage() {
                   <div className="flex items-center gap-3 mb-5">
                     <h3 className="font-display font-bold text-2xl text-ink-800">{category}</h3>
                     <span className="text-ink-400 text-sm">({prods.length} productos)</span>
-                    <Rating rating={5.0} count={8500} />
                     <div className="flex-1 h-px bg-ink-200" />
                   </div>
                   <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -563,8 +535,7 @@ export default function LandingPage() {
                         </div>
                         <div className="flex-1">
                           <h4 className="font-heading font-semibold text-ink-800 text-sm">{nombre}</h4>
-                          <Rating rating={5.0} count={3200 + Math.floor(Math.random() * 5000)} />
-                          <p className="text-ink-500 text-xs mt-2">{colorInfo && `${colorInfo}`}</p>
+                          <p className="text-ink-500 text-xs mt-1">{colorInfo && `${colorInfo}`}</p>
                         </div>
                         <div className="flex items-center justify-between mt-3 pt-3 border-t border-ink-100">
                           <div>
@@ -730,26 +701,31 @@ export default function LandingPage() {
             className="grid md:grid-cols-3 gap-6"
           >
             {[
-              { name: 'María G.', location: 'Los Olivos', text: 'Compra semanal segura. Las esponjas son de buena calidad y el precio justo. Llevo comprando más de un año.', purchases: 15 },
-              { name: 'Carlos R.', location: 'Ate', text: 'Distribuyo sus esponjas en mi bodega. Mis clientes las prefieren por su durabilidad y buen precio. Ventas constantes.', purchases: 30 },
-              { name: 'Rosa M.', location: 'San Juan de Lurigancho', text: 'Las doble uso son las mejores para la cocina. Compro al por mayor cada mes desde que las descubrí.', purchases: 12 },
+              { name: 'María G.', location: 'Los Olivos', producto: 'Esponja Doble Uso', text: 'Compra semanal segura. Las esponjas son de buena calidad y el precio justo. Llevo comprando más de un año — nunca me han fallado.' },
+              { name: 'Carlos R.', location: 'Ate', producto: 'Pack x10 Colores', text: 'Distribuyo sus esponjas en mi bodega. Mis clientes las prefieren por su durabilidad y buen precio. Ventas constantes, nunca me quedan en almacén.' },
+              { name: 'Rosa M.', location: 'San Juan de Lurigancho', producto: 'Doble Uso x mayor', text: 'Las doble uso son las mejores para la cocina. Compro al por mayor cada mes desde que las descubrí. El precio directo de fábrica se nota.' },
             ].map((t, idx) => (
               <motion.div key={t.name} variants={slideUp} className="card">
-                <div className="flex items-center gap-1 mb-3">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={16} className="fill-accent-gold text-accent-gold" />
-                  ))}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-1">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} size={15} className="fill-accent-gold text-accent-gold" />
+                    ))}
+                  </div>
+                  <span className="text-[11px] font-medium text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <Check size={10} /> Comprador verificado
+                  </span>
                 </div>
                 <p className="text-ink-600 mb-4 italic leading-relaxed">"{t.text}"</p>
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-accent-gold/20 flex items-center justify-center font-heading font-bold text-accent-gold text-lg">
+                  <div className="w-10 h-10 rounded-full bg-accent-gold/20 flex items-center justify-center font-heading font-bold text-accent-gold text-base shrink-0">
                     {t.name[0]}
                   </div>
-                  <div className="flex-1">
-                    <p className="font-heading font-semibold text-ink-800">{t.name}</p>
-                    <p className="text-ink-500 text-xs flex items-center gap-1"><MapPin size={12} /> {t.location}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-heading font-semibold text-ink-800 text-sm">{t.name}</p>
+                    <p className="text-ink-500 text-xs flex items-center gap-1 truncate"><MapPin size={11} /> {t.location}</p>
                   </div>
-                  <span className="text-xs text-ink-400 bg-ink-100 px-2 py-1 rounded-full">{t.purchases} compras</span>
+                  <span className="text-[11px] text-ink-400 bg-ink-50 px-2 py-1 rounded-lg shrink-0">{t.producto}</span>
                 </div>
               </motion.div>
             ))}
@@ -785,12 +761,29 @@ export default function LandingPage() {
               { q: '¿Tienen precios al por mayor?', a: '¡Sí! Tenemos precios especiales para bodegueros, distribuidores y compras por volumen. Contáctanos por WhatsApp y te enviamos la lista de precios mayoristas.' },
               { q: '¿Qué métodos de pago aceptan?', a: 'Aceptamos Yape, Plin, transferencia bancaria (BCP, BBVA, Interbank), tarjeta de crédito/débito y pago contraentrega (con recargo de S/ 5.00).' },
               { q: '¿Cuánto duran las esponjas?', a: 'Nuestras esponjas están hechas para rendir. Con uso diario mantienen su forma y poder de limpieza por mucho tiempo. La línea de acero es ideal para limpieza profunda y su durabilidad es aún mayor. Calidad que se siente en cada uso.' },
-            ].map((faq, idx) => (
-              <motion.div key={idx} variants={slideUp} className="card !p-6">
-                <h3 className="font-heading font-bold text-lg text-ink-800 mb-2">{faq.q}</h3>
-                <p className="text-ink-600">{faq.a}</p>
-              </motion.div>
-            ))}
+            ].map((faq, idx) => {
+              const isOpen = openFaq === idx
+              return (
+                <motion.div key={idx} variants={slideUp} className="border border-ink-200 rounded-2xl overflow-hidden bg-white">
+                  <button
+                    onClick={() => setOpenFaq(isOpen ? null : idx)}
+                    className="w-full flex items-center justify-between gap-4 px-6 py-5 text-left hover:bg-ink-50 transition-colors"
+                    aria-expanded={isOpen}
+                  >
+                    <h3 className="font-heading font-bold text-base md:text-lg text-ink-800">{faq.q}</h3>
+                    <ChevronRight
+                      size={18}
+                      className={`shrink-0 text-accent-gold transition-transform duration-300 ${isOpen ? 'rotate-90' : ''}`}
+                    />
+                  </button>
+                  {isOpen && (
+                    <div className="px-6 pb-5">
+                      <p className="text-ink-600 leading-relaxed">{faq.a}</p>
+                    </div>
+                  )}
+                </motion.div>
+              )
+            })}
           </motion.div>
         </div>
       </section>
@@ -887,7 +880,8 @@ export default function LandingPage() {
             if (bgMusic) { audioRef.current?.stopTrack?.(); setBgMusic(false) }
             else { import('@/lib/audio').then(mod => { audioRef.current = mod.audio; mod.audio.startTrack(landingTrack); setBgMusic(true) }) }
           }}
-          className={`fixed bottom-6 right-24 z-40 p-3.5 rounded-full shadow-xl transition-all duration-200 hover:scale-110 active:scale-95 ${bgMusic ? 'bg-ink-700 text-accent-cream' : 'bg-ink-200 text-ink-500'}`}
+          className={`fixed bottom-24 right-6 z-40 p-3.5 rounded-full shadow-xl transition-all duration-200 hover:scale-110 active:scale-95 ${bgMusic ? 'bg-ink-700 text-accent-cream' : 'bg-ink-200 text-ink-500'}`}
+          aria-label={bgMusic ? 'Silenciar música de fondo' : 'Activar música de fondo'}
           title={bgMusic ? 'Silenciar música de fondo' : 'Activar música de fondo'}
         >
           {bgMusic ? <Volume2 size={20} /> : <VolumeX size={20} />}
@@ -1025,11 +1019,6 @@ export default function LandingPage() {
               availability: 'https://schema.org/InStock',
               itemCondition: 'https://schema.org/NewCondition',
               seller: { '@type': 'Organization', name: 'Maqui Mary' }
-            },
-            aggregateRating: {
-              '@type': 'AggregateRating',
-              ratingValue: '5.0',
-              reviewCount: '1'
             }
           },
           {
@@ -1046,11 +1035,6 @@ export default function LandingPage() {
               availability: 'https://schema.org/InStock',
               itemCondition: 'https://schema.org/NewCondition',
               seller: { '@type': 'Organization', name: 'Maqui Mary' }
-            },
-            aggregateRating: {
-              '@type': 'AggregateRating',
-              ratingValue: '5.0',
-              reviewCount: '1'
             }
           },
           {
@@ -1067,11 +1051,6 @@ export default function LandingPage() {
               availability: 'https://schema.org/InStock',
               itemCondition: 'https://schema.org/NewCondition',
               seller: { '@type': 'Organization', name: 'Maqui Mary' }
-            },
-            aggregateRating: {
-              '@type': 'AggregateRating',
-              ratingValue: '5.0',
-              reviewCount: '1'
             }
           }
         ]) }}

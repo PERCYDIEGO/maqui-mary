@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "bounce-easing",
+        "value": "sponge-wobble",
+        "reason": "Sponge mascot wobble — intentionally elastic rotation for physical rubber toy feel",
+        "createdAt": "2026-06-21T22:24:21.864Z"
+      }
+    ]
+  }
+}

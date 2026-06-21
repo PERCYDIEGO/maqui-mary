@@ -193,6 +193,26 @@ _Archivo inicial creado por project init._
 
 ---
 
+### [2026-06-21] APISUNAT ignora fecha_de_entrega_a_transportista — nombre de campo incorrecto en la interfaz TypeScript
+
+- **CONTEXTO**: `src/lib/sunat/apisunat-client.ts`, interfaz `ApiSunatGuiaRequest`, builder `buildApiSunatGuiaRequest`
+- **ERROR**: APISUNAT sandbox retornaba "El campo fecha entrega a transportista es requerido." incluso con el campo explícitamente seteado en el JSON. Se podía verificar con `JSON.stringify` que el campo SÍ estaba presente.
+- **CAUSA**: La interfaz TypeScript definía `fecha_de_entrega_a_transportista` (con `_de_`). APISUNAT espera `fecha_entrega_a_transportista` (sin `_de_`). Al serializar con `JSON.stringify`, el JSON incluía la clave con `_de_` — APISUNAT la ignoraba por nombre incorrecto y reportaba el campo como faltante.
+- **CORRECCIÓN**: Cambiar en la interfaz y en el builder: `fecha_de_entrega_a_transportista` → `fecha_entrega_a_transportista`. Verificado enviando ambas variantes directamente a `sandbox.apisunat.pe/api/v3/dispatches`.
+- **REGLA**: Cuando APISUNAT dice "campo X requerido" pero el JSON SÍ lo tiene, el campo puede estar con nombre incorrecto. Probar variantes del nombre (con/sin `_de_`, con/sin guiones) enviando directamente al endpoint con `fetch` antes de buscar el bug en otro lugar. El nombre correcto en APISUNAT para guías es `fecha_entrega_a_transportista` (sin `_de_`).
+
+---
+
+### [2026-06-21] APISUNAT rechazaba guía con "El campo fecha entrega a transportista es requerido" — campo no extraído en la ruta
+
+- **CONTEXTO**: `src/app/api/sunat/guia/route.ts`, builder `buildApiSunatGuiaRequest`, tests sección F de `tests/flujo-emision.spec.ts`
+- **ERROR**: APISUNAT sandbox devolvía `{"success":false,"message":"El campo fecha entrega a transportista es requerido."}` aunque el test enviaba `fecha_entrega_a_transportista: hoy` y el builder tenía fallback `params.fechaEntregaTransportista || params.fechaInicioTraslado`
+- **CAUSA**: La ruta destructuraba el body del request pero NO incluía `fecha_entrega_a_transportista` en el destructuring. Solo extraía `fecha_inicio_traslado`. Por lo tanto, `fecha_entrega_a_transportista` quedaba `undefined` en el scope de la ruta. El builder recibía `fechaEntregaTransportista: undefined`. El fallback era `undefined || fecha_inicio_traslado`, pero `fecha_inicio_traslado` también era `undefined` si no se pasaba explícitamente — resultando en `fecha_de_entrega_a_transportista: undefined`, que `JSON.stringify` OMITE del JSON enviado a APISUNAT.
+- **CORRECCIÓN**: Agregar `fecha_entrega_a_transportista` al destructuring en la ruta y pasarlo explícitamente al builder: `fechaEntregaTransportista: fecha_entrega_a_transportista || fecha_inicio_traslado`
+- **REGLA**: En rutas Next.js, todo campo del request body que se quiera usar DEBE estar en el destructuring. Si se omite, el valor es `undefined` aunque el cliente lo envíe. `JSON.stringify` omite propiedades `undefined`, lo que hace que APISUNAT (u otras APIs) las detecten como "campo requerido faltante". Usar `?dry_run=1` (si el endpoint lo soporta) para ver el JSON construido antes de enviarlo a la API externa.
+
+---
+
 ### [2026-06-21] Campo precio en documentos no tenía indicador visual de modificación
 
 - **CONTEXTO**: Formularios `facturas/nueva/page.tsx` y `boletas/nueva/page.tsx`, paso 2 (ítems)

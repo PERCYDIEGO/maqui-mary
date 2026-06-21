@@ -147,7 +147,7 @@
   }
 
   .gradient-text {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-accent-terracotta via-accent-gold to-accent-goldlight;
+    @apply text-accent-terracotta;
   }
 
   .divider {
