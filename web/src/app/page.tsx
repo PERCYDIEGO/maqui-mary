@@ -287,6 +287,9 @@ export default function LandingPage() {
             <a href="#contacto" className="text-[15px] font-medium text-ink-300 hover:text-white transition-colors duration-150">Contacto</a>
           </div>
           <div className="flex items-center gap-4">
+            <a href="/crm/login" className="hidden md:flex text-ink-600 hover:text-ink-300 transition-colors duration-150" title="Área de Empleados" aria-label="Acceso empleados">
+              <Lock size={16} />
+            </a>
             <button
               onClick={() => setCartOpen(true)}
               className="relative flex items-center gap-2 text-ink-300 hover:text-white transition-colors duration-150"
@@ -319,12 +322,21 @@ export default function LandingPage() {
       </nav>
 
       {/* ===== HERO ===== */}
-      <section className="min-h-screen flex items-center bg-gradient-to-br from-ink-900 via-ink-800 to-ink-900 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-textile-pattern opacity-30" />
-        <div className="absolute inset-0 bg-noise" />
-        <div className="absolute top-20 right-0 w-48 md:w-96 h-48 md:h-96 bg-accent-gold/5 rounded-full blur-3xl animate-breathe" />
-        <div className="absolute bottom-20 left-0 w-40 md:w-80 h-40 md:h-80 bg-accent-terracotta/5 rounded-full blur-3xl animate-breathe" style={{ animationDelay: '2s' }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] md:w-[600px] h-[300px] md:h-[600px] bg-accent-gold/3 rounded-full blur-[120px]" />
+      <section className="min-h-screen flex items-center text-white relative overflow-hidden">
+        <div className="absolute inset-0">
+          <Image
+            src="https://images.unsplash.com/photo-1736433622548-4adbbc1c2cf2?auto=format&fit=crop&w=1600&q=80"
+            alt=""
+            fill
+            className="object-cover object-center"
+            priority
+          />
+          <div className="absolute inset-0 bg-ink-900/80" />
+          <div className="absolute inset-0 bg-gradient-to-r from-ink-900/60 via-ink-900/20 to-transparent" />
+          <div className="absolute inset-0 bg-noise opacity-40" />
+        </div>
+        <div className="absolute top-20 right-0 w-48 md:w-96 h-48 md:h-96 bg-accent-gold/10 rounded-full blur-3xl animate-breathe" />
+        <div className="absolute bottom-20 left-0 w-40 md:w-80 h-40 md:h-80 bg-accent-terracotta/10 rounded-full blur-3xl animate-breathe" style={{ animationDelay: '2s' }} />
         <div className="max-w-7xl mx-auto px-4 py-32 md:py-40 relative">
           <div className="max-w-3xl">
             <div className={`flex items-center gap-3 mb-6 transition-all duration-700 ${heroLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>

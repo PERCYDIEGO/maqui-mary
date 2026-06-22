@@ -198,26 +198,26 @@ function Sidebar({
 
       {/* Sidebar */}
       <aside className={`
-        fixed top-0 left-0 z-50 h-full w-64 bg-accent-cream border-r border-ink-200
+        fixed top-0 left-0 z-50 h-full w-64 bg-ink-900 border-r border-white/10
         transform transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-ink-200">
+        <div className="flex items-center justify-between p-4 border-b border-white/10">
           <Link href="/" className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0">
               <img src="/img/logo_oficial.png" alt="Maqui Mary" className="w-full h-full object-contain" />
             </div>
             <div>
-              <h1 className="font-heading font-bold text-ink-800 text-sm">Maqui Mary</h1>
-              <p className="text-xs text-ink-500">Sistema de Gestión</p>
+              <h1 className="font-heading font-bold text-white text-sm">Maqui Mary</h1>
+              <p className="text-xs text-ink-400">Sistema de Gestión</p>
             </div>
           </Link>
-          <button 
+          <button
             onClick={onClose}
-            className="lg:hidden p-2 hover:bg-ink-100 rounded-lg"
+            className="lg:hidden p-2 hover:bg-white/10 rounded-lg"
           >
-            <X className="w-5 h-5 text-ink-600" />
+            <X className="w-5 h-5 text-ink-400" />
           </button>
         </div>
 
@@ -226,8 +226,8 @@ function Sidebar({
           <Link
             href="/"
             className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium
-              bg-accent-sand text-ink-700 hover:bg-accent-gold/20 transition-all duration-200
-              border border-ink-200"
+              bg-white/8 text-ink-300 hover:bg-white/15 hover:text-white transition-all duration-200
+              border border-white/10"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Volver a la Tienda</span>
@@ -239,7 +239,7 @@ function Sidebar({
           {visibleItems.map((item) => {
             const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
             const Icon = item.icon;
-            
+
             return (
               <Link
                 key={item.href}
@@ -248,15 +248,15 @@ function Sidebar({
                 className={`
                   flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
                   transition-all duration-200 group
-                  ${isActive 
-                    ? 'bg-accent-terracotta text-white shadow-warm' 
-                    : 'text-ink-600 hover:bg-ink-100 hover:text-ink-900'
+                  ${isActive
+                    ? 'bg-accent-terracotta text-white shadow-warm'
+                    : 'text-ink-400 hover:bg-white/10 hover:text-white'
                   }
                 `}
               >
                 <Icon className={`
                   w-5 h-5 transition-colors
-                  ${isActive ? 'text-white' : 'text-ink-400 group-hover:text-ink-600'}
+                  ${isActive ? 'text-white' : 'text-ink-500 group-hover:text-white'}
                 `} />
                 <span className="flex-1">{item.label}</span>
                 {/* Badge de pedidos pendientes */}
@@ -273,7 +273,7 @@ function Sidebar({
                     text-xs px-2 py-0.5 rounded-full font-mono
                     ${isActive
                       ? 'bg-white/20 text-white'
-                      : 'bg-ink-100 text-ink-600'
+                      : 'bg-white/10 text-ink-400'
                     }
                   `}>
                     {item.badge}
@@ -288,25 +288,25 @@ function Sidebar({
         </nav>
 
         {/* Footer */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-ink-200 bg-accent-cream">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10">
           {/* Empresa Info */}
-          <div className="mb-3 p-3 bg-ink-50 rounded-xl border border-ink-200">
-            <p className="text-xs font-semibold text-ink-700">INVERSIONES MAQUI MARY</p>
-            <p className="text-xs text-ink-500">RUC: 20606218801</p>
+          <div className="mb-3 p-3 bg-white/[0.06] rounded-xl border border-white/10">
+            <p className="text-xs font-semibold text-white">INVERSIONES MAQUI MARY</p>
+            <p className="text-xs text-ink-400">RUC: 20606218801</p>
           </div>
-          
+
           {/* Usuario */}
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-accent-gold/20 rounded-full flex items-center justify-center border border-accent-gold">
-              <User className="w-5 h-5 text-accent-terracotta" />
+            <div className="w-9 h-9 bg-accent-gold/20 rounded-full flex items-center justify-center border border-accent-gold/40">
+              <User className="w-5 h-5 text-accent-gold" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-ink-700 truncate">{userName || 'Empleado'}</p>
-              <p className="text-xs text-ink-500">Sistema CRM</p>
+              <p className="text-sm font-medium text-white truncate">{userName || 'Empleado'}</p>
+              <p className="text-xs text-ink-400">Sistema CRM</p>
             </div>
-            <button 
+            <button
               onClick={onLogout}
-              className="p-2 hover:bg-red-50 rounded-lg text-ink-400 hover:text-red-500 transition-colors"
+              className="p-2 hover:bg-red-500/20 rounded-lg text-ink-500 hover:text-red-400 transition-colors"
               title="Cerrar sesión"
             >
               <LogOut className="w-5 h-5" />
@@ -334,7 +334,7 @@ function Header({
   onToggleMusic: () => void;
 }) {
   return (
-    <header className="sticky top-0 z-30 bg-accent-cream border-b border-ink-200 shadow-soft">
+    <header className="sticky top-0 z-30 bg-white border-b border-ink-100 shadow-sm">
       <div className="flex items-center justify-between h-16 px-4 lg:px-6">
         {/* Izquierda */}
         <div className="flex items-center gap-4">
@@ -597,7 +597,7 @@ export default function CRMLayout({
   }
 
   return (
-    <div className="min-h-screen bg-accent-sand/30">
+    <div className="min-h-screen bg-gray-50">
       {/* Sidebar */}
       <Sidebar
         isOpen={sidebarOpen}

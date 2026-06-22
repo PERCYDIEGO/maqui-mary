@@ -395,23 +395,23 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       {/* Greeting banner */}
-      <div className="bg-gradient-to-r from-accent-terracotta via-accent-gold to-amber-400 rounded-2xl p-6 text-white shadow-warm relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10"
-          style={{ backgroundImage: 'radial-gradient(circle at 80% 50%, white 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+      <div className="bg-ink-900 rounded-2xl p-6 text-white relative overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.04]"
+          style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
         <div className="relative flex items-center justify-between">
           <div>
-            <p className="text-white/80 text-sm mb-1">{saludo} 👋</p>
-            <h1 className="text-2xl font-heading font-bold mb-1">Maqui Mary — Panel de Control</h1>
-            <p className="text-white/80 text-sm">
+            <p className="text-ink-400 text-sm mb-1">{saludo} 👋</p>
+            <h1 className="text-xl font-heading font-bold mb-1 text-white">Panel de Control — Maqui Mary</h1>
+            <p className="text-ink-400 text-sm">
               {new Date().toLocaleDateString('es-PE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
             </p>
           </div>
           <div className="hidden sm:flex flex-col items-end gap-2">
             <button onClick={loadAll} disabled={loading}
-              className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-xl text-sm transition-all">
+              className="flex items-center gap-1.5 bg-white/10 hover:bg-white/15 border border-white/10 px-3 py-1.5 rounded-xl text-sm transition-all text-ink-300">
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Actualizar
             </button>
-            <p className="text-white/60 text-xs">
+            <p className="text-ink-500 text-xs">
               {lastUpdate.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}
             </p>
           </div>
