@@ -4,7 +4,7 @@ import './globals.css'
 import { Toaster } from 'react-hot-toast'
 import { AppProvider } from '@/context/AppContext'
 import ThemeApplier from '@/components/ThemeApplier'
-import { Analytics } from '@vercel/analytics/react'
+import { Analytics } from '@vercel/analytics/next'
 
 const dmSerifDisplay = DM_Serif_Display({
   subsets: ['latin'],
