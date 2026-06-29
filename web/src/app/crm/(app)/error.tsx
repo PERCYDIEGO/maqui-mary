@@ -20,9 +20,14 @@ export default function CRMError({
           <span className="text-3xl">⚠️</span>
         </div>
         <h2 className="text-lg font-bold text-gray-800 mb-2">Error inesperado</h2>
-        <p className="text-gray-500 text-sm mb-6">
+        <p className="text-gray-500 text-sm mb-4">
           Algo falló en esta sección. Intenta de nuevo o recarga la página.
         </p>
+        {error.message && (
+          <p className="mb-4 text-xs font-mono bg-red-50 text-red-700 p-2 rounded-lg text-left break-all">
+            {error.message}
+          </p>
+        )}
         <button
           onClick={reset}
           className="w-full bg-orange-600 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-orange-700 transition-colors text-sm"
