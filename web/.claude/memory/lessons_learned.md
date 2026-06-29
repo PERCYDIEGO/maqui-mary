@@ -213,13 +213,19 @@ _Archivo inicial creado por project init._
 
 ---
 
-### [2026-06-28] Sección Guías crasheaba con TypeError en render — campos undefined de data_json
+### [2026-06-28] Sección Guías crasheaba con TypeError en render Y en filtro — campos undefined de data_json
 
-- **CONTEXTO**: `crm/(app)/guias/page.tsx`, lista de guías de remisión; guías cargadas desde tabla `guias` en Supabase via spread de `data_json`
-- **ERROR**: Error boundary mostraba "⚠️ Error inesperado — Algo falló en esta sección." al entrar a `/crm/guias`
-- **CAUSA**: El mapeo en AppContext hace `{ ...row.data_json, id, estado, ... }`. Si alguna guía en BD tiene `data_json` incompleto (sin `puntoLlegada`, `motivoTraslado`, `numeroCompleto` o `destinatarioNombre`), esos campos llegan como `undefined`. El render llamaba `.toLowerCase()`, `.substring(0, 50)` y `.replace('_', ' ')` directamente sobre los campos sin guard → `TypeError: Cannot read properties of undefined`.
-- **CORRECCIÓN**: Reemplazar accesos directos por safe fallbacks: `(g.numeroCompleto || '').toLowerCase()`, `(g.destinatarioNombre || '').toLowerCase()`, `(guia.puntoLlegada || '').substring(0, 50)`, `(guia.motivoTraslado || '').replace('_', ' ')`. Commit: `df30a85`.
-- **REGLA**: Al renderizar datos que provienen de un spread de columna JSON en BD (`data_json`), SIEMPRE usar `(campo || '')` antes de llamar métodos de string. Los registros antiguos o creados por scripts pueden no tener todos los campos del tipo TypeScript, aunque el tipo lo declare como requerido.
+- **CONTEXTO**: `crm/(app)/guias/page.tsx` y `crm/(app)/documentos/page.tsx`; guías cargadas desde tabla `guias` en Supabase via spread de `data_json`; AppContext `loadDocuments`
+- **ERROR**: Error boundary mostraba "⚠️ Error inesperado — Algo falló en esta sección." al entrar a `/crm/guias` y al hacer clic en el tab "Guías de Remisión" en `/crm/documentos`
+- **CAUSA**: Dos puntos de falla distintos con la misma raíz:
+  1. `guias/page.tsx`: campos como `puntoLlegada`, `motivoTraslado`, `numeroCompleto`, `destinatarioNombre` llegaban `undefined` desde `data_json = null` en BD. El render los usaba sin null guard.
+  2. `documentos/page.tsx` línea 46: el filtro siempre ejecuta `doc.numeroCompleto.toLowerCase()` aunque `busqueda` esté vacío. Con `doc.numeroCompleto = undefined` (guías sin data_json), crasheaba en el momento de cambiar al tab de Guías.
+  Origen de los datos corruptos: el script `emitir-guias.mjs` crea guías directamente en BD (`INSERT INTO guias`) sin poblar la columna `data_json`. En AppContext, el spread `{ ...reviveDates(row.data_json || {}), ... }` produce un objeto con solo id/estado/fechas; los demás campos son `undefined`.
+- **CORRECCIÓN**:
+  - `guias/page.tsx`: null guards en filtro y render: `(campo || '').method()`. Commit `df30a85`.
+  - `documentos/page.tsx`: `(doc.numeroCompleto || '').toLowerCase()`. Commit `2b26ab0`.
+  - `AppContext.tsx loadDocuments`: tras el spread de `dataJson`, agregar fallbacks desde columnas individuales de BD: `numeroCompleto: dataJson.numeroCompleto || \`${row.serie}-${String(row.numero).padStart(8, '0')}\``, `destinatarioNombre: dataJson.destinatarioNombre || row.destinatario_nombre`, `puntoLlegada`, `motivoTraslado`, `bienes: dataJson.bienes || []`. Commit `2b26ab0`.
+- **REGLA**: Todo componente que filtre o renderice guías DEBE usar `(campo || '')` antes de `.toLowerCase()`, `.substring()`, `.replace()`. Más importante aún: `AppContext.loadDocuments` debe ser la única fuente de verdad y nunca dejar `undefined` en campos críticos — usar fallbacks de columnas individuales para documentos creados por scripts o vías alternativas sin `data_json`.
 
 ---
 
