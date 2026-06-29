@@ -25,6 +25,13 @@ export default async function globalTeardown() {
     if (creds.guia?.id) {
       await supabase.from('guias').delete().eq('id', creds.guia.id)
     }
+
+    // Eliminar factura de prueba (y sus items)
+    if (creds.factura?.id) {
+      await supabase.from('factura_items').delete().eq('factura_id', creds.factura.id)
+      await supabase.from('facturas').delete().eq('id', creds.factura.id)
+    }
+
     await supabase.from('profiles').delete().eq('id', creds.userId)
     await supabase.auth.admin.deleteUser(creds.userId)
     fs.unlinkSync(CREDS_FILE)
