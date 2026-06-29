@@ -7,10 +7,9 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Plus, Trash2, Save, X, Search, Truck, Package, User, FileText, Link2, Link2Off, Building2, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Save, X, Search, Truck, Package, User, FileText, Link2, Link2Off, Building2, RefreshCw, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import { useApp } from '@/context/AppContext';
-import DireccionSelector from '@/components/DireccionSelector';
 import { GuiaRemision, DocRelacionado, ItemDocumento, Transportista, Cliente, Boleta, Factura, EMPRESA_DATA, CATALOGO_MOTIVOS_TRASLADO, MotivoTraslado } from '@/types/documentos';
 import { formatearNumeroDocumento, generarHashCPE, generarDatosQR } from '@/lib/calculos';
 import { supabase } from '@/lib/supabase';
@@ -29,6 +28,22 @@ export default function NuevaGuiaPage() {
   const { addGuia, updateGuia, guias, transportistas, boletas, facturas, clientes, productos, series, getSiguienteNumero, refreshTransportistas } = useApp();
 
   useEffect(() => { refreshTransportistas(); }, [refreshTransportistas]);
+
+  const [numeroSeguro, setNumeroSeguro] = useState<number | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('edit')) return;
+    supabase
+      .from('guias')
+      .select('numero')
+      .order('numero', { ascending: false })
+      .limit(1)
+      .single()
+      .then(({ data }) => {
+        if (data?.numero) setNumeroSeguro(data.numero + 1);
+      });
+  }, []);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -232,24 +247,23 @@ export default function NuevaGuiaPage() {
     c.dni?.includes(puntoLlegadaBusqueda)
   );
 
-  const puntosLlegadaOpciones: PuntoLlegadaOpt[] = modalidadTraslado === 'privado'
-    ? [
-        ...transportistas
-          .filter(t =>
-            t.modalidad === 'publico' && t.activo && (
-              t.nombreCompleto.toLowerCase().includes(puntoLlegadaBusqueda.toLowerCase()) ||
-              (t.ruc || '').includes(puntoLlegadaBusqueda) ||
-              (t.direccion || '').toLowerCase().includes(puntoLlegadaBusqueda.toLowerCase())
-            )
-          )
-          .map(t => ({ kind: 'transportista' as const, data: t })),
-        ..._clientesPuntoLlegada.map(c => ({ kind: 'cliente' as const, data: c })),
-      ]
-    : _clientesPuntoLlegada.map(c => ({ kind: 'cliente' as const, data: c }));
+  const _transportistasPuntoLlegada = transportistas.filter(t =>
+    t.modalidad === 'publico' && t.activo && (
+      !puntoLlegadaBusqueda ||
+      t.nombreCompleto.toLowerCase().includes(puntoLlegadaBusqueda.toLowerCase()) ||
+      (t.ruc || '').includes(puntoLlegadaBusqueda) ||
+      (t.direccion || '').toLowerCase().includes(puntoLlegadaBusqueda.toLowerCase())
+    )
+  ).map(t => ({ kind: 'transportista' as const, data: t }));
+
+  const puntosLlegadaOpciones: PuntoLlegadaOpt[] = [
+    ..._transportistasPuntoLlegada,
+    ...(puntoLlegadaBusqueda ? _clientesPuntoLlegada.map(c => ({ kind: 'cliente' as const, data: c })) : []),
+  ];
   
   const serieActiva = series.find(s => s.tipo === 'guia' && s.activo);
   const serieGuia = serieActiva?.serie || 'T001';
-  const siguienteNumero = getSiguienteNumero('guia');
+  const siguienteNumero = numeroSeguro ?? getSiguienteNumero('guia');
   const numeroCompleto = formatearNumeroDocumento(serieGuia, siguienteNumero);
   
   function handleVincularDoc(doc: Boleta | Factura, tipo: 'Boleta' | 'Factura') {
@@ -908,54 +922,94 @@ export default function NuevaGuiaPage() {
                 </div>
               </div>
               
-              {/* Direcciones del destinatario — acceso rápido para punto de llegada */}
-              {destinatario && (
-                <DireccionSelector
-                  direccionFiscal={destinatario.direccion}
-                  direccionesReferencia={destinatario.direccionesReferencia ?? []}
-                  value={puntoLlegada}
-                  onChange={(dir) => { setPuntoLlegada(dir); setPuntoLlegadaBusqueda(''); }}
-                />
-              )}
-
-              {/* Punto de llegada con búsqueda inteligente */}
+              {/* Punto de Llegada — direcciones del destinatario + búsqueda */}
               <div className="relative" ref={puntoLlegadaRef}>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="block text-sm font-medium text-slate-700 mb-2">
                   Punto de Llegada *
-                  <span className="ml-2 text-xs font-normal text-slate-400">
-                    {modalidadTraslado === 'privado'
-                      ? '(Transportista público o dirección del cliente)'
-                      : '(Dirección fiscal o de referencia del cliente)'}
-                  </span>
+                  {modalidadTraslado === 'privado' && (
+                    <span className="ml-2 text-xs font-normal text-slate-400">(transportista público u otra dirección)</span>
+                  )}
                 </label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
-                  <textarea
-                    value={puntoLlegada}
-                    onChange={(e) => { setPuntoLlegada(e.target.value); setPuntoLlegadaBusqueda(e.target.value); }}
-                    onFocus={() => setMostrarPuntosLlegada(true)}
-                    rows={3}
-                    className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none resize-none"
-                    placeholder={modalidadTraslado === 'privado'
-                      ? "Busca transportista público o cliente por nombre, RUC o dirección..."
-                      : "Busca por cliente, RUC, DNI o dirección..."}
-                  />
-                </div>
+
+                {/* Opciones de dirección del destinatario — siempre visibles cuando hay destinatario */}
+                {destinatario && (() => {
+                  const refs = destinatario.direccionesReferencia ?? [];
+                  const opciones = [
+                    { id: 'fiscal', label: 'Dirección Fiscal', dir: destinatario.direccion, esFiscal: true },
+                    ...refs.map(r => ({ id: String(r.id), label: r.etiqueta || 'Referencia', dir: r.direccion, esFiscal: false })),
+                  ];
+                  return (
+                    <div className="space-y-2 mb-3">
+                      {opciones.map(op => {
+                        const activa = puntoLlegada === op.dir;
+                        return (
+                          <button
+                            key={op.id}
+                            type="button"
+                            onClick={() => { setPuntoLlegada(op.dir); setPuntoLlegadaBusqueda(''); setMostrarPuntosLlegada(false); }}
+                            className={`w-full flex items-start gap-3 p-3 rounded-xl border-2 text-left transition-all ${
+                              activa ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200 hover:border-slate-300 bg-white'
+                            }`}
+                          >
+                            <MapPin className={`w-4 h-4 mt-0.5 shrink-0 ${activa ? 'text-indigo-500' : 'text-slate-400'}`} />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-0.5">
+                                <span className={`text-xs font-semibold uppercase tracking-wide ${op.esFiscal ? 'text-amber-700' : 'text-indigo-700'}`}>
+                                  {op.label}
+                                </span>
+                                {op.esFiscal && (
+                                  <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-semibold uppercase">Fiscal</span>
+                                )}
+                              </div>
+                              <p className={`text-sm leading-snug ${activa ? 'text-indigo-800' : 'text-slate-600'}`}>{op.dir || '—'}</p>
+                            </div>
+                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all ${
+                              activa ? 'border-indigo-500 bg-indigo-500' : 'border-slate-300'
+                            }`}>
+                              {activa && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
+
+                {/* Búsqueda de empresa de transporte (ambos modos) */}
+                <>
+                  {destinatario && (
+                    <p className="text-xs text-slate-400 mb-2">O elige empresa de transporte como punto de llegada:</p>
+                  )}
+                  <div className="relative">
+                    <Search className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                    <textarea
+                      value={destinatario ? puntoLlegadaBusqueda : puntoLlegada}
+                      onChange={(e) => {
+                        if (destinatario) {
+                          setPuntoLlegadaBusqueda(e.target.value);
+                        } else {
+                          setPuntoLlegada(e.target.value);
+                          setPuntoLlegadaBusqueda(e.target.value);
+                        }
+                      }}
+                      onFocus={() => setMostrarPuntosLlegada(true)}
+                      rows={destinatario ? 1 : 3}
+                      className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none resize-none"
+                      placeholder="Busca empresa de transporte por nombre o RUC..."
+                    />
+                  </div>
+                </>
+
 
                 {mostrarPuntosLlegada && (
                   <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-60 overflow-auto">
-                    <div className={`p-2 text-xs border-b border-slate-200 ${
-                      modalidadTraslado === 'privado' ? 'bg-amber-50 text-amber-700' : 'bg-blue-50 text-blue-700'
-                    }`}>
-                      {modalidadTraslado === 'privado'
-                        ? `${puntosLlegadaOpciones.length} opciones (transportistas + clientes)`
-                        : `${puntosLlegadaOpciones.length} clientes con dirección`}
+                    <div className="p-2 text-xs border-b border-slate-200 bg-amber-50 text-amber-700">
+                      {puntosLlegadaOpciones.length} empresa{puntosLlegadaOpciones.length !== 1 ? 's' : ''} de transporte
+                      {puntoLlegadaBusqueda && _clientesPuntoLlegada.length > 0 ? ` + ${_clientesPuntoLlegada.length} clientes` : ''}
                     </div>
                     {puntosLlegadaOpciones.length === 0 ? (
                       <div className="p-4 text-slate-500 text-sm">
-                        {modalidadTraslado === 'privado'
-                          ? 'Escribe para buscar transportistas públicos o clientes'
-                          : 'Escribe para buscar clientes por nombre, RUC, DNI o dirección'}
+                        No hay empresas de transporte registradas. Escribe para buscar.
                       </div>
                     ) : (
                       puntosLlegadaOpciones.map((opt) => {

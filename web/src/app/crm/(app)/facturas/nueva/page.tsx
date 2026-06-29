@@ -21,10 +21,12 @@ import {
   redondear
 } from '@/lib/calculos';
 import toast from 'react-hot-toast';
+import { supabase } from '@/lib/supabase';
 
 export default function NuevaFacturaPage() {
   const router = useRouter();
   const { addFactura, updateFactura, facturas, clientes, productos, series, getSiguienteNumero } = useApp();
+  const [numeroSeguro, setNumeroSeguro] = useState<number | null>(null);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -48,6 +50,22 @@ export default function NuevaFacturaPage() {
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Leer max número real desde BD para evitar duplicados por race condition
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('edit')) return; // en modo edición no necesitamos el siguiente número
+    supabase
+      .from('facturas')
+      .select('number')
+      .eq('tipo_comprobante', '01')
+      .order('number', { ascending: false })
+      .limit(1)
+      .single()
+      .then(({ data }) => {
+        if (data?.number) setNumeroSeguro(data.number + 1);
+      });
   }, []);
 
   // Detectar modo edición vía ?edit=ID
@@ -101,7 +119,7 @@ export default function NuevaFacturaPage() {
   
   const serieActiva = series.find(s => s.tipo === 'factura' && s.activo);
   const serieFactura = serieActiva?.serie || 'E001';
-  const siguienteNumero = getSiguienteNumero('factura');
+  const siguienteNumero = numeroSeguro ?? getSiguienteNumero('factura');
   const numeroCompleto = formatearNumeroDocumento(serieFactura, siguienteNumero);
   
   const handleSelectCliente = (c: Cliente) => {

@@ -37,6 +37,7 @@ import {
   redondear
 } from '@/lib/calculos';
 import toast from 'react-hot-toast';
+import { supabase } from '@/lib/supabase';
 
 // ============================================
 // COMPONENTE PRINCIPAL
@@ -45,6 +46,7 @@ import toast from 'react-hot-toast';
 export default function NuevaBoletaPage() {
   const router = useRouter();
   const { addBoleta, updateBoleta, boletas, clientes, productos, series, getSiguienteNumero } = useApp();
+  const [numeroSeguro, setNumeroSeguro] = useState<number | null>(null);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -69,6 +71,22 @@ export default function NuevaBoletaPage() {
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Leer max número real desde BD para evitar duplicados por race condition
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('edit')) return;
+    supabase
+      .from('facturas')
+      .select('number')
+      .eq('tipo_comprobante', '03')
+      .order('number', { ascending: false })
+      .limit(1)
+      .single()
+      .then(({ data }) => {
+        if (data?.number) setNumeroSeguro(data.number + 1);
+      });
   }, []);
 
   // Detectar modo edición vía ?edit=ID
@@ -120,7 +138,7 @@ export default function NuevaBoletaPage() {
   
   const serieActiva = series.find(s => s.tipo === 'boleta' && s.activo);
   const serieBoleta = serieActiva?.serie || 'EB01';
-  const siguienteNumero = getSiguienteNumero('boleta');
+  const siguienteNumero = numeroSeguro ?? getSiguienteNumero('boleta');
   const numeroCompleto = formatearNumeroDocumento(serieBoleta, siguienteNumero);
   
   // ============================================
