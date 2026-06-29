@@ -61,8 +61,8 @@ export default function NuevaGuiaPage() {
   // Filtrar guías de tipo remitente para vincular como GRR
   const guiasRemitentes = guias.filter(g => g.tipoGuia === 'remitente');
   const guiasRemitentesFiltrados = guiasRemitentes.filter(g =>
-    g.numeroCompleto.toLowerCase().includes(searchGRR.toLowerCase()) ||
-    g.destinatarioNombre.toLowerCase().includes(searchGRR.toLowerCase())
+    String(g.numeroCompleto || '').toLowerCase().includes(searchGRR.toLowerCase()) ||
+    String(g.destinatarioNombre || '').toLowerCase().includes(searchGRR.toLowerCase())
   );
 
   // Detectar precarga desde boleta o factura vía ?boleta=ID o ?factura=ID

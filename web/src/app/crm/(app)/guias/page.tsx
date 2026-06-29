@@ -46,8 +46,8 @@ export default function GuiasPage() {
 
   const guiasFiltradas = guias
     .filter(g =>
-      (g.numeroCompleto || '').toLowerCase().includes(busqueda.toLowerCase()) ||
-      (g.destinatarioNombre || '').toLowerCase().includes(busqueda.toLowerCase())
+      String(g.numeroCompleto || '').toLowerCase().includes(busqueda.toLowerCase()) ||
+      String(g.destinatarioNombre || '').toLowerCase().includes(busqueda.toLowerCase())
     )
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 

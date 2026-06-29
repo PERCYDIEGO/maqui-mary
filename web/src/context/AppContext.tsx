@@ -373,13 +373,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             enviadoAt: row.enviado_at ? new Date(row.enviado_at) : undefined,
             createdAt: new Date(row.created_at),
             updatedAt: new Date(row.updated_at),
-            // Fallback a columnas individuales cuando data_json no tiene estos campos
-            numeroCompleto: dataJson.numeroCompleto ||
+            // Fallback a columnas individuales — siempre con coerción a string
+            // para evitar que reviveDates() convierta campos texto a Date (TypeError en .toLowerCase())
+            numeroCompleto: (typeof dataJson.numeroCompleto === 'string' ? dataJson.numeroCompleto : null) ||
               (row.serie && row.numero !== undefined ? `${row.serie}-${String(row.numero).padStart(8, '0')}` : undefined),
-            destinatarioNombre: dataJson.destinatarioNombre || row.destinatario_nombre,
-            puntoLlegada: dataJson.puntoLlegada || row.punto_llegada,
-            motivoTraslado: dataJson.motivoTraslado || row.motivo_traslado,
-            bienes: dataJson.bienes || [],
+            destinatarioNombre: String(typeof dataJson.destinatarioNombre === 'string' ? dataJson.destinatarioNombre : (row.destinatario_nombre ?? '')),
+            puntoLlegada: String(typeof dataJson.puntoLlegada === 'string' ? dataJson.puntoLlegada : (row.punto_llegada ?? '')),
+            motivoTraslado: String(typeof dataJson.motivoTraslado === 'string' ? dataJson.motivoTraslado : (row.motivo_traslado ?? '')),
+            bienes: Array.isArray(dataJson.bienes) ? dataJson.bienes : [],
           } as GuiaRemision
         })
         setGuiasState(guiasBD)

@@ -42,8 +42,8 @@ export default function DocumentosPage() {
   const documentos = getDocumentos()
     .filter((doc: any) => {
       const termino = busqueda.toLowerCase();
-      const clienteNombre = doc.cliente?.nombre || doc.destinatarioNombre || '';
-      return (doc.numeroCompleto || '').toLowerCase().includes(termino) || clienteNombre.toLowerCase().includes(termino);
+      const clienteNombre = String(doc.cliente?.nombre || doc.destinatarioNombre || '');
+      return String(doc.numeroCompleto || '').toLowerCase().includes(termino) || clienteNombre.toLowerCase().includes(termino);
     })
     .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
