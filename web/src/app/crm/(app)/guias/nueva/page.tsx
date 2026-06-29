@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Plus, Trash2, Save, X, Search, Truck, Package, User, FileText, Link2, Link2Off, Building2, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import { useApp } from '@/context/AppContext';
+import DireccionSelector from '@/components/DireccionSelector';
 import { GuiaRemision, DocRelacionado, ItemDocumento, Transportista, Cliente, Boleta, Factura, EMPRESA_DATA, CATALOGO_MOTIVOS_TRASLADO, MotivoTraslado } from '@/types/documentos';
 import { formatearNumeroDocumento, generarHashCPE, generarDatosQR } from '@/lib/calculos';
 import { supabase } from '@/lib/supabase';
@@ -562,7 +563,7 @@ export default function NuevaGuiaPage() {
         {[1, 2, 3].map((s) => (
           <div key={s} className="flex items-center gap-2">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm
-              ${step === s ? 'bg-indigo-600 text-white' : step > s ? 'bg-green-500 text-white' : 'bg-slate-200 text-slate-600'}`}>
+              ${step === s ? 'bg-indigo-600 text-white' : step > s ? 'bg-green-500 text-white' : 'bg-slate-200 text-slate-800'}`}>
               {step > s ? '✓' : s}
             </div>
             <span className={`text-sm ${step === s ? 'text-indigo-600 font-medium' : 'text-slate-500'}`}>
@@ -758,7 +759,7 @@ export default function NuevaGuiaPage() {
                         <p className="text-xs text-slate-400">Serie: {grrVinculado.serie} | N°: {String(grrVinculado.numero).padStart(8, '0')}</p>
                       </div>
                       <button type="button" onClick={handleDesvincularGRR}
-                        className="p-1.5 rounded-lg hover:bg-red-100 text-slate-400 hover:text-red-500 transition-colors">
+                        className="p-1.5 rounded-lg hover:bg-red-100 text-slate-700 hover:text-red-500 transition-colors">
                         <Link2Off className="w-4 h-4" />
                       </button>
                     </div>
@@ -821,7 +822,7 @@ export default function NuevaGuiaPage() {
                             <p className="text-xs text-slate-500 truncate">{d.clienteNombre}</p>
                           </div>
                           <button type="button" onClick={() => handleDesvincularDoc(d.id)}
-                            className="p-1.5 rounded-lg hover:bg-red-100 text-slate-400 hover:text-red-500 transition-colors">
+                            className="p-1.5 rounded-lg hover:bg-red-100 text-slate-700 hover:text-red-500 transition-colors">
                             <Link2Off className="w-4 h-4" />
                           </button>
                         </div>
@@ -898,6 +899,16 @@ export default function NuevaGuiaPage() {
                 </div>
               </div>
               
+              {/* Direcciones del destinatario — acceso rápido para punto de llegada */}
+              {destinatario && (destinatario.direccionesReferencia?.length ?? 0) > 0 && (
+                <DireccionSelector
+                  direccionFiscal={destinatario.direccion}
+                  direccionesReferencia={destinatario.direccionesReferencia ?? []}
+                  value={puntoLlegada}
+                  onChange={(dir) => { setPuntoLlegada(dir); setPuntoLlegadaBusqueda(''); }}
+                />
+              )}
+
               {/* Punto de llegada con búsqueda inteligente */}
               <div className="relative" ref={puntoLlegadaRef}>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -1076,7 +1087,7 @@ export default function NuevaGuiaPage() {
                       type="button"
                       onClick={() => setShowFlete(!showFlete)}
                       className={`text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${
-                        showFlete ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        showFlete ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                       }`}
                     >
                       {showFlete ? 'Quitar' : 'Agregar'}
@@ -1169,7 +1180,7 @@ export default function NuevaGuiaPage() {
                   <div key={item.id} className="p-4 bg-slate-50 rounded-xl border border-slate-200">
                     <div className="flex justify-between mb-3">
                       <span className="text-sm font-medium text-slate-600">Ítem #{index + 1}</span>
-                      <button onClick={() => handleEliminarItem(index)} className="p-1.5 hover:bg-red-100 text-slate-400 hover:text-red-500 rounded-lg">
+                      <button onClick={() => handleEliminarItem(index)} className="p-1.5 hover:bg-red-100 text-slate-700 hover:text-red-500 rounded-lg">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>

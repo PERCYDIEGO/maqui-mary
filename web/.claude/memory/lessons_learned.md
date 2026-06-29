@@ -235,3 +235,37 @@ _Archivo inicial creado por project init._
 - **SITUACIÓN**: El campo de precio unitario ya era editable al seleccionar un producto, pero no había ningún indicador de que el vendedor había cambiado el precio respecto al catálogo.
 - **CORRECCIÓN**: Agregar `precioCatalogo?: number` en `ItemDocumento`. Al seleccionar producto se guarda `precioCatalogo: producto.precioUnitario`. Cuando `valorUnitario !== precioCatalogo`: badge ámbar "· Precio especial" en el label, borde ámbar en el input, link "Base: S/ X.XX · Restaurar" debajo.
 - **REGLA**: Cuando un campo tiene un valor "base" que puede ser sobreescrito, siempre mostrar el valor original como referencia y un indicador visual del cambio. Guardar el valor base en el estado desde el momento de la selección, no recalcularlo después.
+
+---
+
+### [2026-06-29] Crash en páginas de documentos (guías/boletas/facturas) en producción — SSR con html2canvas/jsPDF
+
+- **CONTEXTO**: Páginas `guias/page.tsx`, `documentos/page.tsx`, `boletas/page.tsx`, `facturas/page.tsx` en Next.js 14 App Router, Vercel producción.
+- **ERROR**: Error boundary `(app)/error.tsx` se activaba al abrir la sección de guías/documentos en producción pero NO en desarrollo local.
+- **CAUSA**: `PDFGenerator` importa estáticamente `html2canvas` y `jsPDF` (`import html2canvas from 'html2canvas'`). En Next.js producción, los componentes `'use client'` se renderizan en el servidor (SSR) para generar el HTML inicial. Si esas librerías acceden a APIs del browser (`window`, `document`, canvas, Blob, etc.) durante la inicialización del módulo, el render SSR falla y lanza un error que la error boundary captura. En desarrollo, Next.js maneja esto de forma más permisiva con HMR y modo dev.
+- **CORRECCIÓN**: Cambiar el import estático a dynamic import con `ssr: false` en todos los archivos que usan PDFGenerator. Commit `09f7edb`.
+  ```tsx
+  // ANTES (crash en SSR producción):
+  import PDFGenerator from '@/components/pdf/PDFGenerator';
+  // DESPUÉS (carga solo en cliente):
+  import dynamic from 'next/dynamic';
+  const PDFGenerator = dynamic(() => import('@/components/pdf/PDFGenerator'), { ssr: false });
+  ```
+- **REGLA**: En Next.js App Router, cualquier componente que importe librerías que usen APIs del browser (`html2canvas`, `jsPDF`, `konva`, `recharts`, etc.) DEBE usar `dynamic(() => import(...), { ssr: false })`. El import estático funciona en dev pero crashea en producción SSR. Afecta a boletas, facturas, guías y cualquier página futura que use PDFGenerator.
+
+---
+
+### [2026-06-29] Dashboard mostraba "ventas" cuando no había ventas — teardown E2E no limpiaba facturas
+
+- **CONTEXTO**: Dashboard mostraba ingresos del mes y documentos cuando el usuario no había emitido ninguna venta real. Solo había corrido los tests E2E.
+- **ERROR**: La consulta del dashboard `.from('facturas').or('origen.neq.web,origen.is.null')` devolvía 4 filas con totales reales.
+- **CAUSA**: `global-setup.ts` crea una factura de prueba para vincular la guía de test (línea 130: `supabase.from('facturas').insert(facturaPayload)`), pero `global-teardown.ts` solo eliminaba la guía y el usuario, no la factura. Cada corrida de tests acumulaba una factura nueva en la BD (misma serie/número porque el contador SUNAT no avanzaba).
+- **CORRECCIÓN**: Agregar en teardown (antes de delete profiles):
+  ```ts
+  if (creds.factura?.id) {
+    await supabase.from('factura_items').delete().eq('factura_id', creds.factura.id)
+    await supabase.from('facturas').delete().eq('id', creds.factura.id)
+  }
+  ```
+  Commit `dda70a1`.
+- **REGLA**: El teardown E2E debe eliminar TODOS los registros creados en setup, incluyendo facturas e ítems. El `.test-creds.json` ya guarda `creds.factura` — usarlo. Revisar global-setup al agregar nuevas entidades y reflejarlas en teardown.

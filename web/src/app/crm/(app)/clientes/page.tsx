@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Search, Edit2, User, Building2, Phone, Mail } from 'lucide-react'
+import { Plus, Search, Edit2, User, Building2, Phone, Mail, MapPin, Star, Trash2, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { validarRUC, validarDNI } from '@/lib/calculos'
 import toast from 'react-hot-toast'
+
+type DireccionRef = { id: number; etiqueta: string; direccion: string }
 
 type Cliente = {
   id: number
@@ -54,6 +56,12 @@ export default function ClientesPage() {
   const [editando, setEditando] = useState<Cliente | null>(null)
   const [formData, setFormData] = useState<FormData>(FORM_DEFAULT)
   const [saving, setSaving] = useState(false)
+
+  const [direccionesRef, setDireccionesRef] = useState<DireccionRef[]>([])
+  const [loadingDirs, setLoadingDirs] = useState(false)
+  const [nuevaEtiqueta, setNuevaEtiqueta] = useState('')
+  const [nuevaDireccion, setNuevaDireccion] = useState('')
+  const [guardandoDir, setGuardandoDir] = useState(false)
 
   useEffect(() => {
     const cached = localStorage.getItem('mm_clientes_cache')
@@ -137,6 +145,9 @@ export default function ClientesPage() {
     setModalAbierto(false)
     setEditando(null)
     setFormData(FORM_DEFAULT)
+    setDireccionesRef([])
+    setNuevaEtiqueta('')
+    setNuevaDireccion('')
   }
 
   function abrirEditar(c: Cliente) {
@@ -151,6 +162,38 @@ export default function ClientesPage() {
       email: c.email || '',
     })
     setModalAbierto(true)
+    setLoadingDirs(true)
+    supabase.from('cliente_direcciones').select('*').eq('cliente_id', c.id).order('id')
+      .then(({ data }) => { setDireccionesRef(data || []); setLoadingDirs(false) })
+  }
+
+  async function handleAgregarDireccion() {
+    if (!editando || !nuevaDireccion.trim()) return
+    setGuardandoDir(true)
+    const { data, error } = await supabase
+      .from('cliente_direcciones')
+      .insert({ cliente_id: editando.id, etiqueta: nuevaEtiqueta.trim() || 'Sucursal', direccion: nuevaDireccion.trim() })
+      .select()
+      .single()
+    if (!error && data) {
+      setDireccionesRef(prev => [...prev, data])
+      setNuevaEtiqueta('')
+      setNuevaDireccion('')
+      toast.success('Dirección de referencia agregada')
+    } else {
+      toast.error('Error al agregar dirección')
+    }
+    setGuardandoDir(false)
+  }
+
+  async function handleEliminarDireccion(id: number) {
+    const { error } = await supabase.from('cliente_direcciones').delete().eq('id', id)
+    if (!error) {
+      setDireccionesRef(prev => prev.filter(d => d.id !== id))
+      toast.success('Dirección eliminada')
+    } else {
+      toast.error('Error al eliminar dirección')
+    }
   }
 
   const filtrados = clientes.filter(c =>
@@ -340,7 +383,10 @@ export default function ClientesPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-primary-700 mb-1">Dirección *</label>
+                <label className="block text-sm font-medium text-primary-700 mb-1">
+                  Dirección Fiscal *
+                  <span className="ml-2 text-xs font-normal text-amber-600">Se usa en comprobantes SUNAT</span>
+                </label>
                 <textarea
                   required
                   value={formData.address}
@@ -349,6 +395,78 @@ export default function ClientesPage() {
                   className="input-field resize-none"
                 />
               </div>
+
+              {/* Direcciones de referencia — solo visible al editar */}
+              {editando && (
+                <div className="space-y-3 pt-1">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium text-primary-700">Direcciones de referencia</p>
+                    <span className="text-xs text-primary-400">Almacenes, sucursales, etc.</span>
+                  </div>
+
+                  {/* Fiscal — no editable aquí */}
+                  <div className="flex items-start gap-2 p-3 bg-amber-50 rounded-xl border border-amber-200">
+                    <Star className="w-3.5 h-3.5 text-amber-500 mt-0.5 shrink-0" />
+                    <div className="min-w-0">
+                      <span className="text-[10px] font-semibold uppercase tracking-wide text-amber-700">Fiscal</span>
+                      <p className="text-sm text-slate-700 leading-snug truncate">{formData.address || '—'}</p>
+                    </div>
+                  </div>
+
+                  {/* Lista de referencias */}
+                  {loadingDirs ? (
+                    <p className="text-xs text-primary-400 py-1">Cargando direcciones...</p>
+                  ) : (
+                    direccionesRef.map(d => (
+                      <div key={d.id} className="flex items-start gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                        <MapPin className="w-3.5 h-3.5 text-indigo-400 mt-0.5 shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <span className="text-[10px] font-semibold uppercase tracking-wide text-indigo-700">{d.etiqueta}</span>
+                          <p className="text-sm text-slate-700 leading-snug">{d.direccion}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleEliminarDireccion(d.id)}
+                          className="p-1 hover:bg-red-100 text-slate-700 hover:text-red-500 rounded-lg transition-colors shrink-0"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))
+                  )}
+
+                  {/* Formulario agregar */}
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                    <p className="text-xs font-medium text-slate-800">Agregar dirección</p>
+                    <input
+                      type="text"
+                      value={nuevaEtiqueta}
+                      onChange={e => setNuevaEtiqueta(e.target.value)}
+                      placeholder="Etiqueta (ej: Almacén Ate, Tienda SJL)"
+                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                    />
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={nuevaDireccion}
+                        onChange={e => setNuevaDireccion(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && handleAgregarDireccion()}
+                        placeholder="Dirección completa"
+                        className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAgregarDireccion}
+                        disabled={guardandoDir || !nuevaDireccion.trim()}
+                        className="px-3 py-2 bg-indigo-600 text-white text-sm rounded-lg font-medium disabled:opacity-40 hover:bg-indigo-700 transition-colors flex items-center gap-1"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        {guardandoDir ? 'Guardando...' : 'Agregar'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div>

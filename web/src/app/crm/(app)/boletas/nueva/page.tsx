@@ -19,13 +19,14 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useApp } from '@/context/AppContext';
-import { 
-  Boleta, 
-  Cliente, 
-  ItemDocumento, 
+import {
+  Boleta,
+  Cliente,
+  ItemDocumento,
   UnidadMedida,
-  EMPRESA_DATA 
+  EMPRESA_DATA
 } from '@/types/documentos';
+import DireccionSelector from '@/components/DireccionSelector';
 import { 
   calcularItem, 
   calcularTotalesBoleta, 
@@ -57,6 +58,7 @@ export default function NuevaBoletaPage() {
   const [cliente, setCliente] = useState<Cliente | null>(null);
   const [clienteBusqueda, setClienteBusqueda] = useState('');
   const [mostrarClientes, setMostrarClientes] = useState(false);
+  const [direccionEntrega, setDireccionEntrega] = useState('');
   const clienteRef = useRef<HTMLDivElement>(null);
   
   // Cerrar lista al hacer clic fuera
@@ -81,6 +83,7 @@ export default function NuevaBoletaPage() {
     setIsEditing(true);
     setEditingId(editId);
     setCliente(boleta.cliente);
+    setDireccionEntrega(boleta.cliente.direccion);
     setClienteBusqueda(boleta.cliente.nombre);
     setFechaEmision(new Date(boleta.fechaEmision).toISOString().split('T')[0]);
     if (boleta.fechaVencimiento) setFechaVencimiento(new Date(boleta.fechaVencimiento).toISOString().split('T')[0]);
@@ -129,6 +132,7 @@ export default function NuevaBoletaPage() {
   const handleSelectCliente = (c: Cliente) => {
     setCliente(c);
     setClienteBusqueda(c.nombre);
+    setDireccionEntrega(c.direccion);
     setMostrarClientes(false);
   };
   
@@ -236,7 +240,7 @@ export default function NuevaBoletaPage() {
       fechaEmision: new Date(fechaEmision),
       fechaVencimiento: fechaVencimiento ? new Date(fechaVencimiento) : undefined,
       clienteId: cliente.id,
-        cliente,
+        cliente: { ...cliente, direccion: direccionEntrega || cliente.direccion },
         moneda,
         formaPago,
         formaPagoSunat: formaPago === 'credito' ? '002' : '001',
@@ -283,7 +287,7 @@ export default function NuevaBoletaPage() {
             <div className={`
               w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm
               ${step === s ? 'bg-amber-500 text-white' :
-                step > s ? 'bg-green-500 text-white' : 'border-2 border-slate-300 text-slate-700'}
+                step > s ? 'bg-green-500 text-white' : 'border-2 border-slate-300 text-slate-800'}
             `}>
               {step > s ? '✓' : s}
             </div>
@@ -382,25 +386,29 @@ export default function NuevaBoletaPage() {
                 Venta sin DNI — Consumidor Final
               </button>
 
-               {/* Datos del cliente seleccionado */}
+              {/* Datos del cliente seleccionado */}
               {cliente && (
-                <div className="p-4 bg-amber-50 rounded-xl border border-amber-100">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-semibold text-slate-800">{cliente.nombre}</p>
-                      <p className="text-sm text-slate-600">{cliente.direccion}</p>
-                      {cliente.dni && <p className="text-sm text-slate-600">DNI: {cliente.dni}</p>}
+                <div className="space-y-3">
+                  <div className="p-4 bg-amber-50 rounded-xl border border-amber-100">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-semibold text-slate-800">{cliente.nombre}</p>
+                        {cliente.dni && <p className="text-sm text-slate-600">DNI: {cliente.dni}</p>}
+                      </div>
+                      <button
+                        onClick={() => { setCliente(null); setClienteBusqueda(''); setDireccionEntrega(''); }}
+                        className="p-2 hover:bg-amber-100 rounded-lg text-amber-700"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
                     </div>
-                    <button 
-                      onClick={() => {
-                        setCliente(null);
-                        setClienteBusqueda('');
-                      }}
-                      className="p-2 hover:bg-amber-100 rounded-lg text-amber-700"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
                   </div>
+                  <DireccionSelector
+                    direccionFiscal={cliente.direccion}
+                    direccionesReferencia={cliente.direccionesReferencia ?? []}
+                    value={direccionEntrega}
+                    onChange={setDireccionEntrega}
+                  />
                 </div>
               )}
               

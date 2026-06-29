@@ -56,6 +56,13 @@ export interface DocumentoBase {
   updatedAt: Date;
 }
 
+// Dirección de referencia (almacén, sucursal, etc.)
+export interface DireccionReferencia {
+  id: number;
+  etiqueta: string;
+  direccion: string;
+}
+
 // Cliente
 export interface Cliente {
   id: string;
@@ -67,6 +74,7 @@ export interface Cliente {
   dni?: string;
   ruc?: string;
   direccion: string;
+  direccionesReferencia?: DireccionReferencia[];
   telefono?: string;
   email?: string;
   esFrecuente: boolean;

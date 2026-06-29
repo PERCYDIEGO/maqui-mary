@@ -220,10 +220,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const loadClientes = useCallback(async () => {
     try {
-      const { data, error } = await supabase.from('clientes').select('*').order('name')
+      const [{ data: clientesData, error }, { data: dirsData }] = await Promise.all([
+        supabase.from('clientes').select('*').order('name'),
+        supabase.from('cliente_direcciones').select('*').order('id'),
+      ])
       if (error) { console.error('Error cargando clientes:', error); return; }
-      if (data) {
-        setClientesState(data.map((row: any): Cliente => ({
+      if (clientesData) {
+        setClientesState(clientesData.map((row: any): Cliente => ({
           id: String(row.id),
           codigo: row.codigo || undefined,
           tipo: row.tipo_documento === '6' ? 'juridica' : 'natural',
@@ -232,6 +235,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           ruc: row.tipo_documento === '6' ? (row.num_documento || '') : undefined,
           dni: row.tipo_documento !== '6' ? (row.num_documento || row.dni || '') : (row.dni || undefined),
           direccion: row.address || '',
+          direccionesReferencia: (dirsData || [])
+            .filter((d: any) => d.cliente_id === row.id)
+            .map((d: any) => ({ id: d.id, etiqueta: d.etiqueta, direccion: d.direccion })),
           telefono: row.phone || undefined,
           email: row.email || undefined,
           esFrecuente: false,

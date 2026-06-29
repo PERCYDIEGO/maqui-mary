@@ -11,6 +11,7 @@ import { ArrowLeft, Plus, Trash2, Save, X, Search, User, Building2 } from 'lucid
 import Link from 'next/link';
 import { useApp } from '@/context/AppContext';
 import { Factura, Cliente, ItemDocumento, EMPRESA_DATA } from '@/types/documentos';
+import DireccionSelector from '@/components/DireccionSelector';
 import {
   calcularItem,
   calcularTotalesFactura,
@@ -37,6 +38,7 @@ export default function NuevaFacturaPage() {
   const [cliente, setCliente] = useState<Cliente | null>(null);
   const [clienteBusqueda, setClienteBusqueda] = useState('');
   const [mostrarClientes, setMostrarClientes] = useState(false);
+  const [direccionEntrega, setDireccionEntrega] = useState('');
   const clienteRef = useRef<HTMLDivElement>(null);
 
   // Cerrar lista al hacer clic fuera
@@ -61,6 +63,7 @@ export default function NuevaFacturaPage() {
     setIsEditing(true);
     setEditingId(editId);
     setCliente(factura.cliente);
+    setDireccionEntrega(factura.cliente.direccion);
     setClienteBusqueda(`${factura.cliente.nombre} - RUC: ${factura.cliente.ruc}`);
     setFechaEmision(new Date(factura.fechaEmision).toISOString().split('T')[0]);
     if (factura.fechaVencimiento) setFechaVencimiento(new Date(factura.fechaVencimiento).toISOString().split('T')[0]);
@@ -111,6 +114,7 @@ export default function NuevaFacturaPage() {
     }
     setCliente(c);
     setClienteBusqueda(`${c.nombre} - RUC: ${c.ruc}`);
+    setDireccionEntrega(c.direccion);
     setMostrarClientes(false);
   };
   
@@ -212,7 +216,7 @@ export default function NuevaFacturaPage() {
       fechaEmision: new Date(fechaEmision),
       fechaVencimiento: formaPago === 'credito' && fechaVencimiento ? new Date(fechaVencimiento) : undefined,
       clienteId: cliente.id,
-      cliente,
+      cliente: { ...cliente, direccion: direccionEntrega || cliente.direccion },
       moneda,
       formaPago,
       formaPagoSunat: formaPago === 'credito' ? '002' : '001',
@@ -250,7 +254,7 @@ export default function NuevaFacturaPage() {
         {[1, 2, 3].map((s) => (
           <div key={s} className="flex items-center gap-2">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm
-              ${step === s ? 'bg-purple-600 text-white' : step > s ? 'bg-green-500 text-white' : 'border-2 border-slate-300 text-slate-700'}`}>
+              ${step === s ? 'bg-purple-600 text-white' : step > s ? 'bg-green-500 text-white' : 'border-2 border-slate-300 text-slate-800'}`}>
               {step > s ? '✓' : s}
             </div>
             <span className={`text-sm ${step === s ? 'text-purple-600 font-medium' : 'text-slate-500'}`}>
@@ -317,17 +321,24 @@ export default function NuevaFacturaPage() {
               </div>
               
               {cliente && (
-                <div className="p-4 bg-purple-50 rounded-xl border border-purple-100">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-semibold text-slate-800">{cliente.nombre}</p>
-                      <p className="text-sm text-slate-600">RUC: {cliente.ruc}</p>
-                      <p className="text-sm text-slate-600">{cliente.direccion}</p>
+                <div className="space-y-3">
+                  <div className="p-4 bg-purple-50 rounded-xl border border-purple-100">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-semibold text-slate-800">{cliente.nombre}</p>
+                        <p className="text-sm text-slate-600">RUC: {cliente.ruc}</p>
+                      </div>
+                      <button onClick={() => { setCliente(null); setClienteBusqueda(''); setDireccionEntrega(''); }} className="p-2 hover:bg-purple-100 rounded-lg">
+                        <X className="w-5 h-5 text-slate-700" />
+                      </button>
                     </div>
-                    <button onClick={() => { setCliente(null); setClienteBusqueda(''); }} className="p-2 hover:bg-purple-100 rounded-lg">
-                      <X className="w-5 h-5 text-slate-500" />
-                    </button>
                   </div>
+                  <DireccionSelector
+                    direccionFiscal={cliente.direccion}
+                    direccionesReferencia={cliente.direccionesReferencia ?? []}
+                    value={direccionEntrega}
+                    onChange={setDireccionEntrega}
+                  />
                 </div>
               )}
               
