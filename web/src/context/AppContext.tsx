@@ -373,6 +373,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             enviadoAt: row.enviado_at ? new Date(row.enviado_at) : undefined,
             createdAt: new Date(row.created_at),
             updatedAt: new Date(row.updated_at),
+            // Fallback a columnas individuales cuando data_json no tiene estos campos
+            numeroCompleto: dataJson.numeroCompleto ||
+              (row.serie && row.numero !== undefined ? `${row.serie}-${String(row.numero).padStart(8, '0')}` : undefined),
+            destinatarioNombre: dataJson.destinatarioNombre || row.destinatario_nombre,
+            puntoLlegada: dataJson.puntoLlegada || row.punto_llegada,
+            motivoTraslado: dataJson.motivoTraslado || row.motivo_traslado,
+            bienes: dataJson.bienes || [],
           } as GuiaRemision
         })
         setGuiasState(guiasBD)
