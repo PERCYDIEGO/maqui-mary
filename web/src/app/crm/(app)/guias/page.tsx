@@ -46,8 +46,8 @@ export default function GuiasPage() {
 
   const guiasFiltradas = guias
     .filter(g =>
-      g.numeroCompleto.toLowerCase().includes(busqueda.toLowerCase()) ||
-      g.destinatarioNombre.toLowerCase().includes(busqueda.toLowerCase())
+      (g.numeroCompleto || '').toLowerCase().includes(busqueda.toLowerCase()) ||
+      (g.destinatarioNombre || '').toLowerCase().includes(busqueda.toLowerCase())
     )
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
@@ -115,9 +115,9 @@ export default function GuiasPage() {
                   </td>
                   <td className="px-6 py-4">
                     <p className="font-medium text-slate-800">{guia.destinatarioNombre}</p>
-                    <p className="text-sm text-slate-500">{guia.puntoLlegada.substring(0, 50)}...</p>
+                    <p className="text-sm text-slate-500">{(guia.puntoLlegada || '').substring(0, 50)}{guia.puntoLlegada?.length > 50 ? '...' : ''}</p>
                   </td>
-                  <td className="px-6 py-4 capitalize">{guia.motivoTraslado.replace('_', ' ')}</td>
+                  <td className="px-6 py-4 capitalize">{(guia.motivoTraslado || '').replace('_', ' ')}</td>
                   <td className="px-6 py-4 text-slate-600 text-sm">
                     <span className="block">{new Date(guia.createdAt).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
                     <span className="text-slate-400 text-xs">{new Date(guia.createdAt).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}</span>
