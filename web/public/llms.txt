@@ -24,7 +24,7 @@ Consulta precios actualizados por WhatsApp. Vendemos al por mayor y menor.
 - WhatsApp: +51 916 165 543
 - Dirección: PRO. QUINTA AVENIDA MZA. J LOTE. 17-B ASC. GANADEROS PORCINOS SARACO, Lurigancho, Lima, Perú
 - Horario: Lunes a Sábado, 8:00 am - 6:00 pm
-- Web: https://maquimary.vercel.app
+- Web: https://maquimary.com.pe
 
 ## Métodos de Pago
 

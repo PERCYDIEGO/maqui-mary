@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
         `💳 ${metodo === 'yape' ? 'Yape' : 'Plin'}\n\n` +
         `${itemsTexto}\n\n` +
         `💰 *Total: S/ ${Number(total).toFixed(2)}*\n` +
-        `📌 Confirmar en: maquimary.vercel.app/crm/pedidos`
+        `📌 Confirmar en: maquimary.com.pe/crm/pedidos`
     }
 
     if (tipo === 'comprobante_subido') {
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
         `✅ *COMPROBANTE RECIBIDO*\n` +
         `👤 ${cliente} · 📱 ${telefono}\n` +
         `💰 S/ ${Number(total).toFixed(2)}\n` +
-        `🔗 Ver pedido #${facturaId}: maquimary.vercel.app/crm/pedidos`
+        `🔗 Ver pedido #${facturaId}: maquimary.com.pe/crm/pedidos`
     }
 
     if (!mensaje) {

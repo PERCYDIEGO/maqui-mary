@@ -2,68 +2,68 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <!-- Página principal -->
   <url>
-    <loc>https://maquimary.vercel.app/</loc>
+    <loc>https://maquimary.com.pe/</loc>
     <lastmod>2026-05-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
 
   <!-- Páginas de distrito (SEO Programático) -->
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/ancon</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/ate</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/barranco</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/brena</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/carabayllo</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/chaclacayo</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/chorrillos</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/cieneguilla</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/comas</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/el-agustino</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/independencia</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/jesus-maria</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/la-molina</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/la-victoria</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/lima</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/los-olivos</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/lurigancho-chosica</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/lurin</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/magdalena</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/miraflores</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/pachacamac</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/pucusana</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/pueblo-libre</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/puente-piedra</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/punta-hermosa</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/punta-negra</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/rimac</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/san-bartolo</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/san-borja</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/san-isidro</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/san-juan-de-lurigancho</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/san-juan-de-miraflores</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/san-luis</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/san-martin-de-porres</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/san-miguel</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/santa-anita</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/santa-maria-del-mar</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/santa-rosa</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/santiago-de-surco</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/surquillo</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/villa-el-salvador</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/villa-maria-del-triunfo</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://maquimary.vercel.app/esponjas-limpieza/lurigancho</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/ancon</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/ate</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/barranco</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/brena</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/carabayllo</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/chaclacayo</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/chorrillos</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/cieneguilla</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/comas</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/el-agustino</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/independencia</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/jesus-maria</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/la-molina</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/la-victoria</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/lima</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/los-olivos</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/lurigancho-chosica</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/lurin</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/magdalena</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/miraflores</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/pachacamac</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/pucusana</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/pueblo-libre</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/puente-piedra</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/punta-hermosa</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/punta-negra</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/rimac</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/san-bartolo</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/san-borja</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/san-isidro</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/san-juan-de-lurigancho</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/san-juan-de-miraflores</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/san-luis</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/san-martin-de-porres</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/san-miguel</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/santa-anita</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/santa-maria-del-mar</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/santa-rosa</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/santiago-de-surco</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/surquillo</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/villa-el-salvador</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/villa-maria-del-triunfo</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://maquimary.com.pe/esponjas-limpieza/lurigancho</loc><lastmod>2026-05-24</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 
   <!-- Blog posts -->
-  <url><loc>https://maquimary.vercel.app/blog/tipos-esponjas-limpieza-cual-elegir</loc><lastmod>2026-05-24</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://maquimary.vercel.app/blog/como-limpiar-ollas-quemadas</loc><lastmod>2026-05-24</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://maquimary.vercel.app/blog/donde-comprar-esponjas-por-mayor-lima</loc><lastmod>2026-05-24</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://maquimary.vercel.app/blog/esponjas-acero-vs-colores-duracion</loc><lastmod>2026-05-24</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://maquimary.vercel.app/blog/usos-pano-absorbente-amarillo</loc><lastmod>2026-05-24</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://maquimary.vercel.app/blog/precio-esponjas-limpieza-lima-2026</loc><lastmod>2026-05-24</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://maquimary.vercel.app/blog/fabricantes-esponjas-peru</loc><lastmod>2026-05-24</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://maquimary.vercel.app/blog/delivery-esponjas-todo-lima</loc><lastmod>2026-05-24</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://maquimary.vercel.app/blog/esponja-doble-uso-beneficios</loc><lastmod>2026-05-24</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://maquimary.vercel.app/blog/como-desinfectar-esponjas-cocina</loc><lastmod>2026-05-24</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://maquimary.vercel.app/blog/venta-esponjas-bodegas-negocios</loc><lastmod>2026-05-24</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://maquimary.vercel.app/blog/esponjas-ecologicas-vs-tradicionales</loc><lastmod>2026-05-24</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://maquimary.com.pe/blog/tipos-esponjas-limpieza-cual-elegir</loc><lastmod>2026-05-24</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://maquimary.com.pe/blog/como-limpiar-ollas-quemadas</loc><lastmod>2026-05-24</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://maquimary.com.pe/blog/donde-comprar-esponjas-por-mayor-lima</loc><lastmod>2026-05-24</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://maquimary.com.pe/blog/esponjas-acero-vs-colores-duracion</loc><lastmod>2026-05-24</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://maquimary.com.pe/blog/usos-pano-absorbente-amarillo</loc><lastmod>2026-05-24</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://maquimary.com.pe/blog/precio-esponjas-limpieza-lima-2026</loc><lastmod>2026-05-24</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://maquimary.com.pe/blog/fabricantes-esponjas-peru</loc><lastmod>2026-05-24</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://maquimary.com.pe/blog/delivery-esponjas-todo-lima</loc><lastmod>2026-05-24</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://maquimary.com.pe/blog/esponja-doble-uso-beneficios</loc><lastmod>2026-05-24</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://maquimary.com.pe/blog/como-desinfectar-esponjas-cocina</loc><lastmod>2026-05-24</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://maquimary.com.pe/blog/venta-esponjas-bodegas-negocios</loc><lastmod>2026-05-24</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://maquimary.com.pe/blog/esponjas-ecologicas-vs-tradicionales</loc><lastmod>2026-05-24</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
 </urlset>

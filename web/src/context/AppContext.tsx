@@ -390,6 +390,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           } as GuiaRemision
         })
         setGuiasState(guiasBD)
+        const maxGuia = guiasData.reduce((max: number, row: any) => Math.max(max, row.numero || 0), 0)
+        if (maxGuia > 0) {
+          setSeries(prev => prev.map(s =>
+            s.tipo === 'guia' ? { ...s, numeroActual: Math.max(s.numeroActual, maxGuia) } : s
+          ))
+        }
       }
     } catch (err) {
       console.error('Error cargando documentos:', err)
@@ -448,6 +454,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         ? { ...s, numeroActual: s.numeroActual + 1 }
         : s
     ));
+    supabase.from('sunat_config').update({ next_number_boleta: boleta.numero + 1 }).eq('id', 1)
+      .then(({ error }) => { if (error) console.error('Error actualizando contador boleta:', error) });
     supabase.from('facturas').insert({
       series: boleta.serie,
       number: boleta.numero,
@@ -488,6 +496,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         ? { ...s, numeroActual: s.numeroActual + 1 }
         : s
     ));
+    supabase.from('sunat_config').update({ next_number_factura: factura.numero + 1 }).eq('id', 1)
+      .then(({ error }) => { if (error) console.error('Error actualizando contador factura:', error) });
     supabase.from('facturas').insert({
       series: factura.serie,
       number: factura.numero,

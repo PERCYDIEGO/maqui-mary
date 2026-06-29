@@ -153,7 +153,7 @@ export async function POST(req: NextRequest) {
     }
 
     const numPadded = String(numero).padStart(8, '0')
-    const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://maquimary.vercel.app').replace(/\/$/, '')
+    const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://maquimary.com.pe').replace(/\/$/, '')
     codigoQR = `${appUrl}/doc/${serie}-${numPadded}`
 
     const facturaData: any = {

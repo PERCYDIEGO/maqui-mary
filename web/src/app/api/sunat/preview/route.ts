@@ -160,7 +160,7 @@ export async function POST(req: NextRequest) {
     // ─── Generar QR SUNAT Perú ───
     // El QR apunta a la URL de consulta pública de Maqui Mary
     // Así los clientes pueden escanear y ver los datos del comprobante
-    const qrUrl = `https://maquimary.vercel.app/crm/facturas/consulta?ruc=${encodeURIComponent(config.ruc || '')}&tipo=${tipo_comprobante}&serie=${serie}&numero=${String(numero).padStart(4, '0')}&fecha=${fechaEmision}&total=${total.toFixed(2)}&moneda=${moneda}&emisor=${encodeURIComponent(config.razon_social || '')}&cliente=${encodeURIComponent(cliente_nombre)}&hash=${encodeURIComponent(firmaDigest || 'preview')}`
+    const qrUrl = `https://maquimary.com.pe/crm/facturas/consulta?ruc=${encodeURIComponent(config.ruc || '')}&tipo=${tipo_comprobante}&serie=${serie}&numero=${String(numero).padStart(4, '0')}&fecha=${fechaEmision}&total=${total.toFixed(2)}&moneda=${moneda}&emisor=${encodeURIComponent(config.razon_social || '')}&cliente=${encodeURIComponent(cliente_nombre)}&hash=${encodeURIComponent(firmaDigest || 'preview')}`
 
     let qrBase64 = ''
     try {

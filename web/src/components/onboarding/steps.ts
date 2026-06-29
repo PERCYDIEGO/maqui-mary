@@ -137,7 +137,7 @@ export const onboardingSteps: OnboardingStep[] = [
     id: 'ped-intro',
     page: '/crm/pedidos',
     title: 'Pedidos de la web 🛒',
-    message: 'Aquí llegan los pedidos que hacen los clientes desde tu página web maquimary.vercel.app. Puedes ver quién pidió, qué, cuánto pagó y si ya subió comprobante.',
+    message: 'Aquí llegan los pedidos que hacen los clientes desde tu página web maquimary.com.pe. Puedes ver quién pidió, qué, cuánto pagó y si ya subió comprobante.',
     position: 'bottom-right',
     roles: ['admin', 'editor'],
     icon: 'point',

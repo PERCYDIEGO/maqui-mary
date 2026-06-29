@@ -90,7 +90,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     return { title: 'Blog Maqui Mary' };
   }
   const title = `${post.title} | Maqui Mary`;
-  const url = `https://maquimary.vercel.app/blog/${post.slug}`;
+  const url = `https://maquimary.com.pe/blog/${post.slug}`;
   return {
     title,
     description: post.desc,
@@ -105,7 +105,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
       publishedTime: '2026-05-24',
       authors: ['Maqui Mary'],
       images: [{
-        url: 'https://maquimary.vercel.app/img/logo_oficial.png',
+        url: 'https://maquimary.com.pe/img/logo_oficial.png',
         width: 1200,
         height: 630,
         alt: post.title,
@@ -115,7 +115,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
       card: 'summary_large_image',
       title,
       description: post.desc,
-      images: ['https://maquimary.vercel.app/img/logo_oficial.png'],
+      images: ['https://maquimary.com.pe/img/logo_oficial.png'],
     },
   };
 }
@@ -332,15 +332,15 @@ export default function BlogPost({ params }: { params: { slug: string } }) {
               name: 'Maqui Mary',
               logo: {
                 '@type': 'ImageObject',
-                url: 'https://maquimary.vercel.app/img/logo_oficial.png',
+                url: 'https://maquimary.com.pe/img/logo_oficial.png',
               },
             },
-            url: `https://maquimary.vercel.app/blog/${post.slug}`,
+            url: `https://maquimary.com.pe/blog/${post.slug}`,
             datePublished: '2026-05-24',
             dateModified: '2026-05-24',
             mainEntityOfPage: {
               '@type': 'WebPage',
-              '@id': `https://maquimary.vercel.app/blog/${post.slug}`,
+              '@id': `https://maquimary.com.pe/blog/${post.slug}`,
             },
           }),
         }}

@@ -384,7 +384,7 @@ export function generarDatosQR(documento: {
 }): string {
   const baseUrl = typeof window !== 'undefined'
     ? window.location.origin
-    : (process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') || 'https://maquimary.vercel.app')
+    : (process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') || 'https://maquimary.com.pe')
   const numPadded = documento.numero.toString().padStart(8, '0')
   
   // Según SUNAT, el QR debe contener los datos para validación del CPE

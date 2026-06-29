@@ -5,17 +5,17 @@ export const metadata: Metadata = {
   title: 'Blog de Esponjas de Limpieza | Maqui Mary - Tips y Guías',
   description: 'Artículos sobre esponjas de limpieza, cómo limpiar ollas quemadas, beneficios de la esponja doble uso y más. Fabricantes peruanos en Lurigancho, Lima.',
   alternates: {
-    canonical: 'https://maquimary.vercel.app/blog',
+    canonical: 'https://maquimary.com.pe/blog',
   },
   openGraph: {
     title: 'Blog de Esponjas de Limpieza | Maqui Mary - Tips y Guías',
     description: 'Artículos sobre esponjas de limpieza, cómo limpiar ollas quemadas, beneficios de la esponja doble uso y más. Fabricantes peruanos en Lurigancho, Lima.',
-    url: 'https://maquimary.vercel.app/blog',
+    url: 'https://maquimary.com.pe/blog',
     siteName: 'Maqui Mary',
     locale: 'es_PE',
     type: 'website',
     images: [{
-      url: 'https://maquimary.vercel.app/img/logo_oficial.png',
+      url: 'https://maquimary.com.pe/img/logo_oficial.png',
       width: 1200,
       height: 630,
       alt: 'Blog de Esponjas de Limpieza | Maqui Mary',
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Blog de Esponjas de Limpieza | Maqui Mary - Tips y Guías',
     description: 'Artículos sobre esponjas de limpieza, cómo limpiar ollas quemadas, beneficios de la esponja doble uso y más. Fabricantes peruanos en Lurigancho, Lima.',
-    images: ['https://maquimary.vercel.app/img/logo_oficial.png'],
+    images: ['https://maquimary.com.pe/img/logo_oficial.png'],
   },
 }
 

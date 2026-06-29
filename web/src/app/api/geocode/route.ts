@@ -4,7 +4,7 @@ const NOMINATIM_BASE = 'https://nominatim.openstreetmap.org'
 const HEADERS = {
   'User-Agent': 'MaquiMary-Delivery/1.0 (contact@maquimary.pe)',
   'Accept-Language': 'es-PE,es;q=0.9',
-  'Referer': 'https://maquimary.vercel.app',
+  'Referer': 'https://maquimary.com.pe',
 }
 
 export async function GET(req: NextRequest) {

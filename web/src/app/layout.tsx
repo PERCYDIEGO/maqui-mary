@@ -36,20 +36,20 @@ export const metadata: Metadata = {
   authors: [{ name: 'INVERSIONES MAQUI MARY PERU E.I.R.L.' }],
   creator: 'Maqui Mary',
   publisher: 'Maqui Mary',
-  metadataBase: new URL('https://maquimary.vercel.app'),
+  metadataBase: new URL('https://maquimary.com.pe'),
   alternates: {
     canonical: '/',
   },
   openGraph: {
     title: 'Esponjas de Limpieza en Lima | Maqui Mary — Fabricantes Peruanos',
     description: 'Fabricantes peruanos de esponjas de limpieza, estropajos y paños absorbentes en Lurigancho, Lima. Venta al por mayor y menor. Delivery a todo Lima.',
-    url: 'https://maquimary.vercel.app',
+    url: 'https://maquimary.com.pe',
     siteName: 'Maqui Mary',
     locale: 'es_PE',
     type: 'website',
     images: [
       {
-        url: 'https://maquimary.vercel.app/img/logo_oficial.png',
+        url: 'https://maquimary.com.pe/img/logo_oficial.png',
         width: 1200,
         height: 630,
         alt: 'Maqui Mary - Esponjas de Limpieza en Lima',
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Esponjas de Limpieza en Lima | Maqui Mary',
     description: 'Fabricantes peruanos de esponjas de limpieza en Lurigancho, Lima. Venta al por mayor y menor.',
-    images: ['https://maquimary.vercel.app/img/logo_oficial.png'],
+    images: ['https://maquimary.com.pe/img/logo_oficial.png'],
   },
   robots: {
     index: true,
@@ -103,9 +103,9 @@ export default function RootLayout({
             '@context': 'https://schema.org',
             '@type': 'LocalBusiness',
             name: 'Maqui Mary - Esponjas de Limpieza',
-            image: 'https://maquimary.vercel.app/img/logo_oficial.png',
-            '@id': 'https://maquimary.vercel.app',
-            url: 'https://maquimary.vercel.app',
+            image: 'https://maquimary.com.pe/img/logo_oficial.png',
+            '@id': 'https://maquimary.com.pe',
+            url: 'https://maquimary.com.pe',
             telephone: '+51916165543',
             priceRange: 'S/',
             address: {
@@ -146,8 +146,8 @@ export default function RootLayout({
             '@context': 'https://schema.org',
             '@type': 'Organization',
             name: 'INVERSIONES MAQUI MARY PERU E.I.R.L.',
-            url: 'https://maquimary.vercel.app',
-            logo: 'https://maquimary.vercel.app/img/logo_oficial.png',
+            url: 'https://maquimary.com.pe',
+            logo: 'https://maquimary.com.pe/img/logo_oficial.png',
             sameAs: [
               'https://wa.me/51916165543'
             ]
@@ -160,10 +160,10 @@ export default function RootLayout({
             '@context': 'https://schema.org',
             '@type': 'WebSite',
             name: 'Maqui Mary - Esponjas de Limpieza',
-            url: 'https://maquimary.vercel.app',
+            url: 'https://maquimary.com.pe',
             potentialAction: {
               '@type': 'SearchAction',
-              target: 'https://maquimary.vercel.app/?q={search_term_string}',
+              target: 'https://maquimary.com.pe/?q={search_term_string}',
               'query-input': 'required name=search_term_string'
             }
           }) }}
@@ -179,7 +179,7 @@ export default function RootLayout({
                 '@type': 'ListItem',
                 position: 1,
                 name: 'Inicio',
-                item: 'https://maquimary.vercel.app'
+                item: 'https://maquimary.com.pe'
               }
             ]
           }) }}

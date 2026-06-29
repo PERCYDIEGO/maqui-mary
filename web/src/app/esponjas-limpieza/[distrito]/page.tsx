@@ -86,7 +86,7 @@ export async function generateMetadata({ params }: { params: { distrito: string 
   const nombre = slugToNombre(params.distrito);
   const title = `Esponjas de Limpieza en ${nombre} | Maqui Mary — Fabricantes Peruanos`;
   const description = `Compra esponjas de limpieza en ${nombre}, Lima. Esponjas de colores, doble uso y paños absorbentes. Fabricación peruana en Lurigancho. Venta al por mayor y menor. Paga con Yape, Plin o contraentrega. Consulta precios por WhatsApp.`;
-  const url = `https://maquimary.vercel.app/esponjas-limpieza/${params.distrito}`;
+  const url = `https://maquimary.com.pe/esponjas-limpieza/${params.distrito}`;
   return {
     title,
     description,
@@ -99,7 +99,7 @@ export async function generateMetadata({ params }: { params: { distrito: string 
       locale: 'es_PE',
       type: 'website',
       images: [{
-        url: 'https://maquimary.vercel.app/img/logo_oficial.png',
+        url: 'https://maquimary.com.pe/img/logo_oficial.png',
         width: 1200,
         height: 630,
         alt: `Esponjas de Limpieza en ${nombre} | Maqui Mary`,
@@ -109,7 +109,7 @@ export async function generateMetadata({ params }: { params: { distrito: string 
       card: 'summary_large_image',
       title,
       description,
-      images: ['https://maquimary.vercel.app/img/logo_oficial.png'],
+      images: ['https://maquimary.com.pe/img/logo_oficial.png'],
     },
   };
 }
@@ -136,8 +136,8 @@ export default function DistritoPage({ params }: { params: { distrito: string } 
             '@context': 'https://schema.org',
             '@type': 'LocalBusiness',
             name: `Maqui Mary - Esponjas de Limpieza en ${nombre}`,
-            image: 'https://maquimary.vercel.app/img/logo_oficial.png',
-            url: `https://maquimary.vercel.app/esponjas-limpieza/${params.distrito}`,
+            image: 'https://maquimary.com.pe/img/logo_oficial.png',
+            url: `https://maquimary.com.pe/esponjas-limpieza/${params.distrito}`,
             telephone: '+51916165543',
             priceRange: 'S/',
             address: {
@@ -174,8 +174,8 @@ export default function DistritoPage({ params }: { params: { distrito: string } 
             '@context': 'https://schema.org',
             '@type': 'BreadcrumbList',
             itemListElement: [
-              { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://maquimary.vercel.app' },
-              { '@type': 'ListItem', position: 2, name: `Esponjas en ${nombre}`, item: `https://maquimary.vercel.app/esponjas-limpieza/${params.distrito}` },
+              { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://maquimary.com.pe' },
+              { '@type': 'ListItem', position: 2, name: `Esponjas en ${nombre}`, item: `https://maquimary.com.pe/esponjas-limpieza/${params.distrito}` },
             ],
           }),
         }}

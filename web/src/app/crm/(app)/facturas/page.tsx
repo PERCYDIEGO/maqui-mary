@@ -7,7 +7,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { Plus, Search, Filter, Pencil, Truck } from 'lucide-react';
+import { Plus, Search, Filter, Pencil, Truck, Trash2 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { formatearMoneda } from '@/lib/calculos';
 
@@ -21,8 +21,9 @@ const ESTADO_CONFIG = {
 } as const;
 
 export default function FacturasPage() {
-  const { facturas } = useApp();
+  const { facturas, eliminarDocumentoRechazado } = useApp();
   const [busqueda, setBusqueda] = useState('');
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   const facturasFiltradas = facturas
     .filter(factura =>
@@ -156,6 +157,22 @@ export default function FacturasPage() {
                           <Truck className="w-4 h-4" />
                         </Link>
                         <PDFGenerator documento={factura} tipo="factura" />
+                        {confirmDelete === factura.id ? (
+                          <button
+                            onClick={() => { eliminarDocumentoRechazado(factura.id, 'factura'); setConfirmDelete(null); }}
+                            className="px-2 py-1 text-xs font-semibold bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                          >
+                            ¿Eliminar?
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => setConfirmDelete(factura.id)}
+                            className="p-1.5 hover:bg-red-100 text-red-400 hover:text-red-600 rounded-lg transition-colors"
+                            title="Eliminar factura"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
