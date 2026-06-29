@@ -153,10 +153,10 @@ const menuItems: Array<{
 
 function LoadingScreen() {
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center">
+    <div className="min-h-screen bg-accent-sand/30 flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
-        <Loader2 className="w-10 h-10 text-yellow-400 animate-spin" />
-        <p className="text-yellow-400/70 font-medium">Verificando acceso...</p>
+        <Loader2 className="w-10 h-10 text-accent-terracotta animate-spin" />
+        <p className="text-ink-600 font-medium">Verificando acceso...</p>
       </div>
     </div>
   );
@@ -197,7 +197,7 @@ function Sidebar({
       )}
 
       {/* Sidebar */}
-      <aside className={`
+      <aside data-theme="plutotv" className={`
         fixed top-0 left-0 z-50 h-full w-64 bg-black border-r border-yellow-400/15
         transform transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
@@ -334,39 +334,39 @@ function Header({
   onToggleMusic: () => void;
 }) {
   return (
-    <header className="sticky top-0 z-30 bg-black border-b border-yellow-400/20">
+    <header className="sticky top-0 z-30 bg-white border-b border-ink-100 shadow-sm">
       <div className="flex items-center justify-between h-16 px-4 lg:px-6">
         {/* Izquierda */}
         <div className="flex items-center gap-4">
           <button
             onClick={onMenuClick}
-            className="lg:hidden p-2 hover:bg-yellow-400/10 rounded-lg"
+            className="lg:hidden p-2 hover:bg-ink-100 rounded-lg"
           >
-            <Menu className="w-5 h-5 text-gray-400" />
+            <Menu className="w-5 h-5 text-ink-600" />
           </button>
-          <h2 className="text-lg font-heading font-semibold text-yellow-400">{titulo}</h2>
+          <h2 className="text-lg font-heading font-semibold text-ink-800">{titulo}</h2>
         </div>
 
         {/* Derecha */}
         <div className="flex items-center gap-3">
           <button
             onClick={() => window.dispatchEvent(new CustomEvent('toggle-guide'))}
-            className="p-2 rounded-xl hover:bg-yellow-400/10 text-gray-500 hover:text-yellow-400 transition-all"
+            className="p-2 rounded-xl hover:bg-ink-100 text-ink-500 hover:text-ink-700 transition-all"
             title="Guía interactiva"
           >
             🧽
           </button>
           <button
             onClick={onToggleMusic}
-            className="p-2 rounded-xl hover:bg-yellow-400/10 text-gray-500 hover:text-yellow-400 transition-all"
+            className="p-2 rounded-xl hover:bg-ink-100 text-ink-500 hover:text-ink-700 transition-all"
             title={crmMusic ? 'Silenciar música' : 'Activar música'}
           >
             {crmMusic ? <Volume2 size={18} /> : <VolumeX size={18} />}
           </button>
           <Link
             href="/"
-            className="hidden sm:flex items-center gap-2 px-4 py-2 bg-yellow-400 hover:bg-yellow-300
-              text-black rounded-xl font-medium transition-all"
+            className="hidden sm:flex items-center gap-2 px-4 py-2 bg-accent-gold hover:bg-accent-goldlight
+              text-ink-900 rounded-xl font-medium transition-all shadow-warm hover:shadow-elevated"
           >
             <Store className="w-4 h-4" />
             <span>Ir a la Tienda</span>
@@ -597,7 +597,7 @@ export default function CRMLayout({
   }
 
   return (
-    <div className="min-h-screen bg-black" data-theme="plutotv">
+    <div className="min-h-screen bg-gray-50">
       {/* Sidebar */}
       <Sidebar
         isOpen={sidebarOpen}

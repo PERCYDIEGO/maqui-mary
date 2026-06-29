@@ -15,7 +15,8 @@ import {
   Save,
   X,
   Search,
-  User
+  User,
+  MapPin
 } from 'lucide-react';
 import Link from 'next/link';
 import { useApp } from '@/context/AppContext';
@@ -26,7 +27,6 @@ import {
   UnidadMedida,
   EMPRESA_DATA
 } from '@/types/documentos';
-import DireccionSelector from '@/components/DireccionSelector';
 import { 
   calcularItem, 
   calcularTotalesBoleta, 
@@ -58,7 +58,6 @@ export default function NuevaBoletaPage() {
   const [cliente, setCliente] = useState<Cliente | null>(null);
   const [clienteBusqueda, setClienteBusqueda] = useState('');
   const [mostrarClientes, setMostrarClientes] = useState(false);
-  const [direccionEntrega, setDireccionEntrega] = useState('');
   const clienteRef = useRef<HTMLDivElement>(null);
   
   // Cerrar lista al hacer clic fuera
@@ -83,7 +82,6 @@ export default function NuevaBoletaPage() {
     setIsEditing(true);
     setEditingId(editId);
     setCliente(boleta.cliente);
-    setDireccionEntrega(boleta.cliente.direccion);
     setClienteBusqueda(boleta.cliente.nombre);
     setFechaEmision(new Date(boleta.fechaEmision).toISOString().split('T')[0]);
     if (boleta.fechaVencimiento) setFechaVencimiento(new Date(boleta.fechaVencimiento).toISOString().split('T')[0]);
@@ -132,7 +130,6 @@ export default function NuevaBoletaPage() {
   const handleSelectCliente = (c: Cliente) => {
     setCliente(c);
     setClienteBusqueda(c.nombre);
-    setDireccionEntrega(c.direccion);
     setMostrarClientes(false);
   };
   
@@ -240,7 +237,7 @@ export default function NuevaBoletaPage() {
       fechaEmision: new Date(fechaEmision),
       fechaVencimiento: fechaVencimiento ? new Date(fechaVencimiento) : undefined,
       clienteId: cliente.id,
-        cliente: { ...cliente, direccion: direccionEntrega || cliente.direccion },
+        cliente,
         moneda,
         formaPago,
         formaPagoSunat: formaPago === 'credito' ? '002' : '001',
@@ -390,25 +387,26 @@ export default function NuevaBoletaPage() {
               {cliente && (
                 <div className="space-y-3">
                   <div className="p-4 bg-amber-50 rounded-xl border border-amber-100">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between mb-3">
                       <div>
                         <p className="font-semibold text-slate-800">{cliente.nombre}</p>
                         {cliente.dni && <p className="text-sm text-slate-600">DNI: {cliente.dni}</p>}
                       </div>
                       <button
-                        onClick={() => { setCliente(null); setClienteBusqueda(''); setDireccionEntrega(''); }}
+                        onClick={() => { setCliente(null); setClienteBusqueda(''); }}
                         className="p-2 hover:bg-amber-100 rounded-lg text-amber-700"
                       >
                         <X className="w-5 h-5" />
                       </button>
                     </div>
+                    <div className="flex items-start gap-2 pt-3 border-t border-amber-200">
+                      <MapPin className="w-3.5 h-3.5 text-amber-500 mt-0.5 shrink-0" />
+                      <div>
+                        <span className="text-[10px] font-semibold text-amber-700 uppercase tracking-wide">Dirección Fiscal SUNAT</span>
+                        <p className="text-xs text-slate-700 mt-0.5">{cliente.direccion || '—'}</p>
+                      </div>
+                    </div>
                   </div>
-                  <DireccionSelector
-                    direccionFiscal={cliente.direccion}
-                    direccionesReferencia={cliente.direccionesReferencia ?? []}
-                    value={direccionEntrega}
-                    onChange={setDireccionEntrega}
-                  />
                 </div>
               )}
               

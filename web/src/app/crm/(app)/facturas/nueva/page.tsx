@@ -7,11 +7,10 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Plus, Trash2, Save, X, Search, User, Building2 } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Save, X, Search, User, Building2, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import { useApp } from '@/context/AppContext';
 import { Factura, Cliente, ItemDocumento, EMPRESA_DATA } from '@/types/documentos';
-import DireccionSelector from '@/components/DireccionSelector';
 import {
   calcularItem,
   calcularTotalesFactura,
@@ -38,7 +37,6 @@ export default function NuevaFacturaPage() {
   const [cliente, setCliente] = useState<Cliente | null>(null);
   const [clienteBusqueda, setClienteBusqueda] = useState('');
   const [mostrarClientes, setMostrarClientes] = useState(false);
-  const [direccionEntrega, setDireccionEntrega] = useState('');
   const clienteRef = useRef<HTMLDivElement>(null);
 
   // Cerrar lista al hacer clic fuera
@@ -63,7 +61,6 @@ export default function NuevaFacturaPage() {
     setIsEditing(true);
     setEditingId(editId);
     setCliente(factura.cliente);
-    setDireccionEntrega(factura.cliente.direccion);
     setClienteBusqueda(`${factura.cliente.nombre} - RUC: ${factura.cliente.ruc}`);
     setFechaEmision(new Date(factura.fechaEmision).toISOString().split('T')[0]);
     if (factura.fechaVencimiento) setFechaVencimiento(new Date(factura.fechaVencimiento).toISOString().split('T')[0]);
@@ -114,7 +111,6 @@ export default function NuevaFacturaPage() {
     }
     setCliente(c);
     setClienteBusqueda(`${c.nombre} - RUC: ${c.ruc}`);
-    setDireccionEntrega(c.direccion);
     setMostrarClientes(false);
   };
   
@@ -216,7 +212,7 @@ export default function NuevaFacturaPage() {
       fechaEmision: new Date(fechaEmision),
       fechaVencimiento: formaPago === 'credito' && fechaVencimiento ? new Date(fechaVencimiento) : undefined,
       clienteId: cliente.id,
-      cliente: { ...cliente, direccion: direccionEntrega || cliente.direccion },
+      cliente,
       moneda,
       formaPago,
       formaPagoSunat: formaPago === 'credito' ? '002' : '001',
@@ -323,22 +319,23 @@ export default function NuevaFacturaPage() {
               {cliente && (
                 <div className="space-y-3">
                   <div className="p-4 bg-purple-50 rounded-xl border border-purple-100">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between mb-3">
                       <div>
                         <p className="font-semibold text-slate-800">{cliente.nombre}</p>
                         <p className="text-sm text-slate-600">RUC: {cliente.ruc}</p>
                       </div>
-                      <button onClick={() => { setCliente(null); setClienteBusqueda(''); setDireccionEntrega(''); }} className="p-2 hover:bg-purple-100 rounded-lg">
+                      <button onClick={() => { setCliente(null); setClienteBusqueda(''); }} className="p-2 hover:bg-purple-100 rounded-lg">
                         <X className="w-5 h-5 text-slate-700" />
                       </button>
                     </div>
+                    <div className="flex items-start gap-2 pt-3 border-t border-purple-200">
+                      <MapPin className="w-3.5 h-3.5 text-amber-500 mt-0.5 shrink-0" />
+                      <div>
+                        <span className="text-[10px] font-semibold text-amber-700 uppercase tracking-wide">Dirección Fiscal SUNAT</span>
+                        <p className="text-xs text-slate-700 mt-0.5">{cliente.direccion || '—'}</p>
+                      </div>
+                    </div>
                   </div>
-                  <DireccionSelector
-                    direccionFiscal={cliente.direccion}
-                    direccionesReferencia={cliente.direccionesReferencia ?? []}
-                    value={direccionEntrega}
-                    onChange={setDireccionEntrega}
-                  />
                 </div>
               )}
               
