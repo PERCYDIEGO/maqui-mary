@@ -90,6 +90,7 @@ export default function RootLayout({
     <html lang="es-PE" className={`${dmSerifDisplay.variable} ${lora.variable} ${nunito.variable}`}>
       {/* Aplica el tema ANTES del primer paint para evitar flash */}
       <head>
+        <meta name="google-site-verification" content="W08zoQ2vuekchAF8P0nI5AvaKlaR-eAFywbV5_94Kxk" />
         <script dangerouslySetInnerHTML={{ __html: `
           try {
             var t = localStorage.getItem('maqui-tema');
