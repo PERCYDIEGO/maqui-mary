@@ -6,10 +6,12 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { Plus, Search, Filter, Pencil, Truck } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { formatearMoneda } from '@/lib/calculos';
-import PDFGenerator from '@/components/pdf/PDFGenerator';
+
+const PDFGenerator = dynamic(() => import('@/components/pdf/PDFGenerator'), { ssr: false });
 
 const ESTADO_CONFIG = {
   borrador:  { label: 'Borrador',  bg: 'bg-slate-100', text: 'text-slate-600' },

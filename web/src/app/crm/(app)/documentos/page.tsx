@@ -7,10 +7,12 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { Plus, Search, FileText, Receipt, Truck, Filter } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { formatearMoneda } from '@/lib/calculos';
-import PDFGenerator from '@/components/pdf/PDFGenerator';
+
+const PDFGenerator = dynamic(() => import('@/components/pdf/PDFGenerator'), { ssr: false });
 
 type TipoDocumento = 'boletas' | 'facturas' | 'guias';
 
