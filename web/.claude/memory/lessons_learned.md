@@ -213,6 +213,16 @@ _Archivo inicial creado por project init._
 
 ---
 
+### [2026-06-28] Sección Guías crasheaba con TypeError en render — campos undefined de data_json
+
+- **CONTEXTO**: `crm/(app)/guias/page.tsx`, lista de guías de remisión; guías cargadas desde tabla `guias` en Supabase via spread de `data_json`
+- **ERROR**: Error boundary mostraba "⚠️ Error inesperado — Algo falló en esta sección." al entrar a `/crm/guias`
+- **CAUSA**: El mapeo en AppContext hace `{ ...row.data_json, id, estado, ... }`. Si alguna guía en BD tiene `data_json` incompleto (sin `puntoLlegada`, `motivoTraslado`, `numeroCompleto` o `destinatarioNombre`), esos campos llegan como `undefined`. El render llamaba `.toLowerCase()`, `.substring(0, 50)` y `.replace('_', ' ')` directamente sobre los campos sin guard → `TypeError: Cannot read properties of undefined`.
+- **CORRECCIÓN**: Reemplazar accesos directos por safe fallbacks: `(g.numeroCompleto || '').toLowerCase()`, `(g.destinatarioNombre || '').toLowerCase()`, `(guia.puntoLlegada || '').substring(0, 50)`, `(guia.motivoTraslado || '').replace('_', ' ')`. Commit: `df30a85`.
+- **REGLA**: Al renderizar datos que provienen de un spread de columna JSON en BD (`data_json`), SIEMPRE usar `(campo || '')` antes de llamar métodos de string. Los registros antiguos o creados por scripts pueden no tener todos los campos del tipo TypeScript, aunque el tipo lo declare como requerido.
+
+---
+
 ### [2026-06-21] Campo precio en documentos no tenía indicador visual de modificación
 
 - **CONTEXTO**: Formularios `facturas/nueva/page.tsx` y `boletas/nueva/page.tsx`, paso 2 (ítems)
