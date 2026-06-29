@@ -59,6 +59,57 @@
   --color-sand:       208 222 232;
 }
 
+[data-theme="plutotv"] {
+  --color-gold:       255 210 0;
+  --color-goldlight:  255 229 80;
+  --color-terracotta: 255 210 0;
+  --color-sage:       180 160 40;
+  --color-sagewash:   18 17 5;
+  --color-navy:       5 5 5;
+  --color-cream:      20 20 20;
+  --color-sand:       10 10 10;
+}
+
+/* ── Overrides ink/slate estáticos para tema Pluto TV ── */
+[data-theme="plutotv"] .text-ink-900 { color: #f0f0f0; }
+[data-theme="plutotv"] .text-ink-800 { color: #e8e8e8; }
+[data-theme="plutotv"] .text-ink-700 { color: #c0c0c0; }
+[data-theme="plutotv"] .text-ink-600 { color: #a0a0a0; }
+[data-theme="plutotv"] .text-ink-500 { color: #787878; }
+[data-theme="plutotv"] .text-ink-400 { color: #585858; }
+[data-theme="plutotv"] .text-slate-800 { color: #e8e8e8; }
+[data-theme="plutotv"] .text-slate-700 { color: #c0c0c0; }
+[data-theme="plutotv"] .text-slate-600 { color: #a0a0a0; }
+[data-theme="plutotv"] .text-slate-500 { color: #787878; }
+[data-theme="plutotv"] .text-slate-400 { color: #585858; }
+
+[data-theme="plutotv"] .bg-white { background-color: #1c1c1c; }
+[data-theme="plutotv"] .bg-gray-50 { background-color: #0a0a0a; }
+[data-theme="plutotv"] .bg-slate-50 { background-color: #141414; }
+[data-theme="plutotv"] .bg-slate-100 { background-color: #1c1c1c; }
+[data-theme="plutotv"] .bg-ink-100 { background-color: #1c1c1c; }
+[data-theme="plutotv"] .bg-ink-50  { background-color: #141414; }
+
+[data-theme="plutotv"] .border-ink-200   { border-color: #2c2c2c; }
+[data-theme="plutotv"] .border-ink-100   { border-color: #242424; }
+[data-theme="plutotv"] .border-slate-200 { border-color: #2c2c2c; }
+[data-theme="plutotv"] .border-slate-100 { border-color: #242424; }
+[data-theme="plutotv"] .divide-ink-100 > * + *   { border-color: #242424; }
+[data-theme="plutotv"] .divide-slate-100 > * + * { border-color: #242424; }
+
+[data-theme="plutotv"] input:not([type="checkbox"]):not([type="radio"]),
+[data-theme="plutotv"] textarea,
+[data-theme="plutotv"] select {
+  background-color: #1c1c1c;
+  border-color: #2c2c2c;
+  color: #e8e8e8;
+}
+[data-theme="plutotv"] input::placeholder,
+[data-theme="plutotv"] textarea::placeholder { color: #585858; }
+
+[data-theme="plutotv"] .shadow-sm   { box-shadow: 0 1px 3px rgba(0,0,0,0.6); }
+[data-theme="plutotv"] .shadow-soft { box-shadow: 0 2px 12px rgba(0,0,0,0.4); }
+
 @layer base {
   html {
     scroll-behavior: smooth;
