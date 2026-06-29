@@ -221,20 +221,31 @@ export default function NuevaGuiaPage() {
   );
 
   // Opciones para Punto de Llegada según modalidad
-  const puntosLlegadaOpciones = modalidadTraslado === 'privado'
-    ? transportistas.filter(t =>
-        t.modalidad === 'publico' && t.activo && (
-          t.nombreCompleto.toLowerCase().includes(puntoLlegadaBusqueda.toLowerCase()) ||
-          (t.ruc || '').includes(puntoLlegadaBusqueda) ||
-          (t.direccion || '').toLowerCase().includes(puntoLlegadaBusqueda.toLowerCase())
-        )
-      )
-    : clientes.filter(c =>
-        c.nombre.toLowerCase().includes(puntoLlegadaBusqueda.toLowerCase()) ||
-        c.direccion.toLowerCase().includes(puntoLlegadaBusqueda.toLowerCase()) ||
-        c.ruc?.includes(puntoLlegadaBusqueda) ||
-        c.dni?.includes(puntoLlegadaBusqueda)
-      );
+  type PuntoLlegadaOpt =
+    | { kind: 'transportista'; data: Transportista }
+    | { kind: 'cliente'; data: Cliente };
+
+  const _clientesPuntoLlegada = clientes.filter(c =>
+    c.nombre.toLowerCase().includes(puntoLlegadaBusqueda.toLowerCase()) ||
+    c.direccion.toLowerCase().includes(puntoLlegadaBusqueda.toLowerCase()) ||
+    c.ruc?.includes(puntoLlegadaBusqueda) ||
+    c.dni?.includes(puntoLlegadaBusqueda)
+  );
+
+  const puntosLlegadaOpciones: PuntoLlegadaOpt[] = modalidadTraslado === 'privado'
+    ? [
+        ...transportistas
+          .filter(t =>
+            t.modalidad === 'publico' && t.activo && (
+              t.nombreCompleto.toLowerCase().includes(puntoLlegadaBusqueda.toLowerCase()) ||
+              (t.ruc || '').includes(puntoLlegadaBusqueda) ||
+              (t.direccion || '').toLowerCase().includes(puntoLlegadaBusqueda.toLowerCase())
+            )
+          )
+          .map(t => ({ kind: 'transportista' as const, data: t })),
+        ..._clientesPuntoLlegada.map(c => ({ kind: 'cliente' as const, data: c })),
+      ]
+    : _clientesPuntoLlegada.map(c => ({ kind: 'cliente' as const, data: c }));
   
   const serieActiva = series.find(s => s.tipo === 'guia' && s.activo);
   const serieGuia = serieActiva?.serie || 'T001';
@@ -357,9 +368,7 @@ export default function NuevaGuiaPage() {
   const handleSelectDestinatario = (c: Cliente) => {
     setDestinatario(c);
     setDestinatarioBusqueda(c.nombre);
-    if (modalidadTraslado === 'publico') {
-      setPuntoLlegada(c.direccion);
-    }
+    setPuntoLlegada(c.direccion);
     setMostrarDestinatarios(false);
   };
   
@@ -900,7 +909,7 @@ export default function NuevaGuiaPage() {
               </div>
               
               {/* Direcciones del destinatario — acceso rápido para punto de llegada */}
-              {destinatario && (destinatario.direccionesReferencia?.length ?? 0) > 0 && (
+              {destinatario && (
                 <DireccionSelector
                   direccionFiscal={destinatario.direccion}
                   direccionesReferencia={destinatario.direccionesReferencia ?? []}
@@ -915,8 +924,8 @@ export default function NuevaGuiaPage() {
                   Punto de Llegada *
                   <span className="ml-2 text-xs font-normal text-slate-400">
                     {modalidadTraslado === 'privado'
-                      ? '(Dirección del transportista público destino)'
-                      : '(Dirección del cliente destino)'}
+                      ? '(Transportista público o dirección del cliente)'
+                      : '(Dirección fiscal o de referencia del cliente)'}
                   </span>
                 </label>
                 <div className="relative">
@@ -928,7 +937,7 @@ export default function NuevaGuiaPage() {
                     rows={3}
                     className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none resize-none"
                     placeholder={modalidadTraslado === 'privado'
-                      ? "Busca por transportista público, RUC o dirección..."
+                      ? "Busca transportista público o cliente por nombre, RUC o dirección..."
                       : "Busca por cliente, RUC, DNI o dirección..."}
                   />
                 </div>
@@ -939,22 +948,22 @@ export default function NuevaGuiaPage() {
                       modalidadTraslado === 'privado' ? 'bg-amber-50 text-amber-700' : 'bg-blue-50 text-blue-700'
                     }`}>
                       {modalidadTraslado === 'privado'
-                        ? `${puntosLlegadaOpciones.length} transportistas públicos con dirección`
+                        ? `${puntosLlegadaOpciones.length} opciones (transportistas + clientes)`
                         : `${puntosLlegadaOpciones.length} clientes con dirección`}
                     </div>
                     {puntosLlegadaOpciones.length === 0 ? (
                       <div className="p-4 text-slate-500 text-sm">
                         {modalidadTraslado === 'privado'
-                          ? 'Escribe para buscar transportistas públicos por nombre, RUC o dirección'
+                          ? 'Escribe para buscar transportistas públicos o clientes'
                           : 'Escribe para buscar clientes por nombre, RUC, DNI o dirección'}
                       </div>
                     ) : (
                       puntosLlegadaOpciones.map((opt) => {
-                        if (modalidadTraslado === 'privado') {
-                          const t = opt as Transportista;
+                        if (opt.kind === 'transportista') {
+                          const t = opt.data;
                           return (
                             <button
-                              key={t.id}
+                              key={`t-${t.id}`}
                               onClick={() => {
                                 setPuntoLlegada(t.direccion || '');
                                 setPuntoLlegadaBusqueda('');
@@ -967,7 +976,10 @@ export default function NuevaGuiaPage() {
                                   <Building2 className="w-5 h-5 text-amber-600" />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <p className="font-medium text-primary-800 text-sm">{t.nombreCompleto}</p>
+                                  <div className="flex items-center gap-2">
+                                    <p className="font-medium text-primary-800 text-sm">{t.nombreCompleto}</p>
+                                    <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide">Transportista</span>
+                                  </div>
                                   <p className="text-xs text-slate-500">RUC: {t.ruc || '—'}</p>
                                   <p className="text-xs text-slate-600 truncate">{t.direccion || 'Sin dirección'}</p>
                                 </div>
@@ -978,10 +990,10 @@ export default function NuevaGuiaPage() {
                             </button>
                           );
                         } else {
-                          const c = opt as Cliente;
+                          const c = opt.data;
                           return (
                             <button
-                              key={c.id}
+                              key={`c-${c.id}`}
                               onClick={() => {
                                 setPuntoLlegada(c.direccion);
                                 setPuntoLlegadaBusqueda('');
@@ -1087,7 +1099,7 @@ export default function NuevaGuiaPage() {
                       type="button"
                       onClick={() => setShowFlete(!showFlete)}
                       className={`text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${
-                        showFlete ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                        showFlete ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-800 hover:bg-slate-200'
                       }`}
                     >
                       {showFlete ? 'Quitar' : 'Agregar'}

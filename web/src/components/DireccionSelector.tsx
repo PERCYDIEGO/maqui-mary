@@ -22,14 +22,28 @@ export default function DireccionSelector({
   ];
 
   if (opciones.length === 1) {
+    const activa = value === direccionFiscal;
     return (
-      <div className="flex items-start gap-2 p-3 bg-amber-50 rounded-xl border border-amber-200 text-sm">
-        <Star className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
-        <div>
-          <span className="text-xs font-semibold text-amber-700 uppercase tracking-wide">Dirección Fiscal</span>
-          <p className="text-slate-700 mt-0.5">{direccionFiscal || '—'}</p>
+      <button
+        type="button"
+        onClick={() => onChange(direccionFiscal)}
+        className={`w-full flex items-start gap-2 p-3 rounded-xl border-2 text-left transition-all ${
+          activa ? 'border-indigo-500 bg-indigo-50' : 'bg-amber-50 border-amber-200 hover:border-amber-300'
+        }`}
+      >
+        <Star className={`w-4 h-4 mt-0.5 shrink-0 ${activa ? 'text-indigo-500' : 'text-amber-500'}`} />
+        <div className="flex-1">
+          <span className={`text-xs font-semibold uppercase tracking-wide ${activa ? 'text-indigo-700' : 'text-amber-700'}`}>
+            Dirección Fiscal
+          </span>
+          <p className={`text-sm mt-0.5 ${activa ? 'text-indigo-800' : 'text-slate-700'}`}>{direccionFiscal || '—'}</p>
         </div>
-      </div>
+        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all ${
+          activa ? 'border-indigo-500 bg-indigo-500' : 'border-slate-300'
+        }`}>
+          {activa && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+        </div>
+      </button>
     );
   }
 
