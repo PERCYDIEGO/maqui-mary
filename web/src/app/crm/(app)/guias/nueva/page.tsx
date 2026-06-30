@@ -183,6 +183,7 @@ export default function NuevaGuiaPage() {
   const [puntoLlegada, setPuntoLlegada] = useState('');
   const [puntoLlegadaBusqueda, setPuntoLlegadaBusqueda] = useState('');
   const [mostrarPuntosLlegada, setMostrarPuntosLlegada] = useState(false);
+  const [transportistaLlegadaSeleccionado, setTransportistaLlegadaSeleccionado] = useState<Transportista | null>(null);
   const puntoLlegadaRef = useRef<HTMLDivElement>(null);
   const [fechaInicioTraslado, setFechaInicioTraslado] = useState(
     new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString().slice(0, 10) // fecha Perú UTC-5
@@ -235,31 +236,15 @@ export default function NuevaGuiaPage() {
     c.ruc?.includes(destinatarioBusqueda)
   );
 
-  // Opciones para Punto de Llegada según modalidad
-  type PuntoLlegadaOpt =
-    | { kind: 'transportista'; data: Transportista }
-    | { kind: 'cliente'; data: Cliente };
-
-  const _clientesPuntoLlegada = clientes.filter(c =>
-    c.nombre.toLowerCase().includes(puntoLlegadaBusqueda.toLowerCase()) ||
-    c.direccion.toLowerCase().includes(puntoLlegadaBusqueda.toLowerCase()) ||
-    c.ruc?.includes(puntoLlegadaBusqueda) ||
-    c.dni?.includes(puntoLlegadaBusqueda)
-  );
-
-  const _transportistasPuntoLlegada = transportistas.filter(t =>
+  // Transportistas públicos para Punto de Llegada
+  const puntosLlegadaOpciones = transportistas.filter(t =>
     t.modalidad === 'publico' && t.activo && (
       !puntoLlegadaBusqueda ||
       t.nombreCompleto.toLowerCase().includes(puntoLlegadaBusqueda.toLowerCase()) ||
       (t.ruc || '').includes(puntoLlegadaBusqueda) ||
       (t.direccion || '').toLowerCase().includes(puntoLlegadaBusqueda.toLowerCase())
     )
-  ).map(t => ({ kind: 'transportista' as const, data: t }));
-
-  const puntosLlegadaOpciones: PuntoLlegadaOpt[] = [
-    ..._transportistasPuntoLlegada,
-    ...(puntoLlegadaBusqueda ? _clientesPuntoLlegada.map(c => ({ kind: 'cliente' as const, data: c })) : []),
-  ];
+  );
   
   const serieActiva = series.find(s => s.tipo === 'guia' && s.activo);
   const serieGuia = serieActiva?.serie || 'T001';
@@ -620,7 +605,7 @@ export default function NuevaGuiaPage() {
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
-                    onClick={() => { setModalidadTraslado('privado'); setTransportista(null); setTransportistaBusqueda(''); setPuntoLlegada(''); setPuntoLlegadaBusqueda(''); }}
+                    onClick={() => { setModalidadTraslado('privado'); setTransportista(null); setTransportistaBusqueda(''); setPuntoLlegada(''); setPuntoLlegadaBusqueda(''); setTransportistaLlegadaSeleccionado(null); }}
                     className={`flex items-center gap-2 p-3 rounded-xl border-2 font-medium text-sm transition-all ${
                       modalidadTraslado === 'privado'
                         ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
@@ -635,7 +620,7 @@ export default function NuevaGuiaPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setModalidadTraslado('publico'); setTransportista(null); setTransportistaBusqueda(''); setPuntoLlegada(''); setPuntoLlegadaBusqueda(''); }}
+                    onClick={() => { setModalidadTraslado('publico'); setTransportista(null); setTransportistaBusqueda(''); setPuntoLlegada(''); setPuntoLlegadaBusqueda(''); setTransportistaLlegadaSeleccionado(null); }}
                     className={`flex items-center gap-2 p-3 rounded-xl border-2 font-medium text-sm transition-all ${
                       modalidadTraslado === 'publico'
                         ? 'border-amber-500 bg-amber-50 text-amber-700'
@@ -922,17 +907,14 @@ export default function NuevaGuiaPage() {
                 </div>
               </div>
               
-              {/* Punto de Llegada — direcciones del destinatario + búsqueda */}
+              {/* Punto de Llegada */}
               <div className="relative" ref={puntoLlegadaRef}>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Punto de Llegada *
-                  {modalidadTraslado === 'privado' && (
-                    <span className="ml-2 text-xs font-normal text-slate-400">(transportista público u otra dirección)</span>
-                  )}
                 </label>
 
-                {/* Opciones de dirección del destinatario — siempre visibles cuando hay destinatario */}
-                {destinatario && (() => {
+                {/* PRIVADO: muestra direcciones del destinatario como opciones rápidas */}
+                {modalidadTraslado === 'privado' && destinatario && !transportistaLlegadaSeleccionado && (() => {
                   const refs = destinatario.direccionesReferencia ?? [];
                   const opciones = [
                     { id: 'fiscal', label: 'Dirección Fiscal', dir: destinatario.direccion, esFiscal: true },
@@ -971,111 +953,83 @@ export default function NuevaGuiaPage() {
                           </button>
                         );
                       })}
+                      <p className="text-xs text-slate-400 pt-1">O elige una empresa de transporte como punto de llegada:</p>
                     </div>
                   );
                 })()}
 
-                {/* Búsqueda de empresa de transporte (ambos modos) */}
-                <>
-                  {destinatario && (
-                    <p className="text-xs text-slate-400 mb-2">O elige empresa de transporte como punto de llegada:</p>
-                  )}
+                {/* Empresa de transporte seleccionada — chip de feedback */}
+                {transportistaLlegadaSeleccionado && (
+                  <div className="flex items-center gap-3 p-3 mb-3 rounded-xl border-2 border-indigo-500 bg-indigo-50">
+                    <Building2 className="w-5 h-5 text-indigo-600 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-semibold text-indigo-800">{transportistaLlegadaSeleccionado.nombreCompleto}</p>
+                        <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-semibold uppercase">Transporte</span>
+                      </div>
+                      <p className="text-xs text-indigo-600 mt-0.5">{transportistaLlegadaSeleccionado.direccion || 'Sin dirección'}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => { setTransportistaLlegadaSeleccionado(null); setPuntoLlegada(modalidadTraslado === 'privado' && destinatario ? destinatario.direccion : ''); setPuntoLlegadaBusqueda(''); }}
+                      className="p-1 hover:bg-indigo-200 rounded-lg transition-colors text-indigo-500"
+                      title="Quitar selección"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+
+                {/* Campo de búsqueda de empresa de transporte (siempre visible, oculto si ya hay transportista seleccionado) */}
+                {!transportistaLlegadaSeleccionado && (
                   <div className="relative">
                     <Search className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
-                    <textarea
-                      value={destinatario ? puntoLlegadaBusqueda : puntoLlegada}
-                      onChange={(e) => {
-                        if (destinatario) {
-                          setPuntoLlegadaBusqueda(e.target.value);
-                        } else {
-                          setPuntoLlegada(e.target.value);
-                          setPuntoLlegadaBusqueda(e.target.value);
-                        }
-                      }}
+                    <input
+                      type="text"
+                      value={puntoLlegadaBusqueda}
+                      onChange={(e) => { setPuntoLlegadaBusqueda(e.target.value); setMostrarPuntosLlegada(true); }}
                       onFocus={() => setMostrarPuntosLlegada(true)}
-                      rows={destinatario ? 1 : 3}
-                      className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none resize-none"
+                      className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
                       placeholder="Busca empresa de transporte por nombre o RUC..."
                     />
                   </div>
-                </>
+                )}
 
-
-                {mostrarPuntosLlegada && (
+                {/* Dropdown resultados */}
+                {mostrarPuntosLlegada && !transportistaLlegadaSeleccionado && (
                   <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-60 overflow-auto">
                     <div className="p-2 text-xs border-b border-slate-200 bg-amber-50 text-amber-700">
-                      {puntosLlegadaOpciones.length} empresa{puntosLlegadaOpciones.length !== 1 ? 's' : ''} de transporte
-                      {puntoLlegadaBusqueda && _clientesPuntoLlegada.length > 0 ? ` + ${_clientesPuntoLlegada.length} clientes` : ''}
+                      {puntosLlegadaOpciones.length} empresa{puntosLlegadaOpciones.length !== 1 ? 's' : ''} de transporte público
                     </div>
                     {puntosLlegadaOpciones.length === 0 ? (
                       <div className="p-4 text-slate-500 text-sm">
-                        No hay empresas de transporte registradas. Escribe para buscar.
+                        No se encontraron empresas de transporte. Verifica el nombre o RUC.
                       </div>
                     ) : (
-                      puntosLlegadaOpciones.map((opt) => {
-                        if (opt.kind === 'transportista') {
-                          const t = opt.data;
-                          return (
-                            <button
-                              key={`t-${t.id}`}
-                              onClick={() => {
-                                setPuntoLlegada(t.direccion || '');
-                                setPuntoLlegadaBusqueda('');
-                                setMostrarPuntosLlegada(false);
-                              }}
-                              className="w-full px-4 py-3 text-left hover:bg-slate-50 border-b border-slate-100 last:border-0"
-                            >
-                              <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full flex items-center justify-center bg-amber-100">
-                                  <Building2 className="w-5 h-5 text-amber-600" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2">
-                                    <p className="font-medium text-primary-800 text-sm">{t.nombreCompleto}</p>
-                                    <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide">Transportista</span>
-                                  </div>
-                                  <p className="text-xs text-slate-500">RUC: {t.ruc || '—'}</p>
-                                  <p className="text-xs text-slate-600 truncate">{t.direccion || 'Sin dirección'}</p>
-                                </div>
-                                {t.codigo && (
-                                  <span className="px-2 py-1 bg-slate-100 text-slate-600 rounded text-xs font-mono">{t.codigo}</span>
-                                )}
-                              </div>
-                            </button>
-                          );
-                        } else {
-                          const c = opt.data;
-                          return (
-                            <button
-                              key={`c-${c.id}`}
-                              onClick={() => {
-                                setPuntoLlegada(c.direccion);
-                                setPuntoLlegadaBusqueda('');
-                                setMostrarPuntosLlegada(false);
-                              }}
-                              className="w-full px-4 py-3 text-left hover:bg-slate-50 border-b border-slate-100 last:border-0"
-                            >
-                              <div className="flex items-center gap-3">
-                                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                                  c.tipo === 'juridica' ? 'bg-purple-100' : 'bg-primary-100'
-                                }`}>
-                                  {c.tipo === 'juridica'
-                                    ? <Building2 className="w-5 h-5 text-purple-600" />
-                                    : <User className="w-5 h-5 text-primary-600" />}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-medium text-primary-800 text-sm">{c.nombre}</p>
-                                  <p className="text-xs text-slate-500">{c.ruc ? `RUC: ${c.ruc}` : c.dni ? `DNI: ${c.dni}` : '—'}</p>
-                                  <p className="text-xs text-slate-600 truncate">{c.direccion || 'Sin dirección'}</p>
-                                </div>
-                                {c.codigo && (
-                                  <span className="px-2 py-1 bg-slate-100 text-slate-600 rounded text-xs font-mono">{c.codigo}</span>
-                                )}
-                              </div>
-                            </button>
-                          );
-                        }
-                      })
+                      puntosLlegadaOpciones.map((t) => (
+                        <button
+                          key={`t-${t.id}`}
+                          type="button"
+                          onClick={() => {
+                            setTransportistaLlegadaSeleccionado(t);
+                            setPuntoLlegada(t.direccion || '');
+                            setPuntoLlegadaBusqueda('');
+                            setMostrarPuntosLlegada(false);
+                          }}
+                          className="w-full px-4 py-3 text-left hover:bg-amber-50 border-b border-slate-100 last:border-0 transition-colors"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-full flex items-center justify-center bg-amber-100 shrink-0">
+                              <Building2 className="w-4 h-4 text-amber-600" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-slate-800 text-sm">{t.nombreCompleto}</p>
+                              <p className="text-xs text-slate-500">RUC: {t.ruc || '—'}</p>
+                              <p className="text-xs text-slate-500 truncate">{t.direccion || 'Sin dirección'}</p>
+                            </div>
+                          </div>
+                        </button>
+                      ))
                     )}
                   </div>
                 )}

@@ -287,8 +287,9 @@ export default function LandingPage() {
             <a href="#contacto" className="text-[15px] font-medium text-ink-300 hover:text-white transition-colors duration-150">Contacto</a>
           </div>
           <div className="flex items-center gap-4">
-            <a href="/crm/login" className="hidden md:flex text-ink-600 hover:text-ink-300 transition-colors duration-150" title="Área de Empleados" aria-label="Acceso empleados">
-              <Lock size={16} />
+            <a href="/crm/login" className="hidden md:flex items-center gap-1.5 text-sm font-medium text-ink-300 hover:text-white border border-ink-600 hover:border-ink-300 px-3 py-1.5 rounded transition-colors duration-150" title="Área de Empleados">
+              <Lock size={14} />
+              <span>Ingresar</span>
             </a>
             <button
               onClick={() => setCartOpen(true)}
@@ -316,7 +317,11 @@ export default function LandingPage() {
             <a href="#productos" onClick={() => setMenuOpen(false)} className="text-[15px] font-medium text-ink-300 hover:text-white transition-colors py-3 border-b border-white/5">Productos</a>
             <a href="#nosotros" onClick={() => setMenuOpen(false)} className="text-[15px] font-medium text-ink-300 hover:text-white transition-colors py-3 border-b border-white/5">Nosotros</a>
             <a href="#testimonios" onClick={() => setMenuOpen(false)} className="text-[15px] font-medium text-ink-300 hover:text-white transition-colors py-3 border-b border-white/5">Testimonios</a>
-            <a href="#contacto" onClick={() => setMenuOpen(false)} className="text-[15px] font-medium text-ink-300 hover:text-white transition-colors py-3">Contacto</a>
+            <a href="#contacto" onClick={() => setMenuOpen(false)} className="text-[15px] font-medium text-ink-300 hover:text-white transition-colors py-3 border-b border-white/5">Contacto</a>
+            <a href="/crm/login" className="flex items-center gap-2 text-[15px] font-medium text-ink-400 hover:text-white transition-colors py-3">
+              <Lock size={14} />
+              Ingresar al sistema
+            </a>
           </div>
         )}
       </nav>
@@ -903,6 +908,29 @@ export default function LandingPage() {
       {/* ===== MARYBOT ===== */}
       <MaryBot />
 
+      {/* ===== GARANTÍAS ===== */}
+      <section className="bg-ink-100 border-y border-ink-200 py-6">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex flex-wrap justify-center gap-6 md:gap-10">
+            <div className="flex items-center gap-2.5 text-sm text-ink-700">
+              <Shield size={18} className="text-accent-terracotta shrink-0" />
+              <span><strong className="text-ink-900">7 días</strong> de devolución</span>
+            </div>
+            <div className="flex items-center gap-2.5 text-sm text-ink-700">
+              <Truck size={18} className="text-accent-terracotta shrink-0" />
+              <span><strong className="text-ink-900">Delivery</strong> a todo Lima</span>
+            </div>
+            <div className="flex items-center gap-2.5 text-sm text-ink-700">
+              <Package size={18} className="text-accent-terracotta shrink-0" />
+              <span><strong className="text-ink-900">Cambio</strong> sin costo si es defecto</span>
+            </div>
+            <a href="/politica-devoluciones" className="flex items-center gap-2 text-sm font-medium text-accent-terracotta hover:underline">
+              Ver política completa →
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* ===== FOOTER ===== */}
       <footer className="bg-ink-900 text-ink-400 py-12 border-t border-ink-800">
         <div className="max-w-7xl mx-auto px-4">
@@ -942,6 +970,7 @@ export default function LandingPage() {
                   5.0 ({estadisticas.clientes_satisfechos >= 1000 ? `${(estadisticas.clientes_satisfechos / 1000).toFixed(1)}k` : estadisticas.clientes_satisfechos})
                 </span>
               )}
+              <a href="/politica-devoluciones" className="text-ink-300 hover:text-accent-gold transition-colors">Política de devoluciones</a>
               <a href="/crm/login" className="flex items-center gap-1.5 hover:text-accent-gold transition-colors text-ink-400">
                 <Lock size={12} /> Área de Empleados
               </a>

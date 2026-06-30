@@ -1,6 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
+export const dynamic = 'force-dynamic'
+
 const SITE = 'https://maquimary.com.pe'
 
 export async function GET() {
@@ -36,13 +38,14 @@ export async function GET() {
       <g:id>${escapeXml(id)}</g:id>
       <g:title>${titulo}</g:title>
       <g:description>${descripcion}</g:description>
-      <g:link>${SITE}</g:link>
+      <g:link>${SITE}/#producto-${escapeXml(id)}</g:link>
       <g:image_link>${escapeXml(imageUrl)}</g:image_link>
       <g:price>${precio} PEN</g:price>
       <g:availability>${disponibilidad}</g:availability>
       <g:condition>new</g:condition>
       <g:brand>Maqui Mary</g:brand>
       <g:identifier_exists>no</g:identifier_exists>
+      <g:return_policy_label>politica_devoluciones_maqui_mary</g:return_policy_label>
       <g:google_product_category>638</g:google_product_category>
       <g:shipping>
         <g:country>PE</g:country>
