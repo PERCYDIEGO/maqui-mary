@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Send, CheckCircle, XCircle, Clock, FileText, AlertTriangle, Eye, X, Code, User, Trash2, RotateCcw, Stethoscope } from 'lucide-react';
+import { Send, CheckCircle, XCircle, Clock, FileText, AlertTriangle, Eye, X, Code, User, Trash2, Stethoscope, FlaskConical, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { useApp } from '@/context/AppContext';
 import { formatearMoneda } from '@/lib/calculos';
@@ -31,6 +31,66 @@ interface DocumentoPendiente {
   enviadoAt?: Date;
 }
 
+// Selector de ambiente al momento de enviar: un solo trigger (no ocupa espacio extra en
+// mobile) que abre un menú con las 2 opciones fuertemente diferenciadas por color/ícono/texto.
+// Producción nunca se ejecuta directo desde acá — dispara la confirmación del padre.
+function EnviarSunatMenu({
+  doc, label, loading, abierto, onAbrir, onCerrar, onElegir,
+}: {
+  doc: DocumentoPendiente;
+  label: string;
+  loading: boolean;
+  abierto: boolean;
+  onAbrir: () => void;
+  onCerrar: () => void;
+  onElegir: (ambiente: 'sandbox' | 'produccion') => void;
+}) {
+  return (
+    <div className="relative">
+      <button
+        onClick={() => (abierto ? onCerrar() : onAbrir())}
+        disabled={loading}
+        className="inline-flex items-center gap-1.5 px-3 py-2 bg-accent-terracotta hover:bg-accent-terracotta/90 text-white rounded-lg font-medium transition-colors disabled:opacity-50 text-sm"
+      >
+        {loading ? (
+          <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+        ) : (
+          <Send className="w-3.5 h-3.5" />
+        )}
+        {loading ? 'Enviando...' : label}
+        {!loading && <ChevronDown className="w-3.5 h-3.5" />}
+      </button>
+      {abierto && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={onCerrar} />
+          <div className="absolute right-0 top-full mt-1 w-64 bg-white border border-ink-200 rounded-xl shadow-lg z-20 overflow-hidden">
+            <button
+              onClick={() => onElegir('sandbox')}
+              className="w-full flex items-start gap-2.5 px-3 py-2.5 text-left hover:bg-ink-50 transition-colors"
+            >
+              <FlaskConical className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
+              <span>
+                <span className="block text-sm font-medium text-ink-700">Probar en Sandbox</span>
+                <span className="block text-[11px] text-ink-400">Ambiente de pruebas, sin validez tributaria</span>
+              </span>
+            </button>
+            <button
+              onClick={() => onElegir('produccion')}
+              className="w-full flex items-start gap-2.5 px-3 py-2.5 text-left bg-red-50 hover:bg-red-100 border-t border-red-200 transition-colors"
+            >
+              <AlertTriangle className="w-4 h-4 text-red-600 mt-0.5 shrink-0" />
+              <span>
+                <span className="block text-sm font-semibold text-red-700">Enviar a SUNAT — PRODUCCIÓN</span>
+                <span className="block text-[11px] text-red-500">Válido tributariamente. No se puede deshacer.</span>
+              </span>
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function SunatPage() {
   const { boletas, facturas, guias, enviarDocumentoSUNAT, enviarGuiaSUNAT, aprobarDocumento, rechazarDocumento, eliminarDocumentoRechazado } = useApp();
   const [procesando, setProcesando] = useState<string | null>(null);
@@ -41,6 +101,9 @@ export default function SunatPage() {
   const [userMap, setUserMap] = useState<Record<string, string>>({});
   const [eliminando, setEliminando] = useState<string | null>(null);
   const [confirmarEliminar, setConfirmarEliminar] = useState<DocumentoPendiente | null>(null);
+  const [ambienteGlobal, setAmbienteGlobal] = useState<'sandbox' | 'produccion'>('sandbox');
+  const [menuEnviarAbierto, setMenuEnviarAbierto] = useState<string | null>(null);
+  const [confirmarProduccion, setConfirmarProduccion] = useState<{ doc: DocumentoPendiente; reenvio: boolean } | null>(null);
 
   useEffect(() => {
     supabase.from('profiles').select('id, full_name, alias').then(({ data }) => {
@@ -51,6 +114,9 @@ export default function SunatPage() {
         }
         setUserMap(map)
       }
+    })
+    supabase.from('sunat_config').select('apisunat_environment').eq('id', 1).single().then(({ data }) => {
+      if (data?.apisunat_environment === 'produccion') setAmbienteGlobal('produccion')
     })
   }, [])
 
@@ -296,18 +362,19 @@ export default function SunatPage() {
     ...guiasEnviadas,
   ].sort(sortDesc);
 
-  const handleEnviar = async (doc: DocumentoPendiente) => {
+  const handleEnviar = async (doc: DocumentoPendiente, ambiente: 'sandbox' | 'produccion') => {
+    setMenuEnviarAbierto(null);
     setProcesando(doc.id);
     try {
       if (doc.tipo === 'guia') {
-        const resultado = await enviarGuiaSUNAT(doc.id);
+        const resultado = await enviarGuiaSUNAT(doc.id, ambiente);
         if (resultado.success) {
           toast.success(resultado.message);
         } else {
           toast.error(resultado.message);
         }
       } else {
-        const resultado = await enviarDocumentoSUNAT(doc.id, doc.tipo);
+        const resultado = await enviarDocumentoSUNAT(doc.id, doc.tipo, ambiente);
         if (resultado.success) {
           toast.success(resultado.message);
         } else {
@@ -319,6 +386,17 @@ export default function SunatPage() {
     } finally {
       setProcesando(null);
     }
+  };
+
+  // Punto único de entrada del selector: sandbox va directo, producción exige confirmación
+  const handleElegirAmbiente = (doc: DocumentoPendiente, ambiente: 'sandbox' | 'produccion', reenvio: boolean) => {
+    setMenuEnviarAbierto(null);
+    if (ambiente === 'produccion') {
+      setConfirmarProduccion({ doc, reenvio });
+      return;
+    }
+    if (reenvio) handleReenviar(doc, 'sandbox');
+    else handleEnviar(doc, 'sandbox');
   };
 
   const handleAprobar = async (doc: DocumentoPendiente) => {
@@ -370,18 +448,19 @@ export default function SunatPage() {
     }
   };
 
-  const handleReenviar = async (doc: DocumentoPendiente) => {
+  const handleReenviar = async (doc: DocumentoPendiente, ambiente: 'sandbox' | 'produccion') => {
+    setMenuEnviarAbierto(null);
     setProcesando(doc.id);
     try {
       if (doc.tipo === 'guia') {
-        const resultado = await enviarGuiaSUNAT(doc.id);
+        const resultado = await enviarGuiaSUNAT(doc.id, ambiente);
         if (resultado.success) {
           toast.success(resultado.message);
         } else {
           toast.error(resultado.message);
         }
       } else {
-        const resultado = await enviarDocumentoSUNAT(doc.id, doc.tipo);
+        const resultado = await enviarDocumentoSUNAT(doc.id, doc.tipo, ambiente);
         if (resultado.success) {
           toast.success(resultado.message);
         } else {
@@ -420,6 +499,17 @@ export default function SunatPage() {
           <h1 className="text-2xl font-heading font-bold text-ink-800">Envío a SUNAT</h1>
           <p className="text-ink-500">Gestiona el envío de documentos electrónicos a SUNAT</p>
         </div>
+        <span
+          title="Ambiente por defecto configurado en Configuración > SUNAT. Cada envío puede elegir sandbox o producción individualmente."
+          className={`inline-flex items-center gap-1.5 self-start px-2.5 py-1 rounded-full text-xs font-semibold border ${
+            ambienteGlobal === 'produccion'
+              ? 'bg-red-100 text-red-700 border-red-300'
+              : 'bg-blue-50 text-blue-600 border-blue-200'
+          }`}
+        >
+          <span className={`w-1.5 h-1.5 rounded-full ${ambienteGlobal === 'produccion' ? 'bg-red-500 animate-pulse' : 'bg-blue-400'}`} />
+          Default: {ambienteGlobal === 'produccion' ? 'PRODUCCIÓN' : 'SANDBOX'}
+        </span>
       </div>
 
       {/* Alerta informativa */}
@@ -514,23 +604,15 @@ export default function SunatPage() {
                       <Eye className="w-4 h-4" />
                       Vista previa
                     </button>
-                    <button
-                      onClick={() => handleEnviar(doc)}
-                      disabled={procesando === doc.id}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-accent-terracotta hover:bg-accent-terracotta/90 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
-                    >
-                      {procesando === doc.id ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          Enviando...
-                        </>
-                      ) : (
-                        <>
-                          <Send className="w-4 h-4" />
-                          Enviar
-                        </>
-                      )}
-                    </button>
+                    <EnviarSunatMenu
+                      doc={doc}
+                      label="Enviar"
+                      loading={procesando === doc.id}
+                      abierto={menuEnviarAbierto === doc.id}
+                      onAbrir={() => setMenuEnviarAbierto(doc.id)}
+                      onCerrar={() => setMenuEnviarAbierto(null)}
+                      onElegir={(ambiente) => handleElegirAmbiente(doc, ambiente, false)}
+                    />
                   </div>
                 </div>
               </div>
@@ -627,17 +709,15 @@ export default function SunatPage() {
 
                     {doc.estado === 'rechazado' && (
                       <div className="flex gap-2">
-                        <button
-                          onClick={() => handleReenviar(doc)}
-                          disabled={procesando === doc.id}
-                          title="Reintentar envío a SUNAT con los mismos datos"
-                          className="inline-flex items-center gap-1.5 px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 text-sm"
-                        >
-                          {procesando === doc.id
-                            ? <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            : <RotateCcw className="w-3.5 h-3.5" />}
-                          Re-enviar
-                        </button>
+                        <EnviarSunatMenu
+                          doc={doc}
+                          label="Re-enviar"
+                          loading={procesando === doc.id}
+                          abierto={menuEnviarAbierto === doc.id}
+                          onAbrir={() => setMenuEnviarAbierto(doc.id)}
+                          onCerrar={() => setMenuEnviarAbierto(null)}
+                          onElegir={(ambiente) => handleElegirAmbiente(doc, ambiente, true)}
+                        />
                         <button
                           onClick={() => setConfirmarEliminar(doc)}
                           disabled={eliminando === doc.id}
@@ -775,6 +855,50 @@ export default function SunatPage() {
                   ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   : <Trash2 className="w-4 h-4" />}
                 Sí, eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmación — envío a SUNAT producción (irreversible, valor tributario real) */}
+      {confirmarProduccion && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-900/50">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-elevated p-6 space-y-4 border-2 border-red-500">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-red-100 rounded-xl">
+                <AlertTriangle className="w-5 h-5 text-red-600" />
+              </div>
+              <div>
+                <h3 className="font-heading font-semibold text-ink-800">Enviar a SUNAT — Producción</h3>
+                <p className="text-sm text-ink-500 mt-1">
+                  Vas a emitir <span className="font-medium text-ink-700">{confirmarProduccion.doc.numeroCompleto}</span>
+                  {' '}({confirmarProduccion.doc.cliente.nombre}
+                  {confirmarProduccion.doc.tipo !== 'guia' ? `, ${formatearMoneda(confirmarProduccion.doc.importeTotal, confirmarProduccion.doc.moneda)}` : ''})
+                </p>
+                <p className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mt-2">
+                  Esto emite un comprobante real ante SUNAT. No se puede deshacer.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-3 justify-end pt-2">
+              <button
+                onClick={() => setConfirmarProduccion(null)}
+                className="px-4 py-2 border border-ink-200 text-ink-700 rounded-xl font-medium hover:bg-ink-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  const { doc, reenvio } = confirmarProduccion;
+                  setConfirmarProduccion(null);
+                  if (reenvio) handleReenviar(doc, 'produccion');
+                  else handleEnviar(doc, 'produccion');
+                }}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition-colors"
+              >
+                <Send className="w-4 h-4" />
+                Sí, emitir a SUNAT
               </button>
             </div>
           </div>
@@ -945,16 +1069,15 @@ export default function SunatPage() {
                 >
                   Cerrar
                 </button>
-                <button
-                  onClick={() => {
-                    setVistaPrevia(null);
-                    handleEnviar(vistaPrevia);
-                  }}
-                  className="px-4 py-2 bg-accent-terracotta hover:bg-accent-terracotta/90 text-white rounded-lg font-medium transition-colors"
-                >
-                  <Send className="w-4 h-4 inline mr-2" />
-                  Enviar a SUNAT
-                </button>
+                <EnviarSunatMenu
+                  doc={vistaPrevia}
+                  label="Enviar a SUNAT"
+                  loading={procesando === vistaPrevia.id}
+                  abierto={menuEnviarAbierto === vistaPrevia.id}
+                  onAbrir={() => setMenuEnviarAbierto(vistaPrevia.id)}
+                  onCerrar={() => setMenuEnviarAbierto(null)}
+                  onElegir={(ambiente) => { setVistaPrevia(null); handleElegirAmbiente(vistaPrevia, ambiente, false); }}
+                />
               </div>
             </div>
           </div>

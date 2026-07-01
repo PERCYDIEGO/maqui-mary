@@ -77,8 +77,8 @@ interface AppContextType extends AppState {
   refreshDocuments: () => Promise<void>;
 
   // SUNAT - Envío de documentos
-  enviarDocumentoSUNAT: (documentoId: string, tipo: 'boleta' | 'factura') => Promise<{ success: boolean; message: string }>;
-  enviarGuiaSUNAT: (guiaId: string) => Promise<{ success: boolean; message: string }>;
+  enviarDocumentoSUNAT: (documentoId: string, tipo: 'boleta' | 'factura', ambienteOverride?: 'sandbox' | 'produccion') => Promise<{ success: boolean; message: string }>;
+  enviarGuiaSUNAT: (guiaId: string, ambienteOverride?: 'sandbox' | 'produccion') => Promise<{ success: boolean; message: string }>;
   aprobarDocumento: (documentoId: string, tipo: 'boleta' | 'factura') => Promise<void>;
   rechazarDocumento: (documentoId: string, tipo: 'boleta' | 'factura', motivo: string) => Promise<void>;
   eliminarDocumentoRechazado: (documentoId: string, tipo: 'boleta' | 'factura' | 'guia') => Promise<void>;
@@ -164,8 +164,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   ]);
   const [productosLoaded, setProductosLoaded] = useState(false);
   const [series, setSeries] = useState<ConfiguracionSerie[]>([
-    { tipo: 'boleta', serie: 'EB01', numeroActual: 134, activo: true },
-    { tipo: 'factura', serie: 'E001', numeroActual: 882, activo: true },
+    { tipo: 'boleta', serie: 'B001', numeroActual: 134, activo: true },
+    { tipo: 'factura', serie: 'F001', numeroActual: 882, activo: true },
     { tipo: 'guia', serie: 'T001', numeroActual: 294, activo: true },
   ]);
   
@@ -605,7 +605,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // SUNAT - ENVÍO DE DOCUMENTOS
   // ============================================
 
-  const enviarDocumentoSUNAT = useCallback(async (documentoId: string, tipo: 'boleta' | 'factura'): Promise<{ success: boolean; message: string }> => {
+  const enviarDocumentoSUNAT = useCallback(async (documentoId: string, tipo: 'boleta' | 'factura', ambienteOverride?: 'sandbox' | 'produccion'): Promise<{ success: boolean; message: string }> => {
     try {
       // Obtener el documento
       const documento = tipo === 'boleta' 
@@ -649,6 +649,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         method: 'POST',
         headers: authHeaders,
         body: JSON.stringify({
+          documento_id: documentoId,
           cliente_id,
           cliente_nombre,
           cliente_ruc,
@@ -661,6 +662,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           moneda: documento.moneda,
           serie_override: documento.serie,
           numero_override: documento.numero,
+          ambiente_override: ambienteOverride,
         }),
       });
 
@@ -755,7 +757,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, [boletas, facturas, userId]);
 
-  const enviarGuiaSUNAT = useCallback(async (guiaId: string): Promise<{ success: boolean; message: string }> => {
+  const enviarGuiaSUNAT = useCallback(async (guiaId: string, ambienteOverride?: 'sandbox' | 'produccion'): Promise<{ success: boolean; message: string }> => {
     try {
       const guia = guias.find(g => g.id === guiaId);
       if (!guia) {
@@ -853,6 +855,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           unidad_peso: guia.unidadMedidaPeso,
           numero_bultos: guia.bienes?.length || 1,
           observaciones: guia.observacion || null,
+          ambiente_override: ambienteOverride,
           transportista_ruc: transportistaRuc,
           transportista_denominacion: transportistaDenominacion,
           transportista_registro_mtc: transportistaRegistroMTC,

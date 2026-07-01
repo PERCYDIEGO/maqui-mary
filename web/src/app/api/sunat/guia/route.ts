@@ -53,6 +53,8 @@ export async function POST(req: NextRequest) {
       bienes = [],
       // Documentos relacionados
       documentos_relacionados = [],
+      // Override puntual del ambiente SUNAT (sandbox|produccion) elegido al momento de enviar
+      ambiente_override,
     } = body
 
     if (!guia_id || !serie || !numero) {
@@ -77,7 +79,7 @@ export async function POST(req: NextRequest) {
     }
 
     const apisunatToken = config.apisunat_token.trim()
-    const apisunatEnv = (config.apisunat_environment || 'sandbox') === 'produccion' ? 'produccion' : 'sandbox'
+    const apisunatEnv = ((ambiente_override || config.apisunat_environment || 'sandbox') === 'produccion') ? 'produccion' : 'sandbox'
 
     // Construir request para APISUNAT con la estructura correcta
     const apiSunatReq = buildApiSunatGuiaRequest({

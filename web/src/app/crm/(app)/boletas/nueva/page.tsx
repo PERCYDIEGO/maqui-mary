@@ -137,7 +137,7 @@ export default function NuevaBoletaPage() {
   const totales = calcularTotalesBoleta(items, otrosCargos);
   
   const serieActiva = series.find(s => s.tipo === 'boleta' && s.activo);
-  const serieBoleta = serieActiva?.serie || 'EB01';
+  const serieBoleta = serieActiva?.serie || 'B001';
   const siguienteNumero = numeroSeguro ?? getSiguienteNumero('boleta');
   const numeroCompleto = formatearNumeroDocumento(serieBoleta, siguienteNumero);
   

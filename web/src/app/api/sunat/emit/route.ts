@@ -13,6 +13,9 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     const {
+      // id del documento ya creado en el CRM (data_json->>'id') — si viene, se actualiza
+      // ese registro en vez de insertar uno nuevo en cada reintento
+      documento_id,
       cliente_id,
       cliente_nombre,
       cliente_ruc,
@@ -33,6 +36,9 @@ export async function POST(req: NextRequest) {
       numero_override,
       // BUG-07: flag para no descontar stock cuando ya fue descontado al confirmar pedido web
       stock_ya_descontado = false,
+      // Override puntual del ambiente SUNAT (sandbox|produccion) elegido al momento de enviar,
+      // sin depender del toggle global de sunat_config
+      ambiente_override,
     } = body
 
     const isFactura = tipo_comprobante === '01'
@@ -93,7 +99,7 @@ export async function POST(req: NextRequest) {
     if (hasApiSunat) {
       try {
         const apisunatToken = config.apisunat_token.trim()
-        const apisunatEnv = (config.apisunat_environment || 'sandbox') === 'produccion' ? 'produccion' : 'sandbox'
+        const apisunatEnv = ((ambiente_override || config.apisunat_environment || 'sandbox') === 'produccion') ? 'produccion' : 'sandbox'
 
         const apiSunatReq = buildApiSunatRequest({
           tipoComprobante: tipo_comprobante,
@@ -181,17 +187,40 @@ export async function POST(req: NextRequest) {
       orden_compra: orden_compra || '',
     }
 
-    const { data: facturaInsert, error: facturaError } = await supabase
-      .from('facturas')
-      .insert(facturaData)
-      .select()
-      .single()
+    // Si documento_id viene informado, ya existe una fila (creada al guardar el borrador en
+    // el CRM) para este mismo documento — se actualiza esa fila en vez de insertar una nueva
+    // en cada click de "Enviar SUNAT" / reintento, para no acumular filas duplicadas.
+    let facturaExistente: any = null
+    if (documento_id) {
+      const { data } = await supabase
+        .from('facturas')
+        .select('id, estado_sunat')
+        .eq('data_json->>id', documento_id)
+        .maybeSingle()
+      facturaExistente = data
+    }
+
+    const esReintento = !!facturaExistente
+    // Solo se descuenta stock en el primer intento real (fila recién creada, o fila existente
+    // que aún estaba en PENDIENTE — nunca se había llegado a intentar el envío). Reintentos
+    // posteriores a un ERROR/RECHAZADO no vuelven a descontar.
+    const esPrimerIntento = !esReintento || facturaExistente.estado_sunat === 'PENDIENTE'
+
+    const { data: facturaInsert, error: facturaError } = esReintento
+      ? await supabase.from('facturas').update(facturaData).eq('id', facturaExistente.id).select().single()
+      : await supabase.from('facturas').insert(facturaData).select().single()
 
     if (facturaError) {
       return NextResponse.json({ ok: false, error: 'Error guardando factura: ' + facturaError.message }, { status: 500 })
     }
 
     const facturaId = facturaInsert.id
+
+    // En un reintento, borrar los items previos para no duplicarlos al reinsertar
+    if (esReintento) {
+      await supabase.from('factura_items').delete().eq('factura_id', facturaId)
+    }
+
     const itemsToInsert = items.map((it: any) => ({
       factura_id: facturaId,
       producto_id: it.producto_id || null,
@@ -204,22 +233,24 @@ export async function POST(req: NextRequest) {
     // BUG-08: propagar error de items en lugar de ignorarlo silenciosamente
     const { error: itemsError } = await supabase.from('factura_items').insert(itemsToInsert)
     if (itemsError) {
-      // Revertir la factura huérfana
-      await supabase.from('facturas').delete().eq('id', facturaId)
+      // Revertir la factura huérfana (solo si fue creada en este request, no si ya existía)
+      if (!esReintento) await supabase.from('facturas').delete().eq('id', facturaId)
       return NextResponse.json({ ok: false, error: 'Error guardando items de la factura: ' + itemsError.message }, { status: 500 })
     }
 
     // BUG-07: no descontar stock si el pedido web ya lo hizo al confirmarse
     // BUG-04: RPC atómica — UPDATE en una sola sentencia, sin race condition bajo concurrencia
-    if (!stock_ya_descontado) {
+    // No volver a descontar en un reintento (ya se descontó — o se intentó — la primera vez)
+    if (!stock_ya_descontado && esPrimerIntento) {
       for (const it of items) {
         if (it.producto_id) {
-          await supabase.rpc('decrement_stock', {
+          const { error: stockError } = await supabase.rpc('decrement_stock', {
             p_producto_id: it.producto_id,
             p_cantidad: it.quantity,
             p_motivo: `Venta ${tipo_comprobante === '01' ? 'Factura' : 'Boleta'} ${serie}-${String(numero).padStart(4, '0')}`,
             p_factura_id: facturaId,
           })
+          if (stockError) console.error('Error descontando stock:', stockError)
         }
       }
     }
