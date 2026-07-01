@@ -667,7 +667,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const result = await response.json();
 
       if (!response.ok || !result.ok) {
-        const errorMsg = result.error || 'Error en el envío a SUNAT';
+        const errorMsg = result.error || result.mensaje || 'Error en el envío a SUNAT';
         const docActualizado: any = {
           estado: 'rechazado',
           enviadoPor: userId,
