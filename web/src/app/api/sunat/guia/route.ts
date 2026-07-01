@@ -148,12 +148,22 @@ export async function POST(req: NextRequest) {
       typeof apiResult.message === 'string' &&
       /emitido anteriormente/i.test(apiResult.message)
 
+    const estadoSunat: string = (apiResult.success || yaEmitido) ? (apiResult.payload?.estado || 'ACEPTADO') : 'RECHAZADO'
+    // La columna `estado` (no `estado_sunat`) es la que usa la UI del CRM para decidir
+    // en qué lista mostrar la guía y qué badge pintar — sin esto, la guía se quedaba
+    // como "Borrador" para siempre aunque SUNAT ya hubiera respondido.
+    const estadoCrm = estadoSunat === 'ACEPTADO' ? 'aprobado'
+      : estadoSunat === 'RECHAZADO' ? 'rechazado'
+      : 'enviado' // PENDIENTE/ENVIADO: SUNAT todavía está procesando de forma asíncrona
+
     // Un envío a sandbox es solo una prueba: no se persiste nada en la guía real (ni
     // estado_sunat, ni CDR/XML) para no perder ni ensuciar el registro real cuando
-    // después se envíe de verdad a producción.
+    // después se envíe de verdad a producción. El resultado real igual viaja en la
+    // respuesta (estado_sunat) para que el toast informe correctamente.
     if (!esSandbox) {
       const updateData: any = {
-        estado_sunat: (apiResult.success || yaEmitido) ? (apiResult.payload?.estado || 'ACEPTADO') : 'RECHAZADO',
+        estado: estadoCrm,
+        estado_sunat: estadoSunat,
         ticket_sunat: apiResult.payload?.hash || '',
         cdr_sunat: apiResult.payload?.cdr || null,
         xml_sunat: apiResult.payload?.xml || null,
@@ -173,6 +183,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         ok: false,
         es_sandbox: esSandbox,
+        estado_sunat: estadoSunat,
         error: prefijo + (apiResult.message || 'Error al enviar guía a SUNAT'),
         details: apiResult,
       }, { status: 400 })
@@ -181,6 +192,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       ok: true,
       es_sandbox: esSandbox,
+      estado_sunat: estadoSunat,
       message: prefijo + (yaEmitido
         ? 'La guía ya había sido registrada en SUNAT. Estado actualizado a ACEPTADO.'
         : `Guía enviada a SUNAT: ${apiResult.payload?.estado || 'ACEPTADO'}`),

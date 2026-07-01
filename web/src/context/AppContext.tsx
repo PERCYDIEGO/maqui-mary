@@ -906,10 +906,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         return { success: true, message: result.message || 'Prueba en sandbox completada' };
       }
 
+      // SUNAT puede aceptar de inmediato (ACEPTADO) o dejar el envío en proceso
+      // asíncrono (PENDIENTE/ENVIADO) — no asumir "aprobado" siempre.
+      const nuevoEstadoGuia = result.estado_sunat === 'ACEPTADO' ? 'aprobado' : 'enviado';
+
       setGuiasState(prev => prev.map(g =>
         g.id === guiaId ? {
           ...g,
-          estado: 'aprobado' as any,
+          estado: nuevoEstadoGuia as any,
           hashSUNAT: result.hash,
           cdrSUNAT: result.cdr,
         } : g
