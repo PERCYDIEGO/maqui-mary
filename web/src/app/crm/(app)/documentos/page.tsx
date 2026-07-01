@@ -43,6 +43,9 @@ export default function DocumentosPage() {
   };
 
   const documentos = getDocumentos()
+    // Los documentos aprobados ya no requieren acción — quedan visibles con PDF/impresión
+    // en /crm/sunat > Historial de Envíos en vez de acá.
+    .filter((doc: any) => doc.estado !== 'aprobado')
     .filter((doc: any) => {
       const termino = busqueda.toLowerCase();
       const clienteNombre = String(doc.cliente?.nombre || doc.destinatarioNombre || '');
@@ -82,7 +85,7 @@ export default function DocumentosPage() {
             const isActive = tabActiva === tab.id;
             const Icon = tab.icon;
             const tabColors = colorClasses[tab.color];
-            const count = tab.id === 'boletas' ? boletas.length : tab.id === 'facturas' ? facturas.length : guias.length;
+            const count = (tab.id === 'boletas' ? boletas : tab.id === 'facturas' ? facturas : guias).filter((d: any) => d.estado !== 'aprobado').length;
             
             return (
               <button key={tab.id} onClick={() => { setTabActiva(tab.id); setBusqueda(''); }} className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${isActive ? `${tabColors.bg} ${tabColors.text} shadow-soft` : 'text-ink-600 hover:bg-ink-200'}`}>
