@@ -74,7 +74,16 @@ export async function POST(req: NextRequest) {
       tipo === 'factura' ? 'voided' : 'daily-summary',
     )
 
-    if (!apiResult.success) {
+    // Si SUNAT ya confirmó la anulación en un intento anterior (asíncrono, sin que
+    // nuestro sistema se haya enterado — no hay webhook/polling), un reintento
+    // responde "ya ha sido anulada". A diferencia del bug de "ya fue emitido" (que
+    // asumía ACEPTADO sin evidencia), acá el mensaje SÍ confirma sin ambigüedad que
+    // está anulada — se usa como señal real para corregir nuestro estado atrasado.
+    const yaAnulada = !apiResult.success &&
+      typeof apiResult.message === 'string' &&
+      /ya ha sido anulada|ya fue anulada/i.test(apiResult.message)
+
+    if (!apiResult.success && !yaAnulada) {
       const detalle = apiResult.message
         || (apiResult.payload ? JSON.stringify(apiResult.payload) : '')
         || 'APISUNAT.pe no devolvió detalle del error'
@@ -87,6 +96,37 @@ export async function POST(req: NextRequest) {
         // del servidor por separado — se muestra directo en el mensaje al usuario.
         debug_raw: JSON.stringify({ enviado: apiSunatReq, respuesta: apiResult }),
       }, { status: 400 })
+    }
+
+    if (yaAnulada && !esSandbox) {
+      const dataJsonActualizado = { ...(factura.data_json as any), estado: 'anulado' }
+      await supabase
+        .from('facturas')
+        .update({
+          estado_sunat: 'ANULADO',
+          motivo_anulacion: String(motivo).trim(),
+          anulado_por: user.id,
+          anulado_at: new Date().toISOString(),
+          data_json: dataJsonActualizado,
+        })
+        .eq('id', factura.id)
+
+      return NextResponse.json({
+        ok: true,
+        es_sandbox: esSandbox,
+        estado_sunat: 'ANULADO',
+        mensaje: 'Este documento ya estaba anulado ante SUNAT — se actualizó el estado en el sistema.',
+      })
+    }
+
+    if (yaAnulada) {
+      // Sandbox: informar sin persistir (aislamiento de pruebas).
+      return NextResponse.json({
+        ok: true,
+        es_sandbox: esSandbox,
+        estado_sunat: 'ANULADO',
+        mensaje: '[PRUEBA SANDBOX] Este documento ya figura anulado en el ambiente de pruebas.',
+      })
     }
 
     // La boleta se anula vía resumen diario, que SUNAT procesa de forma asíncrona —
