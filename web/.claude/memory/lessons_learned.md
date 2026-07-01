@@ -364,3 +364,32 @@ Percy señaló el riesgo justo después de que se implementó el selector sandbo
 - **CAUSA**: `api/sunat/guia/route.ts` solo actualizaba la columna `estado_sunat` (interna, usada para el CDR/XML/tickets), pero **nunca** la columna `estado` — que es la que usan `guiasPendientes`/`guiasEnviadas` en `sunat/page.tsx` y el badge de `guias/page.tsx` para decidir qué mostrar. Facturas/boletas no tenían este bug porque su `AppContext.tsx` sí mapea `estado_sunat` → `estado` (`data_json.estado`) en el mismo `.update()`.
 - **CORRECCIÓN** (commit `788b0e1`): `guia/route.ts` ahora calcula `estadoCrm` (ACEPTADO→`aprobado`, RECHAZADO→`rechazado`, PENDIENTE/ENVIADO→`enviado`) y lo incluye en el `UPDATE` de la guía, además de devolverlo en la respuesta HTTP (`estado_sunat`) para que `AppContext.enviarGuiaSUNAT` también deje de asumir `'aprobado'` siempre y use el resultado real. Se corrigieron a mano las 2 guías ya existentes (T001-296 rechazada, T001-298 aprobada) usando el resultado real visto en el panel de APISUNAT.pe.
 - **REGLA**: Cuando dos entidades del dominio (facturas/boletas vs guías) comparten el mismo concepto (estado de envío SUNAT) pero se implementaron en momentos distintos, verificar que AMBAS apliquen el mismo patrón de sincronización — no asumir que porque un tipo de documento funciona bien, todos los demás siguen la misma lógica.
+
+---
+
+### [2026-07-01] Bug grave: "ya fue emitido anteriormente" se marcaba como ACEPTADO sin verificar — un documento RECHAZADO apareció como "Aprobado"
+
+- **CONTEXTO**: T001-296 (guía) fue rechazada originalmente por SUNAT (confirmado en el panel de APISUNAT.pe). Tras un reintento posterior, el CRM la mostró como "Aprobado" — Percy preguntó directamente "¿REALMENTE FUERON APROBADOS POR SUNAT?" al notar la inconsistencia.
+- **CAUSA**: tanto `api/sunat/emit/route.ts` como `api/sunat/guia/route.ts` detectaban la respuesta "emitido anteriormente" de APISUNAT.pe (reintento de un documento ya registrado) y **asumían automáticamente `ACEPTADO`**, sin verificar si esa emisión previa había sido realmente aceptada o rechazada. Un reintento sobre un documento previamente RECHAZADO disparaba ese mensaje → el sistema lo marcaba como aprobado sin ninguna evidencia real.
+- **CORRECCIÓN** (commit `b1a1025`): en ambas rutas, cuando se detecta "ya emitido anteriormente", ya NO se asume ningún estado — se devuelve `ok:false` con un mensaje pidiendo verificación manual (Consulta de Validez del CPE para facturas/boletas, Consulta GREE con Clave SOL para guías) y **no se toca el registro existente en la base de datos** (se deja tal cual estaba). Se corrigieron a mano los 2 registros afectados (T001-296 de vuelta a rechazado, `numeroCompleto` de facturas 883/884 que también había quedado con la serie vieja "E001" en un campo de texto separado que nunca se sincronizó al corregir `serie`).
+- **REGLA CRÍTICA**: Nunca asumir un resultado positivo (aceptado/aprobado/exitoso) a partir de una respuesta ambigua o de "ya existe/ya se hizo" — sin evidencia directa del resultado real, la única respuesta segura es "no se sabe, verificar manualmente". Esto aplica especialmente a documentos tributarios donde una etiqueta falsa de "Aprobado" puede llevar a decisiones de negocio equivocadas (ej. no reintentar corregir un documento realmente rechazado).
+- **Lección secundaria**: cuando un campo se corrige con `jsonb_set`/`UPDATE` directo en producción (ej. `serie`), revisar si hay OTROS campos derivados/precalculados del mismo dato (ej. `numeroCompleto`, que combina serie+número pero se guarda como string separado) que también necesiten corregirse — corregir solo el campo "fuente" no siempre actualiza los campos "derivados" ya persistidos.
+
+---
+
+### [2026-07-01] Dropdown de "Enviar SUNAT" se recortaba al abrir — overflow-hidden en el contenedor padre
+
+- **CONTEXTO**: `/crm/sunat`, componente `EnviarSunatMenu` (dropdown con opciones Sandbox/Producción). Percy reportó que al abrir el menú "se ocultan, no se aprecian bien".
+- **CAUSA**: el dropdown es `position: absolute` dentro de cada fila de documento, pero los contenedores de las secciones "Documentos Pendientes de Envío" e "Historial de Envíos" tenían `overflow-hidden` (para recortar las esquinas del card a `rounded-xl`). `overflow-hidden` en un ancestro SIEMPRE recorta a los descendientes `position:absolute`, sin importar el z-index.
+- **Revisado con Council** (2 críticos: UX recomendó Portal para blindar contra recurrencia en otros lugares del CRM; UI recomendó la solución más simple y de menor riesgo). Se optó por la opción simple dado el alcance ya extenso de la sesión y menor riesgo de introducir bugs de posicionamiento nuevos.
+- **CORRECCIÓN** (commit `b1a1025`): se quitó `overflow-hidden` de los 2 contenedores; las esquinas redondeadas se lograron aplicando `rounded-t-xl` al header (fondo sólido) y `rounded-b-xl` condicionalmente al último elemento de la lista (o al estado vacío) en su lugar — sin necesidad de recortar todo el contenedor.
+- **REGLA**: si un componente necesita `position: absolute`/`fixed` para "salirse" visualmente de su contenedor (dropdown, popover, tooltip), verificar que NINGÚN ancestro tenga `overflow-hidden`. Si el `overflow-hidden` existe solo para lograr esquinas redondeadas, preferir aplicar el `rounded-*` directamente a los hijos con fondo sólido en vez de recortar el contenedor completo.
+
+---
+
+### [2026-07-01] Guía rechazada por fecha de traslado anterior a la fecha de emisión — regla de negocio SUNAT, no bug
+
+- **CONTEXTO**: T001-296 rechazada por SUNAT. Percy sugirió la hipótesis correcta: `fecha_de_emision: "2026-06-30"` vs `fecha_inicio_de_traslado: "2026-06-29"` (un día antes).
+- **CAUSA**: SUNAT rechaza cualquier guía donde el traslado comience antes de la fecha de emisión del documento — regla de validación normal, no relacionada a ningún bug del sistema. La guía de prueba tenía una fecha de traslado elegida arbitrariamente en el pasado.
+- **CORRECCIÓN** (commit `b1a1025`): `guias/nueva/page.tsx` — se agregó `min` (fecha de hoy en hora Perú) al input de fecha de inicio de traslado, más una validación dura en `handleSubmit` (por si el navegador permite saltarse el `min` tipeando manualmente) que bloquea el guardado con un toast explicando la regla de SUNAT.
+- **REGLA**: Validar en el frontend las reglas de negocio de SUNAT que son conocidas y verificables (fechas, formatos de campos) antes de intentar el envío — evita rechazos evitables y confunde menos al usuario que descubrirlo recién en la respuesta de SUNAT.
