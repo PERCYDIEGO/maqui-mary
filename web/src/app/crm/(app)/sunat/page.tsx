@@ -374,16 +374,22 @@ export default function SunatPage() {
     ...guiasPendientes,
   ].sort(sortDesc);
 
-  // Documentos enviados a SUNAT
+  // Más reciente primero según cuándo se envió de verdad a SUNAT (enviadoAt), no la
+  // fecha de creación del borrador — un documento creado hace días pero recién enviado
+  // hoy debe aparecer arriba.
+  const sortPorEnvio = (a: DocumentoPendiente, b: DocumentoPendiente) =>
+    new Date((b as any).enviadoAt || b.createdAt).getTime() - new Date((a as any).enviadoAt || a.createdAt).getTime();
+
+  // Documentos enviados a SUNAT (incluye anulados — siguen siendo parte del historial)
   const documentosEnviados: DocumentoPendiente[] = [
     ...boletas
-      .filter(b => b.estado === 'enviado' || b.estado === 'aprobado' || b.estado === 'rechazado')
+      .filter(b => b.estado === 'enviado' || b.estado === 'aprobado' || b.estado === 'rechazado' || b.estado === 'anulado')
       .map(b => ({ ...b, tipo: 'boleta' as TipoDocumento })),
     ...facturas
-      .filter(f => f.estado === 'enviado' || f.estado === 'aprobado' || f.estado === 'rechazado')
+      .filter(f => f.estado === 'enviado' || f.estado === 'aprobado' || f.estado === 'rechazado' || f.estado === 'anulado')
       .map(f => ({ ...f, tipo: 'factura' as TipoDocumento })),
     ...guiasEnviadas,
-  ].sort(sortDesc);
+  ].sort(sortPorEnvio);
 
   const handleEnviar = async (doc: DocumentoPendiente, ambiente: 'sandbox' | 'produccion') => {
     setMenuEnviarAbierto(null);
@@ -539,6 +545,8 @@ export default function SunatPage() {
         return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700"><CheckCircle className="w-3 h-3" /> Aprobado</span>;
       case 'rechazado':
         return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700"><XCircle className="w-3 h-3" /> Rechazado</span>;
+      case 'anulado':
+        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-ink-200 text-ink-600"><XCircle className="w-3 h-3" /> Anulado</span>;
       default:
         return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700">{estado}</span>;
     }
@@ -690,7 +698,7 @@ export default function SunatPage() {
             <CheckCircle className="w-5 h-5 text-green-600" />
             <h2 className="font-heading font-semibold text-ink-800">Historial de Envíos</h2>
             <span className="ml-2 px-2.5 py-0.5 bg-slate-200 text-ink-700 rounded-full text-xs font-medium">
-              {documentosEnviados.length}
+              {documentosEnviados.length} {documentosEnviados.length === 1 ? 'documento enviado' : 'documentos enviados'}
             </span>
           </div>
         </div>
