@@ -667,9 +667,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       });
 
       const result = await response.json();
+      // Un envío a sandbox es solo una prueba: nunca debe mover el documento de estado
+      // (borrador/pendiente_envio) ni tocar su registro en Supabase — si lo hiciera, un
+      // sandbox "aceptado" sacaría el documento de la cola y ya no se podría enviar a
+      // producción después.
+      const esSandbox = result.es_sandbox === true;
 
       if (!response.ok || !result.ok) {
         const errorMsg = result.error || result.mensaje || 'Error en el envío a SUNAT';
+        if (esSandbox) return { success: false, message: errorMsg };
+
         const docActualizado: any = {
           estado: 'rechazado',
           enviadoPor: userId,
@@ -702,6 +709,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }
 
       const estadoSunat = result.estado_sunat || 'PENDIENTE';
+
+      if (esSandbox) {
+        return {
+          success: estadoSunat === 'ACEPTADO',
+          message: result.mensaje || 'Prueba en sandbox completada',
+        };
+      }
       let nuevoEstado: 'enviado' | 'aprobado' | 'rechazado';
 
       if (estadoSunat === 'ACEPTADO') {
@@ -872,10 +886,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       });
 
       const result = await response.json();
+      // Igual que en facturas/boletas: un envío a sandbox nunca debe tocar el estado
+      // real de la guía — es solo una prueba, la guía debe seguir disponible para
+      // enviarse de verdad a producción después.
+      const esSandbox = result.es_sandbox === true;
 
       if (!response.ok || !result.ok) {
         const errorMsg = result.error || 'Error al enviar guía a SUNAT';
-        
+        if (esSandbox) return { success: false, message: errorMsg };
+
         setGuiasState(prev => prev.map(g =>
           g.id === guiaId ? { ...g, estado: 'rechazado' as any, errorSUNAT: errorMsg } : g
         ));
@@ -883,9 +902,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         return { success: false, message: errorMsg };
       }
 
+      if (esSandbox) {
+        return { success: true, message: result.message || 'Prueba en sandbox completada' };
+      }
+
       setGuiasState(prev => prev.map(g =>
-        g.id === guiaId ? { 
-          ...g, 
+        g.id === guiaId ? {
+          ...g,
           estado: 'aprobado' as any,
           hashSUNAT: result.hash,
           cdrSUNAT: result.cdr,

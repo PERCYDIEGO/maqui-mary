@@ -80,6 +80,7 @@ export async function POST(req: NextRequest) {
 
     const apisunatToken = config.apisunat_token.trim()
     const apisunatEnv = ((ambiente_override || config.apisunat_environment || 'sandbox') === 'produccion') ? 'produccion' : 'sandbox'
+    const esSandbox = apisunatEnv === 'sandbox'
 
     // Construir request para APISUNAT con la estructura correcta
     const apiSunatReq = buildApiSunatGuiaRequest({
@@ -147,34 +148,42 @@ export async function POST(req: NextRequest) {
       typeof apiResult.message === 'string' &&
       /emitido anteriormente/i.test(apiResult.message)
 
-    // Actualizar guía en la base de datos
-    const updateData: any = {
-      estado_sunat: (apiResult.success || yaEmitido) ? (apiResult.payload?.estado || 'ACEPTADO') : 'RECHAZADO',
-      ticket_sunat: apiResult.payload?.hash || '',
-      cdr_sunat: apiResult.payload?.cdr || null,
-      xml_sunat: apiResult.payload?.xml || null,
-      pdf_ticket_sunat: apiResult.payload?.pdf?.ticket || null,
-      pdf_a4_sunat: apiResult.payload?.pdf?.a4 || null,
-      enviado_por: null,
-      enviado_at: new Date().toISOString(),
-      error_sunat: (apiResult.success || yaEmitido) ? null : (apiResult.message || 'Error desconocido'),
+    // Un envío a sandbox es solo una prueba: no se persiste nada en la guía real (ni
+    // estado_sunat, ni CDR/XML) para no perder ni ensuciar el registro real cuando
+    // después se envíe de verdad a producción.
+    if (!esSandbox) {
+      const updateData: any = {
+        estado_sunat: (apiResult.success || yaEmitido) ? (apiResult.payload?.estado || 'ACEPTADO') : 'RECHAZADO',
+        ticket_sunat: apiResult.payload?.hash || '',
+        cdr_sunat: apiResult.payload?.cdr || null,
+        xml_sunat: apiResult.payload?.xml || null,
+        pdf_ticket_sunat: apiResult.payload?.pdf?.ticket || null,
+        pdf_a4_sunat: apiResult.payload?.pdf?.a4 || null,
+        enviado_por: null,
+        enviado_at: new Date().toISOString(),
+        error_sunat: (apiResult.success || yaEmitido) ? null : (apiResult.message || 'Error desconocido'),
+      }
+
+      await supabase.from('guias').update(updateData).eq('id', guia_id)
     }
 
-    await supabase.from('guias').update(updateData).eq('id', guia_id)
+    const prefijo = esSandbox ? '[PRUEBA SANDBOX] ' : ''
 
     if (!apiResult.success && !yaEmitido) {
       return NextResponse.json({
         ok: false,
-        error: apiResult.message || 'Error al enviar guía a SUNAT',
+        es_sandbox: esSandbox,
+        error: prefijo + (apiResult.message || 'Error al enviar guía a SUNAT'),
         details: apiResult,
       }, { status: 400 })
     }
 
     return NextResponse.json({
       ok: true,
-      message: yaEmitido
+      es_sandbox: esSandbox,
+      message: prefijo + (yaEmitido
         ? 'La guía ya había sido registrada en SUNAT. Estado actualizado a ACEPTADO.'
-        : `Guía enviada a SUNAT: ${apiResult.payload?.estado || 'ACEPTADO'}`,
+        : `Guía enviada a SUNAT: ${apiResult.payload?.estado || 'ACEPTADO'}`),
       hash: apiResult.payload?.hash,
       cdr: apiResult.payload?.cdr,
       xml: apiResult.payload?.xml,

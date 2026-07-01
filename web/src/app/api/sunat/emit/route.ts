@@ -93,6 +93,7 @@ export async function POST(req: NextRequest) {
     let sunatError = ''
     let hash = ''
     let codigoQR = ''
+    let esSandbox = false
 
     const hasApiSunat = config.apisunat_token?.trim()
 
@@ -100,6 +101,7 @@ export async function POST(req: NextRequest) {
       try {
         const apisunatToken = config.apisunat_token.trim()
         const apisunatEnv = ((ambiente_override || config.apisunat_environment || 'sandbox') === 'produccion') ? 'produccion' : 'sandbox'
+        esSandbox = apisunatEnv === 'sandbox'
 
         const apiSunatReq = buildApiSunatRequest({
           tipoComprobante: tipo_comprobante,
@@ -162,6 +164,13 @@ export async function POST(req: NextRequest) {
     const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://maquimary.com.pe').replace(/\/$/, '')
     codigoQR = `${appUrl}/doc/${serie}-${numPadded}`
 
+    // Un envío a sandbox es solo una prueba: nunca debe dejar el documento como
+    // ACEPTADO/ENVIADO de verdad (eso lo sacaría de la cola de pendientes y ya no se
+    // podría enviar a producción). El resultado real de la prueba se devuelve en la
+    // respuesta (mensaje/estado_sunat) para el toast, pero lo que se persiste queda
+    // en PENDIENTE.
+    const estadoParaGuardar = esSandbox ? 'PENDIENTE' : sunatStatus
+
     const facturaData: any = {
       series: serie,
       number: numero,
@@ -176,8 +185,8 @@ export async function POST(req: NextRequest) {
       igv,
       total,
       notes,
-      estado_sunat: sunatStatus,
-      sunat_response: sunatError || 'OK',
+      estado_sunat: estadoParaGuardar,
+      sunat_response: esSandbox ? `[PRUEBA SANDBOX] ${sunatError || 'OK'}` : (sunatError || 'OK'),
       date_millis: now.getTime(),
       codigo_qr: codigoQR,
       hash_cpe: hash,
@@ -240,8 +249,9 @@ export async function POST(req: NextRequest) {
 
     // BUG-07: no descontar stock si el pedido web ya lo hizo al confirmarse
     // BUG-04: RPC atómica — UPDATE en una sola sentencia, sin race condition bajo concurrencia
-    // No volver a descontar en un reintento (ya se descontó — o se intentó — la primera vez)
-    if (!stock_ya_descontado && esPrimerIntento) {
+    // No volver a descontar en un reintento (ya se descontó — o se intentó — la primera vez).
+    // Un envío a sandbox nunca descuenta stock real: es solo una prueba.
+    if (!stock_ya_descontado && esPrimerIntento && !esSandbox) {
       for (const it of items) {
         if (it.producto_id) {
           const { error: stockError } = await supabase.rpc('decrement_stock', {
@@ -263,15 +273,19 @@ export async function POST(req: NextRequest) {
       }).eq('id', 1)
     }
 
+    const prefijo = esSandbox ? '[PRUEBA SANDBOX] ' : ''
     const mensaje = sunatStatus === 'ACEPTADO'
-      ? 'Comprobante aceptado por SUNAT vía APISUNAT.pe'
+      ? `${prefijo}Comprobante aceptado por SUNAT vía APISUNAT.pe`
       : sunatStatus === 'ENVIADO'
-      ? 'Comprobante enviado a SUNAT vía APISUNAT.pe (pendiente)'
-      : `Error: ${sunatError}`
+      ? `${prefijo}Comprobante enviado a SUNAT vía APISUNAT.pe (pendiente)`
+      : `${prefijo}Error: ${sunatError}`
 
     return NextResponse.json({
       ok: sunatStatus === 'ACEPTADO' || sunatStatus === 'ENVIADO',
+      es_sandbox: esSandbox,
       factura: facturaInsert,
+      // estado_sunat: resultado REAL de la prueba (para el toast) — puede diferir de lo
+      // persistido en la fila (estadoParaGuardar), que en sandbox siempre queda PENDIENTE
       estado_sunat: sunatStatus,
       mensaje,
       codigo_qr: codigoQR,
