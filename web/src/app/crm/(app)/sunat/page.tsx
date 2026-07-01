@@ -534,8 +534,12 @@ export default function SunatPage() {
       </div>
 
       {/* Documentos Pendientes */}
-      <div className="bg-accent-cream rounded-xl border border-ink-200 shadow-soft overflow-hidden">
-        <div className="px-6 py-4 border-b border-ink-200 bg-ink-50">
+      {/* Sin overflow-hidden acá: el dropdown de EnviarSunatMenu es position:absolute y
+          necesita poder salirse visualmente del card — overflow-hidden lo recortaba. Las
+          esquinas redondeadas se logran con rounded-t-xl/rounded-b-xl en los hijos con
+          fondo sólido en su lugar. */}
+      <div className="bg-accent-cream rounded-xl border border-ink-200 shadow-soft">
+        <div className="px-6 py-4 border-b border-ink-200 bg-ink-50 rounded-t-xl">
           <div className="flex items-center gap-2">
             <Clock className="w-5 h-5 text-amber-600" />
             <h2 className="font-heading font-semibold text-ink-800">Documentos Pendientes de Envío</h2>
@@ -546,15 +550,15 @@ export default function SunatPage() {
         </div>
 
         {documentosPendientes.length === 0 ? (
-          <div className="p-8 text-center">
+          <div className="p-8 text-center rounded-b-xl">
             <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
             <p className="text-ink-600 font-medium">No hay documentos pendientes</p>
             <p className="text-ink-400 text-sm mt-1">Todos los documentos han sido enviados a SUNAT</p>
           </div>
         ) : (
           <div className="divide-y divide-ink-100">
-            {documentosPendientes.map((doc) => (
-              <div key={doc.id} className="p-4 hover:bg-ink-50/50 transition-colors">
+            {documentosPendientes.map((doc, idx) => (
+              <div key={doc.id} className={`p-4 hover:bg-ink-50/50 transition-colors ${idx === documentosPendientes.length - 1 ? 'rounded-b-xl' : ''}`}>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-start gap-3">
                     <div className="p-2 bg-white rounded-lg border border-ink-200">
@@ -622,8 +626,10 @@ export default function SunatPage() {
       </div>
 
       {/* Documentos Enviados */}
-      <div className="bg-accent-cream rounded-xl border border-ink-200 shadow-soft overflow-hidden">
-        <div className="px-6 py-4 border-b border-ink-200 bg-ink-50">
+      {/* Sin overflow-hidden acá: mismo motivo que la sección de arriba (recortaba el
+          dropdown de EnviarSunatMenu). */}
+      <div className="bg-accent-cream rounded-xl border border-ink-200 shadow-soft">
+        <div className="px-6 py-4 border-b border-ink-200 bg-ink-50 rounded-t-xl">
           <div className="flex items-center gap-2">
             <CheckCircle className="w-5 h-5 text-green-600" />
             <h2 className="font-heading font-semibold text-ink-800">Historial de Envíos</h2>
@@ -634,14 +640,14 @@ export default function SunatPage() {
         </div>
 
         {documentosEnviados.length === 0 ? (
-          <div className="p-8 text-center">
+          <div className="p-8 text-center rounded-b-xl">
             <FileText className="w-12 h-12 text-ink-300 mx-auto mb-3" />
             <p className="text-ink-400">No hay documentos enviados aún</p>
           </div>
         ) : (
           <div className="divide-y divide-ink-100">
-            {documentosEnviados.map((doc) => (
-              <div key={doc.id} className="p-4 hover:bg-ink-50/50 transition-colors">
+            {documentosEnviados.map((doc, idx) => (
+              <div key={doc.id} className={`p-4 hover:bg-ink-50/50 transition-colors ${idx === documentosEnviados.length - 1 ? 'rounded-b-xl' : ''}`}>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-start gap-3">
                     <div className="p-2 bg-white rounded-lg border border-ink-200">

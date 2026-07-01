@@ -148,7 +148,22 @@ export async function POST(req: NextRequest) {
       typeof apiResult.message === 'string' &&
       /emitido anteriormente/i.test(apiResult.message)
 
-    const estadoSunat: string = (apiResult.success || yaEmitido) ? (apiResult.payload?.estado || 'ACEPTADO') : 'RECHAZADO'
+    const prefijoYaEmitido = esSandbox ? '[PRUEBA SANDBOX] ' : ''
+
+    // "Ya fue emitido anteriormente" NO significa que esa emisión previa haya sido
+    // aceptada -- pudo haber sido rechazada. Asumir ACEPTADO acá era un bug real: dejaba
+    // documentos rechazados marcados como aprobados sin verificación real. No se toca el
+    // registro (se deja el estado que ya tenía) y se le pide al usuario verificar directo
+    // en SUNAT/APISUNAT.pe.
+    if (yaEmitido) {
+      return NextResponse.json({
+        ok: false,
+        es_sandbox: esSandbox,
+        error: prefijoYaEmitido + 'SUNAT indica que este documento ya fue registrado anteriormente. No se puede confirmar automáticamente si fue aceptado o rechazado — verifica el estado real en SUNAT (Consulta GREE con Clave SOL) o en el panel de APISUNAT.pe antes de reintentar.',
+      }, { status: 409 })
+    }
+
+    const estadoSunat: string = apiResult.success ? (apiResult.payload?.estado || 'ACEPTADO') : 'RECHAZADO'
     // La columna `estado` (no `estado_sunat`) es la que usa la UI del CRM para decidir
     // en qué lista mostrar la guía y qué badge pintar — sin esto, la guía se quedaba
     // como "Borrador" para siempre aunque SUNAT ya hubiera respondido.
@@ -171,7 +186,7 @@ export async function POST(req: NextRequest) {
         pdf_a4_sunat: apiResult.payload?.pdf?.a4 || null,
         enviado_por: null,
         enviado_at: new Date().toISOString(),
-        error_sunat: (apiResult.success || yaEmitido) ? null : (apiResult.message || 'Error desconocido'),
+        error_sunat: apiResult.success ? null : (apiResult.message || 'Error desconocido'),
       }
 
       await supabase.from('guias').update(updateData).eq('id', guia_id)
@@ -179,7 +194,7 @@ export async function POST(req: NextRequest) {
 
     const prefijo = esSandbox ? '[PRUEBA SANDBOX] ' : ''
 
-    if (!apiResult.success && !yaEmitido) {
+    if (!apiResult.success) {
       return NextResponse.json({
         ok: false,
         es_sandbox: esSandbox,
@@ -193,9 +208,7 @@ export async function POST(req: NextRequest) {
       ok: true,
       es_sandbox: esSandbox,
       estado_sunat: estadoSunat,
-      message: prefijo + (yaEmitido
-        ? 'La guía ya había sido registrada en SUNAT. Estado actualizado a ACEPTADO.'
-        : `Guía enviada a SUNAT: ${apiResult.payload?.estado || 'ACEPTADO'}`),
+      message: prefijo + `Guía enviada a SUNAT: ${apiResult.payload?.estado || 'ACEPTADO'}`,
       hash: apiResult.payload?.hash,
       cdr: apiResult.payload?.cdr,
       xml: apiResult.payload?.xml,

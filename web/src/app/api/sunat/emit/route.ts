@@ -142,8 +142,11 @@ export async function POST(req: NextRequest) {
           // Detectar si SUNAT ya tenía el comprobante registrado (doble envío)
           const yaEmitido = typeof apiResult.message === 'string' && /emitido anteriormente/i.test(apiResult.message)
           if (yaEmitido) {
-            sunatStatus = 'ACEPTADO'
-            sunatError = ''
+            // "Ya fue emitido anteriormente" NO significa que esa emisión previa haya sido
+            // aceptada — pudo haber sido rechazada. Asumir ACEPTADO acá era un bug real:
+            // dejaba documentos rechazados marcados como aprobados sin verificación real.
+            sunatStatus = 'ERROR'
+            sunatError = 'SUNAT indica que este documento ya fue registrado anteriormente. No se puede confirmar automáticamente si fue aceptado o rechazado — verifica el estado real con la herramienta de Consulta de Validez del CPE de SUNAT antes de reintentar.'
           } else {
             sunatStatus = 'ERROR'
             sunatError = JSON.stringify({

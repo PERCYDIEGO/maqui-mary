@@ -416,6 +416,11 @@ export default function NuevaGuiaPage() {
       toast.error('Vincula una GRE Remitente (GRR) para la GRE Transportista');
       return;
     }
+    const hoyPeru = new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    if (fechaInicioTraslado < hoyPeru) {
+      toast.error('La fecha de inicio de traslado no puede ser anterior a hoy — SUNAT rechaza la guía si el traslado es antes de la emisión');
+      return;
+    }
 
     const datosFleteVal = showFlete ? {
       quienPaga: quienPagaFlete,
@@ -901,9 +906,11 @@ export default function NuevaGuiaPage() {
                   <input
                     type="date"
                     value={fechaInicioTraslado}
+                    min={new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString().slice(0, 10)}
                     onChange={(e) => setFechaInicioTraslado(e.target.value)}
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
                   />
+                  <p className="text-xs text-slate-400 mt-1">No puede ser anterior a hoy — SUNAT rechaza guías con traslado antes de la fecha de emisión.</p>
                 </div>
               </div>
               
