@@ -393,3 +393,14 @@ Percy señaló el riesgo justo después de que se implementó el selector sandbo
 - **CAUSA**: SUNAT rechaza cualquier guía donde el traslado comience antes de la fecha de emisión del documento — regla de validación normal, no relacionada a ningún bug del sistema. La guía de prueba tenía una fecha de traslado elegida arbitrariamente en el pasado.
 - **CORRECCIÓN** (commit `b1a1025`): `guias/nueva/page.tsx` — se agregó `min` (fecha de hoy en hora Perú) al input de fecha de inicio de traslado, más una validación dura en `handleSubmit` (por si el navegador permite saltarse el `min` tipeando manualmente) que bloquea el guardado con un toast explicando la regla de SUNAT.
 - **REGLA**: Validar en el frontend las reglas de negocio de SUNAT que son conocidas y verificables (fechas, formatos de campos) antes de intentar el envío — evita rechazos evitables y confunde menos al usuario que descubrirlo recién en la respuesta de SUNAT.
+
+---
+
+### [2026-07-01] Falta PDF/Imprimir en zona Envío SUNAT + confirmación: documentos aceptados no desaparecen de Documentos/Guías
+
+- **CONTEXTO**: Percy pidió (1) que un documento aceptado no desaparezca de `/crm/documentos` ni `/crm/guias`, y (2) que en `/crm/sunat` los documentos tengan opción de descargar PDF e imprimir, igual que en sus páginas dedicadas.
+- **Punto 1 — verificado, ya funcionaba bien**: `documentos/page.tsx` y `guias/page.tsx` no filtran por `estado`, solo por término de búsqueda — un documento `aprobado` sigue apareciendo normalmente. No requirió cambio de código.
+- **Punto 2 — gap real, corregido** (commit `b4d3d36`, revisado con Council UX+UI): `sunat/page.tsx` solo tenía "Vista previa" (modal con datos + XML técnico), sin PDF real ni impresión. Se agregó el componente ya existente `PDFGenerator` (mismo que usan `/crm/documentos` y `/crm/guias`, con botones Descargar/Imprimir ya integrados) en ambas secciones ("Documentos Pendientes de Envío" e "Historial de Envíos"), junto al botón "Vista previa".
+- **Detalle técnico**: `PDFGenerator` espera el objeto completo (`Boleta | Factura | GuiaRemision`), pero `sunat/page.tsx` solo tiene una interfaz local simplificada (`DocumentoPendiente`). Se resolvió con un `.find()` por id sobre los arrays `boletas`/`facturas`/`guias` ya disponibles vía `useApp()` (opción evaluada y aprobada por el crítico de UI del Council, en vez de modificar la interfaz `DocumentoPendiente` y las 4 funciones que la construyen — menos código, sin tocar tipos existentes).
+- **Recordatorio aplicado**: `PDFGenerator` se importó con `dynamic(..., { ssr: false })`, igual que en el resto del proyecto (regla ya documentada: html2canvas/jsPDF crashean en SSR si se importan estáticamente).
+- **REGLA**: Antes de decir "no funciona" o pedir un fix, verificar primero si el comportamiento reportado es realmente un bug (revisar el código) — en este caso el punto 1 ya estaba bien y no necesitaba ningún cambio, evitando tocar código que no tenía el problema.
