@@ -82,6 +82,7 @@ interface AppContextType extends AppState {
   aprobarDocumento: (documentoId: string, tipo: 'boleta' | 'factura') => Promise<void>;
   rechazarDocumento: (documentoId: string, tipo: 'boleta' | 'factura', motivo: string) => Promise<void>;
   eliminarDocumentoRechazado: (documentoId: string, tipo: 'boleta' | 'factura' | 'guia') => Promise<void>;
+  anularDocumento: (documentoId: string, tipo: 'boleta' | 'factura', motivo: string, ambienteOverride?: 'sandbox' | 'produccion') => Promise<{ success: boolean; message: string }>;
 
   // Carga bajo demanda para CRM
   loadCrmData: () => Promise<void>;
@@ -1011,6 +1012,50 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     showNotificacion('success', 'Documento eliminado correctamente')
   }, [boletas, facturas, guias, showNotificacion])
 
+  // Anula (Comunicación de Baja / Resumen Diario) una factura o boleta ya aceptada por
+  // SUNAT. Las guías no se pueden anular por este medio — SUNAT no lo permite.
+  const anularDocumento = useCallback(async (documentoId: string, tipo: 'boleta' | 'factura', motivo: string, ambienteOverride?: 'sandbox' | 'produccion'): Promise<{ success: boolean; message: string }> => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const authHeaders: HeadersInit = { 'Content-Type': 'application/json' }
+      if (session?.access_token) authHeaders['Authorization'] = `Bearer ${session.access_token}`
+
+      const response = await fetch('/api/sunat/void', {
+        method: 'POST',
+        headers: authHeaders,
+        body: JSON.stringify({ documento_id: documentoId, tipo, motivo, ambiente_override: ambienteOverride }),
+      })
+
+      const result = await response.json()
+      const esSandbox = result.es_sandbox === true
+
+      if (!response.ok || !result.ok) {
+        const errorMsg = result.error || result.mensaje || 'Error al anular el documento'
+        return { success: false, message: errorMsg }
+      }
+
+      if (esSandbox) {
+        return { success: true, message: result.mensaje || 'Prueba en sandbox completada' }
+      }
+
+      // Solo se marca "anulado" en el estado local si SUNAT ya confirmó (no si quedó
+      // pendiente en el resumen diario de una boleta).
+      if (result.estado_sunat === 'ANULADO') {
+        const docActualizado: any = { estado: 'anulado', motivoAnulacion: motivo }
+        if (tipo === 'boleta') {
+          setBoletasState(prev => prev.map(b => b.id === documentoId ? { ...b, ...docActualizado } : b))
+        } else {
+          setFacturasState(prev => prev.map(f => f.id === documentoId ? { ...f, ...docActualizado } : f))
+        }
+      }
+
+      return { success: true, message: result.mensaje || 'Anulación procesada' }
+    } catch (error: any) {
+      console.error('Error anulando documento:', error)
+      return { success: false, message: error.message || 'Error al anular el documento' }
+    }
+  }, [])
+
   const rechazarDocumento = useCallback(async (documentoId: string, tipo: 'boleta' | 'factura', motivo: string) => {
     const docExistente = tipo === 'boleta'
       ? boletas.find(b => b.id === documentoId)
@@ -1107,6 +1152,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     aprobarDocumento,
     rechazarDocumento,
     eliminarDocumentoRechazado,
+    anularDocumento,
     showNotificacion,
     hideNotificacion,
     setLoading,

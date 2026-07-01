@@ -53,6 +53,9 @@ export interface DocumentoBase {
   cdr?: CDRData;         // Constancia de Recepción de SUNAT
   enviadoPor?: string;   // ID del usuario que envió a SUNAT
   enviadoAt?: Date;      // Fecha de envío a SUNAT
+  motivoAnulacion?: string; // Motivo de la Comunicación de Baja / Resumen Diario de anulación
+  anuladoPor?: string;
+  anuladoAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }

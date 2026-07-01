@@ -141,7 +141,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Enviar a APISUNAT (endpoint /api/v3/dispatches para guías)
-    const apiResult = await sendToApiSunat(apiSunatReq, apisunatToken, apisunatEnv, true)
+    const apiResult = await sendToApiSunat(apiSunatReq, apisunatToken, apisunatEnv, 'dispatches')
 
     // Detectar si SUNAT ya tenía el comprobante registrado (doble envío)
     const yaEmitido = !apiResult.success &&

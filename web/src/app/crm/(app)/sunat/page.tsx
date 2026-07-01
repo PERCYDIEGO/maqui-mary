@@ -32,6 +32,16 @@ interface DocumentoPendiente {
   enviadoAt?: Date;
 }
 
+// Catálogo de motivos de anulación — un dropdown reduce el riesgo de que alguien escriba
+// un motivo vago que complique una eventual fiscalización. "Otro" habilita texto libre.
+const MOTIVOS_ANULACION = [
+  'Error en el comprobante (datos incorrectos)',
+  'Operación no realizada / venta anulada',
+  'Error en RUC/DNI del cliente',
+  'Documento duplicado',
+  'Otro',
+] as const;
+
 // Selector de ambiente al momento de enviar: un solo trigger (no ocupa espacio extra en
 // mobile) que abre un menú con las 2 opciones fuertemente diferenciadas por color/ícono/texto.
 // Producción nunca se ejecuta directo desde acá — dispara la confirmación del padre.
@@ -93,7 +103,7 @@ function EnviarSunatMenu({
 }
 
 export default function SunatPage() {
-  const { boletas, facturas, guias, enviarDocumentoSUNAT, enviarGuiaSUNAT, aprobarDocumento, rechazarDocumento, eliminarDocumentoRechazado } = useApp();
+  const { boletas, facturas, guias, enviarDocumentoSUNAT, enviarGuiaSUNAT, aprobarDocumento, rechazarDocumento, eliminarDocumentoRechazado, anularDocumento } = useApp();
   const [procesando, setProcesando] = useState<string | null>(null);
   const [motivoRechazo, setMotivoRechazo] = useState('');
   const [documentoRechazando, setDocumentoRechazando] = useState<string | null>(null);
@@ -105,6 +115,11 @@ export default function SunatPage() {
   const [ambienteGlobal, setAmbienteGlobal] = useState<'sandbox' | 'produccion'>('sandbox');
   const [menuEnviarAbierto, setMenuEnviarAbierto] = useState<string | null>(null);
   const [confirmarProduccion, setConfirmarProduccion] = useState<{ doc: DocumentoPendiente; reenvio: boolean } | null>(null);
+  const [anulando, setAnulando] = useState<string | null>(null);
+  const [documentoAnulando, setDocumentoAnulando] = useState<DocumentoPendiente | null>(null);
+  const [motivoAnulacion, setMotivoAnulacion] = useState('');
+  const [motivoAnulacionOtro, setMotivoAnulacionOtro] = useState('');
+  const [confirmoIrreversible, setConfirmoIrreversible] = useState(false);
 
   // PDFGenerator necesita el objeto completo (Boleta/Factura/GuiaRemision), no el
   // DocumentoPendiente simplificado que arma esta página — se busca por id.
@@ -456,6 +471,36 @@ export default function SunatPage() {
     }
   };
 
+  const handleAnular = async (ambiente: 'sandbox' | 'produccion') => {
+    if (!documentoAnulando) return;
+    const motivoFinal = motivoAnulacion === 'Otro' ? motivoAnulacionOtro.trim() : motivoAnulacion;
+    if (!motivoFinal) {
+      toast.error('Selecciona o escribe un motivo de anulación');
+      return;
+    }
+    if (!confirmoIrreversible) {
+      toast.error('Debes confirmar que entiendes que esta acción es irreversible');
+      return;
+    }
+    setAnulando(documentoAnulando.id);
+    try {
+      const resultado = await anularDocumento(documentoAnulando.id, documentoAnulando.tipo as 'boleta' | 'factura', motivoFinal, ambiente);
+      if (resultado.success) {
+        toast.success(resultado.message);
+        setDocumentoAnulando(null);
+        setMotivoAnulacion('');
+        setMotivoAnulacionOtro('');
+        setConfirmoIrreversible(false);
+      } else {
+        toast.error(resultado.message);
+      }
+    } catch {
+      toast.error('Error al anular el documento');
+    } finally {
+      setAnulando(null);
+    }
+  };
+
   const handleReenviar = async (doc: DocumentoPendiente, ambiente: 'sandbox' | 'produccion') => {
     setMenuEnviarAbierto(null);
     setProcesando(doc.id);
@@ -750,6 +795,18 @@ export default function SunatPage() {
                         </button>
                       </div>
                     )}
+
+                    {/* Anular: solo facturas/boletas ya aprobadas — SUNAT no permite anular guías por este medio */}
+                    {doc.estado === 'aprobado' && doc.tipo !== 'guia' && (
+                      <button
+                        onClick={() => setDocumentoAnulando(doc)}
+                        title="Anular comprobante ante SUNAT"
+                        className="inline-flex items-center gap-1.5 px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-lg font-medium transition-colors text-sm"
+                      >
+                        <XCircle className="w-3.5 h-3.5" />
+                        Anular
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -920,6 +977,92 @@ export default function SunatPage() {
               >
                 <Send className="w-4 h-4" />
                 Sí, emitir a SUNAT
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmación — anular factura/boleta (Comunicación de Baja / Resumen Diario) */}
+      {documentoAnulando && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-900/50">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-elevated p-6 space-y-4 border-2 border-red-500">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-red-100 rounded-xl">
+                <XCircle className="w-5 h-5 text-red-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-heading font-semibold text-ink-800">Anular comprobante</h3>
+                <p className="text-sm text-ink-500 mt-1">
+                  {documentoAnulando.numeroCompleto} — {documentoAnulando.cliente.nombre}
+                  {documentoAnulando.tipo !== 'guia' ? `, ${formatearMoneda(documentoAnulando.importeTotal, documentoAnulando.moneda)}` : ''}
+                </p>
+                <p className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mt-2">
+                  Esta acción es <strong>PERMANENTE</strong>. SUNAT registrará la anulación para siempre y no se puede deshacer. El cliente ya no podrá usar este comprobante para sustentar gasto o crédito fiscal ante SUNAT.
+                </p>
+                <p className="text-xs text-ink-400 mt-2">
+                  {documentoAnulando.tipo === 'factura'
+                    ? 'Las facturas se anulan de inmediato — verás el resultado en segundos.'
+                    : 'Las boletas se anulan dentro del resumen diario de SUNAT — la confirmación puede demorar hasta el cierre del día, no es inmediata.'}
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-ink-700 mb-1">Motivo de anulación *</label>
+              <select
+                value={motivoAnulacion}
+                onChange={(e) => setMotivoAnulacion(e.target.value)}
+                className="w-full px-3 py-2 border border-ink-200 rounded-lg focus:ring-2 focus:ring-accent-terracotta outline-none text-sm"
+              >
+                <option value="">Selecciona un motivo...</option>
+                {MOTIVOS_ANULACION.map(m => <option key={m} value={m}>{m}</option>)}
+              </select>
+              {motivoAnulacion === 'Otro' && (
+                <input
+                  type="text"
+                  value={motivoAnulacionOtro}
+                  onChange={(e) => setMotivoAnulacionOtro(e.target.value)}
+                  placeholder="Escribe el motivo..."
+                  className="w-full mt-2 px-3 py-2 border border-ink-200 rounded-lg focus:ring-2 focus:ring-accent-terracotta outline-none text-sm"
+                />
+              )}
+            </div>
+
+            <label className="flex items-start gap-2 text-sm text-ink-700 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={confirmoIrreversible}
+                onChange={(e) => setConfirmoIrreversible(e.target.checked)}
+                className="mt-0.5"
+              />
+              Entiendo que esta acción es irreversible y que SUNAT registrará la anulación de forma permanente.
+            </label>
+
+            <div className="flex flex-wrap gap-2 justify-end pt-2">
+              <button
+                onClick={() => { setDocumentoAnulando(null); setMotivoAnulacion(''); setMotivoAnulacionOtro(''); setConfirmoIrreversible(false); }}
+                className="px-4 py-2 border border-ink-200 text-ink-700 rounded-xl font-medium hover:bg-ink-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => handleAnular('sandbox')}
+                disabled={anulando === documentoAnulando.id}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl font-medium transition-colors disabled:opacity-50"
+              >
+                <FlaskConical className="w-4 h-4" />
+                Probar en Sandbox
+              </button>
+              <button
+                onClick={() => handleAnular('produccion')}
+                disabled={anulando === documentoAnulando.id}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition-colors disabled:opacity-50"
+              >
+                {anulando === documentoAnulando.id
+                  ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  : <XCircle className="w-4 h-4" />}
+                Sí, anular en SUNAT
               </button>
             </div>
           </div>

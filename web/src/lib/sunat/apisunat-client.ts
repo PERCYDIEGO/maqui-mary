@@ -95,6 +95,52 @@ export interface ApiSunatGuiaRequest {
   items: ApiSunatGuiaItem[]
 }
 
+// ─── Anular Factura (Comunicación de Baja) ───
+export interface ApiSunatVoidRequest {
+  documento: 'comunicacion_baja'
+  motivo: string
+  documento_afectado: {
+    documento: 'factura'
+    serie: string
+    numero: string
+  }
+}
+
+// ─── Anular Boleta (Resumen Diario, acción anular) ───
+export interface ApiSunatSummaryRequest {
+  documento: 'resumen_diario'
+  documentos_afectados: Array<{
+    accion_resumen: 'anular'
+    documento: 'boleta'
+    serie: string
+    numero: string
+  }>
+}
+
+export function buildApiSunatVoidRequest(params: { serie: string; numero: number; motivo: string }): ApiSunatVoidRequest {
+  return {
+    documento: 'comunicacion_baja',
+    motivo: params.motivo,
+    documento_afectado: {
+      documento: 'factura',
+      serie: params.serie,
+      numero: String(params.numero),
+    },
+  }
+}
+
+export function buildApiSunatSummaryRequest(params: { serie: string; numero: number }): ApiSunatSummaryRequest {
+  return {
+    documento: 'resumen_diario',
+    documentos_afectados: [{
+      accion_resumen: 'anular',
+      documento: 'boleta',
+      serie: params.serie,
+      numero: String(params.numero),
+    }],
+  }
+}
+
 // ─── Response ───
 export interface ApiSunatPayload {
   estado: 'ACEPTADO' | 'PENDIENTE' | 'RECHAZADO'
@@ -310,21 +356,26 @@ export function buildApiSunatGuiaRequest(params: {
 
 const EMPRESA_RUC = '20606218801'
 
+const ENDPOINT_PATHS: Record<string, string> = {
+  documents: '/api/v3/documents',
+  dispatches: '/api/v3/dispatches',
+  voided: '/api/v3/voided',
+  'daily-summary': '/api/v3/daily-summary',
+}
+
 export async function sendToApiSunat(
-  request: ApiSunatRequest | ApiSunatGuiaRequest,
+  request: ApiSunatRequest | ApiSunatGuiaRequest | ApiSunatVoidRequest | ApiSunatSummaryRequest,
   token: string,
   env: ApiSunatEnv = 'sandbox',
-  isGuia: boolean = false,
+  endpoint: 'documents' | 'dispatches' | 'voided' | 'daily-summary' = 'documents',
 ): Promise<ApiSunatResponse> {
   const baseUrl = getApiSunatBaseUrl(env)
-  const url = isGuia
-    ? `${baseUrl}/api/v3/dispatches`
-    : `${baseUrl}/api/v3/documents`
+  const url = `${baseUrl}${ENDPOINT_PATHS[endpoint]}`
 
   const bodyPayload = JSON.stringify(request)
-  if (isGuia) {
+  if (endpoint !== 'documents') {
     // eslint-disable-next-line no-console
-    console.log('[APISUNAT GUÍA REQUEST]', bodyPayload)
+    console.log(`[APISUNAT ${endpoint.toUpperCase()} REQUEST]`, bodyPayload)
   }
   const res = await fetch(url, {
     method: 'POST',
@@ -336,7 +387,9 @@ export async function sendToApiSunat(
   })
 
   const body: ApiSunatResponse = await res.json()
-  // eslint-disable-next-line no-console
-  console.log('[APISUNAT GUÍA RESPONSE]', JSON.stringify(body))
+  if (endpoint !== 'documents') {
+    // eslint-disable-next-line no-console
+    console.log(`[APISUNAT ${endpoint.toUpperCase()} RESPONSE]`, JSON.stringify(body))
+  }
   return body
 }
