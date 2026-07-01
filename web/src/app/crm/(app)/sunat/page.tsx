@@ -600,7 +600,7 @@ export default function SunatPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center flex-wrap justify-end gap-3">
                     <div className="text-right">
                       {doc.tipo !== 'guia' && (
                         <>
@@ -697,7 +697,7 @@ export default function SunatPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center flex-wrap justify-end gap-3">
                     <div className="text-right">
                       {doc.tipo !== 'guia' && (
                         <p className="font-heading font-bold text-accent-terracotta">
