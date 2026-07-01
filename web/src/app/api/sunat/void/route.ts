@@ -83,6 +83,9 @@ export async function POST(req: NextRequest) {
         ok: false,
         es_sandbox: esSandbox,
         error: (esSandbox ? '[PRUEBA SANDBOX] ' : '') + detalle,
+        // Volcado completo de lo que devolvió APISUNAT.pe, sin depender de ver logs
+        // del servidor por separado — se muestra directo en el mensaje al usuario.
+        debug_raw: JSON.stringify({ enviado: apiSunatReq, respuesta: apiResult }),
       }, { status: 400 })
     }
 

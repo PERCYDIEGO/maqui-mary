@@ -1030,7 +1030,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const esSandbox = result.es_sandbox === true
 
       if (!response.ok || !result.ok) {
-        const errorMsg = result.error || result.mensaje || 'Error al anular el documento'
+        let errorMsg = result.error || result.mensaje || 'Error al anular el documento'
+        if (result.debug_raw) errorMsg += ' | ' + result.debug_raw
         return { success: false, message: errorMsg }
       }
 
