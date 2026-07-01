@@ -7,12 +7,10 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
 import { Plus, Search, FileText, Receipt, Truck, Filter, Pencil, Trash2 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { formatearMoneda } from '@/lib/calculos';
-
-const PDFGenerator = dynamic(() => import('@/components/pdf/PDFGenerator'), { ssr: false });
+import DocumentoPdfLink from '@/components/pdf/DocumentoPdfLink';
 
 type TipoDocumento = 'boletas' | 'facturas' | 'guias';
 
@@ -163,7 +161,7 @@ export default function DocumentosPage() {
                             <Pencil className="w-4 h-4" />
                           </Link>
                         )}
-                        <PDFGenerator documento={doc} tipo={tabActiva.slice(0, -1) as any} />
+                        <DocumentoPdfLink documento={doc} tipo={tabActiva.slice(0, -1) as any} />
                         {doc.estado === 'borrador' && (
                           confirmDelete === doc.id ? (
                             <button

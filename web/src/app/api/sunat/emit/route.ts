@@ -93,6 +93,10 @@ export async function POST(req: NextRequest) {
     let sunatError = ''
     let hash = ''
     let codigoQR = ''
+    // PDF oficial (A4) que genera APISUNAT.pe — con el QR en el formato exacto que exige
+    // SUNAT (RUC|tipo|serie|numero|igv|total|fecha|...). El PDF que arma esta app con
+    // html2canvas/jsPDF usa un QR propio (URL a maquimary.com.pe) que NO sigue ese formato.
+    let pdfUrlOficial = ''
     let esSandbox = false
 
     const hasApiSunat = config.apisunat_token?.trim()
@@ -129,6 +133,7 @@ export async function POST(req: NextRequest) {
           const estado = apiResult.payload.estado
           sunatStatus = estado === 'ACEPTADO' ? 'ACEPTADO' : estado === 'RECHAZADO' ? 'RECHAZADO' : 'PENDIENTE'
           hash = apiResult.payload.hash
+          pdfUrlOficial = apiResult.payload.pdf?.a4 || apiResult.payload.pdf?.ticket || ''
 
           if (estado === 'ACEPTADO') {
             sunatError = ''
@@ -193,6 +198,7 @@ export async function POST(req: NextRequest) {
       date_millis: now.getTime(),
       codigo_qr: codigoQR,
       hash_cpe: hash,
+      pdf_url: esSandbox ? null : (pdfUrlOficial || null),
       forma_pago: forma_pago || 'contado',
       tipo_cambio: tipo_cambio ? parseFloat(tipo_cambio) : null,
       guia_remision: guia_remision || '',
@@ -293,6 +299,7 @@ export async function POST(req: NextRequest) {
       mensaje,
       codigo_qr: codigoQR,
       hash_cpe: hash,
+      pdf_url: esSandbox ? '' : pdfUrlOficial,
     })
 
   } catch (e: any) {

@@ -6,11 +6,9 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
 import { Plus, Search, Truck, Pencil, Send, Loader2, Trash2 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
-
-const PDFGenerator = dynamic(() => import('@/components/pdf/PDFGenerator'), { ssr: false });
+import DocumentoPdfLink from '@/components/pdf/DocumentoPdfLink';
 
 const ESTADO_CONFIG = {
   borrador:  { label: 'Borrador',  bg: 'bg-slate-100', text: 'text-slate-600' },
@@ -157,7 +155,7 @@ export default function GuiasPage() {
                           )}
                         </button>
                       )}
-                      <PDFGenerator documento={guia} tipo="guia" />
+                      <DocumentoPdfLink documento={guia} tipo="guia" />
                       {guia.estado === 'borrador' && (
                         confirmDelete === guia.id ? (
                           <button

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import dynamic from 'next/dynamic';
 import { Send, CheckCircle, XCircle, Clock, FileText, AlertTriangle, Eye, X, Code, User, Trash2, Stethoscope, FlaskConical, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { useApp } from '@/context/AppContext';
@@ -9,9 +8,7 @@ import { formatearMoneda } from '@/lib/calculos';
 import { EMPRESA_DATA } from '@/types/documentos';
 import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
-
-// dynamic + ssr:false: html2canvas/jsPDF (usados dentro de PDFGenerator) crashean en SSR
-const PDFGenerator = dynamic(() => import('@/components/pdf/PDFGenerator'), { ssr: false });
+import DocumentoPdfLink from '@/components/pdf/DocumentoPdfLink';
 
 type TipoDocumento = 'boleta' | 'factura' | 'guia';
 
@@ -620,7 +617,7 @@ export default function SunatPage() {
                       Vista previa
                     </button>
                     {getDocumentoCompleto(doc) && (
-                      <PDFGenerator documento={getDocumentoCompleto(doc)!} tipo={doc.tipo} />
+                      <DocumentoPdfLink documento={getDocumentoCompleto(doc)!} tipo={doc.tipo} />
                     )}
                     <EnviarSunatMenu
                       doc={doc}
@@ -707,7 +704,7 @@ export default function SunatPage() {
                     </div>
 
                     {getDocumentoCompleto(doc) && (
-                      <PDFGenerator documento={getDocumentoCompleto(doc)!} tipo={doc.tipo} />
+                      <DocumentoPdfLink documento={getDocumentoCompleto(doc)!} tipo={doc.tipo} />
                     )}
 
                     {doc.estado === 'enviado' && (

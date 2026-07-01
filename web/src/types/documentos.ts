@@ -48,6 +48,7 @@ export interface DocumentoBase {
   estado: EstadoDocumento;
   qrCode?: string;
   hashCpe?: string;
+  pdfUrl?: string;       // PDF oficial (A4) generado por APISUNAT.pe — QR conforme SUNAT
   // Datos SUNAT
   cdr?: CDRData;         // Constancia de Recepción de SUNAT
   enviadoPor?: string;   // ID del usuario que envió a SUNAT

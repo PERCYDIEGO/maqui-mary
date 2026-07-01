@@ -374,6 +374,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             cdrSUNAT: row.cdr_sunat,
             xmlSUNAT: row.xml_sunat,
             pdfSUNAT: row.pdf_ticket_sunat,
+            pdfUrl: row.pdf_a4_sunat || row.pdf_ticket_sunat,
             errorSUNAT: row.error_sunat,
             enviadoPor: row.enviado_por,
             enviadoAt: row.enviado_at ? new Date(row.enviado_at) : undefined,
@@ -731,6 +732,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         estado: nuevoEstado,
         enviadoPor: userId,
         enviadoAt: ahora,
+        pdfUrl: result.pdf_url || undefined,
         cdr: {
           codigo: nuevoEstado === 'aprobado'
             ? (result.factura?.ticket_sunat || result.factura?.cdr_codigo || '0')
@@ -916,6 +918,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           estado: nuevoEstadoGuia as any,
           hashSUNAT: result.hash,
           cdrSUNAT: result.cdr,
+          pdfUrl: result.pdf?.a4 || result.pdf?.ticket || undefined,
         } : g
       ));
 

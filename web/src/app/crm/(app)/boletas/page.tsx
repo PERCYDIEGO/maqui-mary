@@ -6,12 +6,10 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
 import { Plus, Search, Filter, Pencil, Truck, Trash2 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { formatearMoneda } from '@/lib/calculos';
-
-const PDFGenerator = dynamic(() => import('@/components/pdf/PDFGenerator'), { ssr: false });
+import DocumentoPdfLink from '@/components/pdf/DocumentoPdfLink';
 
 const ESTADO_CONFIG = {
   borrador:  { label: 'Borrador',  bg: 'bg-slate-100', text: 'text-slate-600' },
@@ -171,7 +169,7 @@ export default function BoletasPage() {
                         >
                           <Truck className="w-4 h-4" />
                         </Link>
-                        <PDFGenerator documento={boleta} tipo="boleta" />
+                        <DocumentoPdfLink documento={boleta} tipo="boleta" />
                         {confirmDelete === boleta.id ? (
                           <button
                             onClick={() => { eliminarDocumentoRechazado(boleta.id, 'boleta'); setConfirmDelete(null); }}

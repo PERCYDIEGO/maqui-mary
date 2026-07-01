@@ -6,12 +6,10 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
 import { Plus, Search, Filter, Pencil, Truck, Trash2 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { formatearMoneda } from '@/lib/calculos';
-
-const PDFGenerator = dynamic(() => import('@/components/pdf/PDFGenerator'), { ssr: false });
+import DocumentoPdfLink from '@/components/pdf/DocumentoPdfLink';
 
 const ESTADO_CONFIG = {
   borrador:  { label: 'Borrador',  bg: 'bg-slate-100', text: 'text-slate-600' },
@@ -156,7 +154,7 @@ export default function FacturasPage() {
                         >
                           <Truck className="w-4 h-4" />
                         </Link>
-                        <PDFGenerator documento={factura} tipo="factura" />
+                        <DocumentoPdfLink documento={factura} tipo="factura" />
                         {confirmDelete === factura.id ? (
                           <button
                             onClick={() => { eliminarDocumentoRechazado(factura.id, 'factura'); setConfirmDelete(null); }}
