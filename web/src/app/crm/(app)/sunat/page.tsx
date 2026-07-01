@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { Send, CheckCircle, XCircle, Clock, FileText, AlertTriangle, Eye, X, Code, User, Trash2, Stethoscope, FlaskConical, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { useApp } from '@/context/AppContext';
@@ -8,6 +9,9 @@ import { formatearMoneda } from '@/lib/calculos';
 import { EMPRESA_DATA } from '@/types/documentos';
 import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
+
+// dynamic + ssr:false: html2canvas/jsPDF (usados dentro de PDFGenerator) crashean en SSR
+const PDFGenerator = dynamic(() => import('@/components/pdf/PDFGenerator'), { ssr: false });
 
 type TipoDocumento = 'boleta' | 'factura' | 'guia';
 
@@ -104,6 +108,13 @@ export default function SunatPage() {
   const [ambienteGlobal, setAmbienteGlobal] = useState<'sandbox' | 'produccion'>('sandbox');
   const [menuEnviarAbierto, setMenuEnviarAbierto] = useState<string | null>(null);
   const [confirmarProduccion, setConfirmarProduccion] = useState<{ doc: DocumentoPendiente; reenvio: boolean } | null>(null);
+
+  // PDFGenerator necesita el objeto completo (Boleta/Factura/GuiaRemision), no el
+  // DocumentoPendiente simplificado que arma esta página — se busca por id.
+  const getDocumentoCompleto = (doc: DocumentoPendiente) =>
+    doc.tipo === 'boleta' ? boletas.find(b => b.id === doc.id)
+    : doc.tipo === 'factura' ? facturas.find(f => f.id === doc.id)
+    : guias.find(g => g.id === doc.id);
 
   useEffect(() => {
     supabase.from('profiles').select('id, full_name, alias').then(({ data }) => {
@@ -608,6 +619,9 @@ export default function SunatPage() {
                       <Eye className="w-4 h-4" />
                       Vista previa
                     </button>
+                    {getDocumentoCompleto(doc) && (
+                      <PDFGenerator documento={getDocumentoCompleto(doc)!} tipo={doc.tipo} />
+                    )}
                     <EnviarSunatMenu
                       doc={doc}
                       label="Enviar"
@@ -691,6 +705,10 @@ export default function SunatPage() {
                         </p>
                       )}
                     </div>
+
+                    {getDocumentoCompleto(doc) && (
+                      <PDFGenerator documento={getDocumentoCompleto(doc)!} tipo={doc.tipo} />
+                    )}
 
                     {doc.estado === 'enviado' && (
                       <div className="flex gap-2">
