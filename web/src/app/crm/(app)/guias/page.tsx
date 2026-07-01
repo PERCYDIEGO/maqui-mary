@@ -158,21 +158,23 @@ export default function GuiasPage() {
                         </button>
                       )}
                       <PDFGenerator documento={guia} tipo="guia" />
-                      {confirmDelete === guia.id ? (
-                        <button
-                          onClick={() => { eliminarDocumentoRechazado(guia.id, 'guia'); setConfirmDelete(null); }}
-                          className="px-2 py-1 text-xs font-semibold bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                        >
-                          ¿Eliminar?
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => setConfirmDelete(guia.id)}
-                          className="p-1.5 hover:bg-red-100 text-red-400 hover:text-red-600 rounded-lg transition-colors"
-                          title="Eliminar guía"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                      {guia.estado === 'borrador' && (
+                        confirmDelete === guia.id ? (
+                          <button
+                            onClick={() => { eliminarDocumentoRechazado(guia.id, 'guia'); setConfirmDelete(null); }}
+                            className="px-2 py-1 text-xs font-semibold bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                          >
+                            ¿Eliminar?
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => setConfirmDelete(guia.id)}
+                            className="p-1.5 hover:bg-red-100 text-red-400 hover:text-red-600 rounded-lg transition-colors"
+                            title="Eliminar guía"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )
                       )}
                     </div>
                   </td>

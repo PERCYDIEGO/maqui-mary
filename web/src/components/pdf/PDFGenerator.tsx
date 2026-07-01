@@ -366,8 +366,8 @@ export default function PDFGenerator({ documento, tipo }: PDFGeneratorProps) {
           <div class="section-title">DATOS DEL TRASLADO</div>
           <div class="guia-datos-traslado">
             <div class="col">
-              <p><span class="label">Fecha de Inicio de Traslado:</span> ${guia.fechaInicioTraslado ? new Date(guia.fechaInicioTraslado).toLocaleDateString('es-PE') : 'N/A'}</p>
-              ${guia.fechaEntregaTransportista ? `<p><span class="label">Fecha Entrega a Transportista:</span> ${new Date(guia.fechaEntregaTransportista).toLocaleDateString('es-PE')}</p>` : ''}
+              <p><span class="label">Fecha de Inicio de Traslado:</span> ${guia.fechaInicioTraslado ? new Date(guia.fechaInicioTraslado).toLocaleDateString('es-PE', { timeZone: 'UTC' }) : 'N/A'}</p>
+              ${guia.fechaEntregaTransportista ? `<p><span class="label">Fecha Entrega a Transportista:</span> ${new Date(guia.fechaEntregaTransportista).toLocaleDateString('es-PE', { timeZone: 'UTC' })}</p>` : ''}
               <p><span class="label">Motivo de Traslado:</span> ${guia.motivoTraslado || 'N/A'} - ${motivoLabel}</p>
               <p><span class="label">Modalidad de Transporte:</span> ${guia.modalidadTraslado === 'publico' ? '01 - Transporte público' : '02 - Transporte privado'}</p>
             </div>
@@ -428,8 +428,8 @@ export default function PDFGenerator({ documento, tipo }: PDFGeneratorProps) {
               ${cliente?.direccion ? `<p><span class="label">Dirección:</span> ${cliente.direccion}</p>` : ''}
             </div>
             <div class="col">
-              <p><span class="label">Fecha de Emisión:</span> ${new Date(doc.fechaEmision).toLocaleDateString('es-PE')}</p>
-              ${doc.fechaVencimiento ? `<p><span class="label">Fecha de Vencimiento:</span> ${new Date(doc.fechaVencimiento).toLocaleDateString('es-PE')}</p>` : ''}
+              <p><span class="label">Fecha de Emisión:</span> ${new Date(doc.fechaEmision).toLocaleDateString('es-PE', { timeZone: 'UTC' })}</p>
+              ${doc.fechaVencimiento ? `<p><span class="label">Fecha de Vencimiento:</span> ${new Date(doc.fechaVencimiento).toLocaleDateString('es-PE', { timeZone: 'UTC' })}</p>` : ''}
               <p><span class="label">Forma de Pago:</span> ${esContado ? 'Contado' : 'Crédito'}</p>
               ${doc.formaPagoSunat ? `<p><span class="label">Código SUNAT:</span> ${doc.formaPagoSunat}</p>` : ''}
               ${doc.tipoOperacion ? `<p><span class="label">Tipo de Operación:</span> ${doc.tipoOperacion}</p>` : ''}

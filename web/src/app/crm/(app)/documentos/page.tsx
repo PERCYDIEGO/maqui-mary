@@ -8,7 +8,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { Plus, Search, FileText, Receipt, Truck, Filter } from 'lucide-react';
+import { Plus, Search, FileText, Receipt, Truck, Filter, Pencil, Trash2 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { formatearMoneda } from '@/lib/calculos';
 
@@ -29,9 +29,10 @@ const colorClasses: Record<string, { bg: string; text: string; light: string }> 
 };
 
 export default function DocumentosPage() {
-  const { boletas, facturas, guias } = useApp();
+  const { boletas, facturas, guias, eliminarDocumentoRechazado } = useApp();
   const [tabActiva, setTabActiva] = useState<TipoDocumento>('boletas');
   const [busqueda, setBusqueda] = useState('');
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   const getDocumentos = () => {
     switch (tabActiva) {
@@ -148,7 +149,38 @@ export default function DocumentosPage() {
                       <span className="text-ink-400 text-xs">{new Date(doc.createdAt).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}</span>
                     </td>
                     {tabActiva !== 'guias' && <td className="px-6 py-4 text-right font-semibold text-ink-800">{formatearMoneda(doc.importeTotal, doc.moneda)}</td>}
-                    <td className="px-6 py-4"><div className="flex justify-center"><PDFGenerator documento={doc} tipo={tabActiva.slice(0, -1) as any} /></div></td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-center gap-2">
+                        {doc.estado === 'borrador' && (
+                          <Link
+                            href={`${getNuevaUrl()}?edit=${doc.id}`}
+                            className="p-1.5 hover:bg-ink-200 text-accent-terracotta rounded-lg transition-colors"
+                            title={`Editar ${tabConfig.label.toLowerCase()}`}
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </Link>
+                        )}
+                        <PDFGenerator documento={doc} tipo={tabActiva.slice(0, -1) as any} />
+                        {doc.estado === 'borrador' && (
+                          confirmDelete === doc.id ? (
+                            <button
+                              onClick={() => { eliminarDocumentoRechazado(doc.id, tabActiva.slice(0, -1) as 'boleta' | 'factura' | 'guia'); setConfirmDelete(null); }}
+                              className="px-2 py-1 text-xs font-semibold bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                            >
+                              ¿Eliminar?
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => setConfirmDelete(doc.id)}
+                              className="p-1.5 hover:bg-red-100 text-red-400 hover:text-red-600 rounded-lg transition-colors"
+                              title={`Eliminar ${tabConfig.label.toLowerCase()}`}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )
+                        )}
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
