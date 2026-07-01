@@ -75,10 +75,14 @@ export async function POST(req: NextRequest) {
     )
 
     if (!apiResult.success) {
+      const detalle = apiResult.message
+        || (apiResult.payload ? JSON.stringify(apiResult.payload) : '')
+        || 'APISUNAT.pe no devolvió detalle del error'
+      console.error('[APISUNAT VOID] Falló:', JSON.stringify({ request: apiSunatReq, response: apiResult }))
       return NextResponse.json({
         ok: false,
         es_sandbox: esSandbox,
-        error: (esSandbox ? '[PRUEBA SANDBOX] ' : '') + (apiResult.message || 'Error al anular el documento'),
+        error: (esSandbox ? '[PRUEBA SANDBOX] ' : '') + detalle,
       }, { status: 400 })
     }
 
