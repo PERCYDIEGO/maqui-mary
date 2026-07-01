@@ -37,7 +37,7 @@ switch ($Action) {
         Write-Host "Deployando a Vercel produccion..." -ForegroundColor Cyan
         Set-Location $projectPath
         npx vercel --prod --yes
-        Write-Host "Deploy completado! URL: https://maquimary.vercel.app" -ForegroundColor Green
+        Write-Host "Deploy completado! URL: https://maquimary.com.pe" -ForegroundColor Green
     }
     "preview" {
         Write-Host "Creando deploy preview..." -ForegroundColor Cyan
@@ -47,7 +47,7 @@ switch ($Action) {
     "logs" {
         Write-Host "Obteniendo logs de Vercel..." -ForegroundColor Cyan
         Set-Location $projectPath
-        npx vercel logs maquimary.vercel.app
+        npx vercel logs maquimary.com.pe
     }
     "status" {
         Write-Host "=== Estado del Proyecto ===" -ForegroundColor Cyan

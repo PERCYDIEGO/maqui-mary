@@ -269,3 +269,29 @@ _Archivo inicial creado por project init._
   ```
   Commit `dda70a1`.
 - **REGLA**: El teardown E2E debe eliminar TODOS los registros creados en setup, incluyendo facturas e ítems. El `.test-creds.json` ya guarda `creds.factura` — usarlo. Revisar global-setup al agregar nuevas entidades y reflejarlas en teardown.
+
+---
+
+### [2026-06-30] Editar/Eliminar no aparecían en Documentos (mobile ni desktop) + fecha de traslado mostraba un día antes
+
+- **CONTEXTO**: `src/app/crm/(app)/documentos/page.tsx` — vista unificada de Boletas/Facturas/Guías, única ruta de listado enlazada en el sidebar (`/crm/documentos`). `src/components/pdf/PDFGenerator.tsx` — generador de PDF de comprobantes.
+- **ERROR 1**: El usuario reportó que no podía editar ni eliminar documentos, ni en mobile ni en desktop.
+- **CAUSA 1**: La tabla en `documentos/page.tsx` solo tenía el botón de descarga de PDF en "Acciones". Existía una página dedicada `guias/page.tsx` con editar/eliminar completos, pero esa ruta no está enlazada en el sidebar — el usuario nunca la veía.
+- **ERROR 2**: Al elegir el día 29 como fecha de inicio de traslado (guía de remisión), el PDF mostraba 28.
+- **CAUSA 2**: Los formularios crean fechas "solo fecha" con `new Date("YYYY-MM-DD")`, que JS parsea como medianoche UTC. `PDFGenerator.tsx` las mostraba con `toLocaleDateString('es-PE')` sin especificar zona horaria — en un navegador en Perú (UTC-5) medianoche UTC del día 29 cae en las 19:00 del día 28 hora local.
+- **CORRECCIÓN** (commit `c7f86b8`):
+  - `documentos/page.tsx`: se agregan botones Editar (lápiz, solo si `estado === 'borrador'`) y Eliminar (basura + confirmación inline "¿Eliminar?", **también gateado a `estado === 'borrador'`**) — mismo patrón de `guias/page.tsx`.
+  - `guias/page.tsx`: se agrega el mismo guard `estado === 'borrador'` a Eliminar (antes solo lo tenía Editar) — evita borrar guías ya enviadas/aprobadas por SUNAT desde el CRM.
+  - `PDFGenerator.tsx` líneas 369, 370, 431, 432: se agrega `{ timeZone: 'UTC' }` a `toLocaleDateString('es-PE', ...)` para `fechaInicioTraslado`, `fechaEntregaTransportista`, `fechaEmision` y `fechaVencimiento` de boletas/facturas (todos campos "solo fecha"). **No** se tocó `fechaEmision` de guías (línea 338) porque ese campo se crea con `new Date()` completo (con hora real), no con el patrón "solo fecha" — no tenía el bug.
+  - Verificado con evidencia (no solo supuesto) que el envío real a SUNAT (`apisunat-client.ts` / `api/sunat/guia/route.ts`) usa el string crudo `"YYYY-MM-DD"` del formulario, no el objeto `Date`, así que el documento que llega a SUNAT nunca tuvo este bug — solo afectaba la vista/PDF en el CRM.
+- **REGLA**: (1) Cualquier ruta de listado "reachable" desde el sidebar debe tener el mismo conjunto de acciones (editar/eliminar) que las rutas dedicadas equivalentes — no asumir que una página "hermana" no enlazada cubre la funcionalidad. (2) Un botón Eliminar debe llevar el mismo guard de estado (`borrador`) que Editar; sin ese guard se puede borrar del CRM un documento que SUNAT ya aprobó, rompiendo la correlatividad/trazabilidad local. (3) Al construir un `Date` desde un string "solo fecha" (`new Date("YYYY-MM-DD")`), siempre formatear después con `{ timeZone: 'UTC' }` — nunca con hora local del navegador/servidor.
+
+---
+
+### [2026-06-30] Deploy `vercel --prod` desde la raíz fue al proyecto equivocado — dominio maquimary.com.pe no recibió el fix
+
+- **CONTEXTO**: Repo raíz `D:\proyectos_opencode\projects\Maqui-Mary\` (contiene `deploy.ps1` y su propio `.vercel/project.json`) vs. `web/` (la app Next.js real, con su propio `.vercel/project.json`).
+- **ERROR**: Corrí `vercel --prod` desde la raíz del repo (no desde `web/`). El deploy salió "Ready" sin errores, pero el dominio custom `maquimary.com.pe` seguía sirviendo la versión vieja — el fix no llegó a producción real.
+- **CAUSA**: Existían DOS proyectos Vercel distintos vinculados al mismo repo: la raíz estaba vinculada a un proyecto huérfano llamado `maqui-mary` (`prj_mLWzHZrY165eFdD7P8c7ah8kCpmz`, sin dominio custom, solo con su propio alias `.vercel.app`), mientras que `web/` está vinculado al proyecto real `web` (`prj_iWMCRVhuq85yZPUfzEDyqQemXiop`), que es el único con `maquimary.com.pe` conectado. Ambos `.vercel/project.json` son válidos y el CLI no avisa que hay ambigüedad — simplemente deploya al proyecto que esté linkeado en el directorio actual.
+- **CORRECCIÓN**: Se eliminó `D:\proyectos_opencode\projects\Maqui-Mary\.vercel\` (carpeta local, gitignored, sin impacto en git). Ahora un `vercel --prod` corrido por error desde la raíz obligará a re-linkear en vez de deployar silenciosamente al proyecto huérfano. Se corrigió también el texto de `deploy.ps1` que mostraba la URL vieja `maquimary.vercel.app` en vez de `maquimary.com.pe`. Se re-deployó correctamente desde `web/` y se confirmó "Aliased: https://maquimary.com.pe".
+- **REGLA**: El deploy a producción de Maqui Mary SIEMPRE se hace desde `web/` (ya sea con `.\deploy.ps1 -Action deploy` desde la raíz, que internamente hace `cd web`, o manualmente con `cd web && vercel --prod`). NUNCA correr `vercel --prod` desde la raíz del repo. Si en el futuro aparece de nuevo un `.vercel/project.json` en la raíz, borrarlo — no debe existir un proyecto Vercel vinculado ahí.
